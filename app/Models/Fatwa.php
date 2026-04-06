@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Fatwa extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'question_id',
+        'mufti_answer_id',
+        'published_by',
+        'fatwa_number',
+        'is_featured',
+        'views',
+        'published_at',
+    ];
+
+    protected $casts = [
+        'published_at' => 'datetime',
+        'is_featured'  => 'boolean',
+    ];
+
+    public function question()
+    {
+        return $this->belongsTo(Question::class);
+    }
+
+    public function muftiAnswer()
+    {
+        return $this->belongsTo(MuftiAnswer::class);
+    }
+
+    public function publisher()
+    {
+        return $this->belongsTo(User::class, 'published_by');
+    }
+
+    public function incrementViews()
+    {
+        $this->increment('views');
+    }
+}

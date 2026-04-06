@@ -1,0 +1,90 @@
+@extends('layouts.admin')
+@section('title', 'Write Answer')
+@section('topbar-title', 'Write Answer on Behalf of Mufti')
+@section('content')
+<div class="card border-0 shadow-sm" style="max-width:860px;">
+    <div class="card-header bg-white border-0 py-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-pencil me-2"></i>Write Fatwa Answer — {{ $question->question_id }}</h6>
+    </div>
+    <div class="card-body">
+        {{-- Question Summary --}}
+        <div class="alert alert-light border mb-4">
+            <strong>Question:</strong><br>{{ Str::limit($question->body, 300) }}
+        </div>
+
+        <form method="POST" action="{{ route('admin.questions.answer.store', $question) }}">
+            @csrf
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Answering Mufti <span class="text-danger">*</span></label>
+                <select name="mufti_id" class="form-select @error('mufti_id') is-invalid @enderror" required>
+                    <option value="">Select Mufti...</option>
+                    @foreach($muftis as $m)
+                        <option value="{{ $m->id }}">{{ $m->name }}</option>
+                    @endforeach
+                </select>
+                @error('mufti_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Question Summary <span class="text-danger">*</span></label>
+                <input type="text" name="summary" class="form-control @error('summary') is-invalid @enderror"
+                       placeholder="Brief one-line summary of the question" required>
+                @error('summary')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Full Answer <span class="text-danger">*</span></label>
+                <textarea name="full_answer" rows="8" class="form-control @error('full_answer') is-invalid @enderror"
+                          placeholder="Write the full fatwa answer here..." required></textarea>
+                @error('full_answer')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- Supporting References --}}
+            <div class="mb-4">
+                <label class="form-label fw-semibold"><i class="bi bi-book me-2"></i>Supporting Islamic References</label>
+                <div id="references-container">
+                    <div class="reference-row card border-0 bg-light p-3 mb-3">
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Arabic Text</label>
+                            <textarea name="arabic_text[]" rows="3" class="form-control arabic-text"
+                                      placeholder="اكتب النص العربي هنا..."></textarea>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Book Reference</label>
+                                <input type="text" name="book_name[]" class="form-control" placeholder="e.g. Sahih al-Bukhari">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Language</label>
+                                <select name="ref_language[]" class="form-select">
+                                    <option value="Arabic">Arabic</option>
+                                    <option value="Urdu">Urdu</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" id="add-reference" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i>Add Another Reference
+                </button>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-5">
+                    <i class="bi bi-send me-2"></i>Save & Proceed to Verify
+                </button>
+                <a href="{{ route('admin.questions.show', $question) }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+document.getElementById('add-reference').addEventListener('click', function() {
+    const container = document.getElementById('references-container');
+    const template = container.querySelector('.reference-row').cloneNode(true);
+    template.querySelectorAll('textarea, input').forEach(el => el.value = '');
+    container.appendChild(template);
+});
+</script>
+@endpush
+@endsection
