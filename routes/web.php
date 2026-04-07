@@ -85,6 +85,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/questions/{question}/approve', [QuestionAdminController::class, 'approve'])->name('questions.approve');
     Route::post('/questions/{question}/reject', [QuestionAdminController::class, 'reject'])->name('questions.reject');
     Route::post('/questions/{question}/correction', [QuestionAdminController::class, 'requestCorrection'])->name('questions.correction');
+    Route::get('/questions/{question}/history', [QuestionAdminController::class, 'history'])->name('questions.history');
 
     // File download
     Route::get('/files/{file}/download', [QuestionAdminController::class, 'downloadFile'])->name('files.download');

@@ -12,6 +12,9 @@
                     <span class="badge badge-status-{{ $question->status }}">{{ ucfirst(str_replace('_',' ',$question->status)) }}</span>
                 </div>
                 <div class="d-flex gap-2 no-print">
+                    <a href="{{ route('admin.questions.history', $question) }}" class="btn btn-sm btn-outline-info">
+                        <i class="bi bi-clock-history me-1"></i>History
+                    </a>
                     <button onclick="window.print()" class="btn btn-sm btn-outline-dark"><i class="bi bi-printer me-1"></i>Print</button>
                     <a href="{{ route('admin.questions.index') }}" class="btn btn-sm btn-outline-secondary">← Back</a>
                     @if(in_array($question->status, ['pending']))
@@ -27,6 +30,7 @@
                 else $langClass = '';
             @endphp
             <div class="card-body">
+                <div><small class="text-muted fw-bold">Question Summary (Short Question):</small></div>
                 @if($question->title)<h5 class="fw-bold {{ $langClass }}">{{ $question->title }}</h5>@endif
                 <div class="mb-3"><span class="badge" style="background:#1a7a4a;">{{ $question->madhab == 'Shafii' ? "Shafi'i" : $question->madhab }}</span></div>
                 <div class="{{ $langClass }}" style="line-height:1.8;">{!! $question->body !!}</div>
@@ -142,12 +146,18 @@
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
+                        <label class="form-label fw-semibold">Question Summary (Short Question) <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control" value="{{ $question->title }}" maxlength="200" required>
+                        <small class="text-muted">A clear, brief summary (max 200 chars) for archive headings.</small>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label fw-semibold">Language</label>
                         <select name="language" class="form-select" required>
-                            <option value="Urdu" {{ $question->user->mother_language == 'Urdu' ? 'selected' : '' }}>Urdu</option>
-                            <option value="Arabic" {{ $question->user->mother_language == 'Arabic' ? 'selected' : '' }}>Arabic</option>
-                            <option value="English" {{ $question->user->mother_language == 'English' ? 'selected' : '' }}>English</option>
-                            <option value="Hindi" {{ $question->user->mother_language == 'Hindi' ? 'selected' : '' }}>Hindi</option>
+                            <option value="Urdu" {{ $question->language == 'Urdu' || $question->user->mother_language == 'Urdu' ? 'selected' : '' }}>Urdu</option>
+                            <option value="Arabic" {{ $question->language == 'Arabic' || $question->user->mother_language == 'Arabic' ? 'selected' : '' }}>Arabic</option>
+                            <option value="English" {{ $question->language == 'English' || $question->user->mother_language == 'English' ? 'selected' : '' }}>English</option>
+                            <option value="Hindi" {{ $question->language == 'Hindi' || $question->user->mother_language == 'Hindi' ? 'selected' : '' }}>Hindi</option>
+                            <option value="Malayalam" {{ $question->language == 'Malayalam' || $question->user->mother_language == 'Malayalam' ? 'selected' : '' }}>Malayalam</option>
                         </select>
                     </div>
                     <div class="mb-3">

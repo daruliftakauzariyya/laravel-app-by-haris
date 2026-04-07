@@ -207,7 +207,7 @@
                 {{-- Row 2: Category & Published --}}
                 <div class="row g-0">
                     <div class="col-6">
-                        <div class="meta-item"><span class="meta-label text-dark">Category:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->category->name }}</span></div>
+                        <div class="meta-item"><span class="meta-label text-dark">Category:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->category->name ?? 'Pending' }}</span></div>
                     </div>
                     <div class="col-6">
                         <div class="meta-item"><span class="meta-label text-dark">Published:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->fatwa?->published_at?->format('d-m-Y') ?: 'Pending' }}</span></div>

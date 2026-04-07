@@ -40,7 +40,7 @@
                 <tr>
                     <th>Question ID</th>
                     <th>Questioner</th>
-                    <th>Question</th>
+                    <th>Question Summary</th>
                     <th>Madhab</th>
                     <th>Assigned To</th>
                     <th>Date</th>
@@ -53,7 +53,12 @@
                 <tr>
                     <td><span class="badge bg-secondary">{{ $q->question_id }}</span></td>
                     <td>{{ $q->user->name }}<br><small class="text-muted">{{ $q->user->email }}</small></td>
-                    <td>{{ Str::limit(strip_tags($q->body), 70) }}</td>
+                    <td>
+                        <div class="fw-bold text-dark">{{ $q->title ?: 'No Summary' }}</div>
+                        <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;">
+                            {{ Str::limit(strip_tags($q->body), 50) }}
+                        </small>
+                    </td>
                     <td>{{ $q->madhab == 'Shafii' ? "Shafi'i" : $q->madhab }}</td>
                     <td>{{ $q->assignedMufti?->name ?? '—' }}</td>
                     <td><small class="text-muted">{{ $q->created_at->format('d M Y') }}</small></td>

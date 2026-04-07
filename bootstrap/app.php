@@ -12,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Register global web middleware
+        $middleware->web(append: [
+            \App\Http\Middleware\TrackVisitor::class,
+        ]);
+
         // Register alias middleware
         $middleware->alias([
             'profile.completed' => \App\Http\Middleware\ProfileCompleted::class,

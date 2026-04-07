@@ -7,6 +7,7 @@ use App\Models\Fatwa;
 use App\Models\Question;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\PortalVisitorLog;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -33,12 +34,20 @@ class DashboardController extends Controller
             ->orderByDesc('q_count')
             ->first();
 
-        // Top 5 countries by questioner count
-        $topCountries = User::whereHas('questions')
-            ->whereNotNull('country')
-            ->where('country', '!=', '')
-            ->select('country', DB::raw('count(*) as count'))
-            ->groupBy('country')
+        // Top Countries by visitor count
+        $topCountries = PortalVisitorLog::whereNotNull('country')
+            ->where('country', '!=', 'Unknown')
+            ->select('country', 'country_code', DB::raw('count(*) as count'))
+            ->groupBy('country', 'country_code')
+            ->orderByDesc('count')
+            ->take(5)
+            ->get();
+
+        // Top 5 States/Regions
+        $topStates = PortalVisitorLog::whereNotNull('region')
+            ->where('region', '!=', '')
+            ->select('country', 'region', DB::raw('count(*) as count'))
+            ->groupBy('country', 'region')
             ->orderByDesc('count')
             ->take(5)
             ->get();
@@ -71,7 +80,7 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', compact(
             'stats', 'recentQuestions',
-            'topCategory', 'topCountries',
+            'topCategory', 'topCountries', 'topStates',
             'monthlyLabels', 'monthlyCounts'
         ));
     }

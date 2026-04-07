@@ -8,6 +8,7 @@ use App\Mail\FatwaPublishedMail;
 use App\Mail\QuestionAssignedMail;
 use App\Models\Category;
 use App\Models\Fatwa;
+use App\Models\FatwaActivityLog;
 use App\Models\MuftiAnswer;
 use App\Models\Question;
 use App\Models\SupportingReference;
@@ -53,20 +54,62 @@ class QuestionAdminController extends Controller
         return view('admin.questions.show', compact('question', 'muftis', 'mainCategories', 'subCategories'));
     }
 
+    /** Full fatwa history / timeline */
+    public function history(Question $question)
+    {
+        $question->load([
+            'user', 'category', 'assignedMufti',
+            'muftiAnswer.mufti',
+            'fatwa.publisher', 'fatwa.verifiedBy', 'fatwa.checkedApprovedBy',
+            'fatwa.userViews.user',
+        ]);
+
+        // DB activity logs
+        $logs = \App\Models\FatwaActivityLog::where('question_id', $question->id)
+            ->with('actor')
+            ->orderBy('event_at')
+            ->get();
+
+        // 45-day view snapshots (if fatwa exists)
+        $snapshots = [];
+        if ($question->fatwa) {
+            $snapshots = \App\Models\FatwaViewSnapshot::where('fatwa_id', $question->fatwa->id)
+                ->orderBy('snapshot_date')
+                ->get();
+        }
+
+        // Questioner's personal view history from fatwa_user_views
+        $userViews = $question->fatwa
+            ? \App\Models\FatwaUserView::where('fatwa_id', $question->fatwa->id)
+                ->where('user_id', $question->user_id)
+                ->first()
+            : null;
+
+        return view('admin.questions.history', compact('question', 'logs', 'snapshots', 'userViews'));
+    }
+
     /** Accept and update question details */
     public function accept(Request $request, Question $question)
     {
         $request->validate([
+            'title'       => ['required', 'string', 'max:200'],
             'language'    => ['required', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
         ]);
 
         $question->update([
             'status'      => 'accepted',
+            'title'       => $request->title,
             'language'    => $request->language,
             'category_id' => $request->category_id,
             'accepted_at' => now(),
         ]);
+
+        FatwaActivityLog::log(
+            $question->id, 'accepted', 'Question Accepted & Categorised',
+            'bi-check-circle', 'success',
+            'Categorised under: ' . optional($question->fresh()->category)->name, Auth::id()
+        );
 
         return redirect()->route('admin.questions.show', $question)->with('success', 'Question accepted and categorized successfully.');
     }
@@ -84,6 +127,12 @@ class QuestionAdminController extends Controller
             'status'            => 'assigned',
             'assigned_at'       => now(),
         ]);
+
+        FatwaActivityLog::log(
+            $question->id, 'assigned', 'Assigned to Mufti',
+            'bi-person-check', 'primary',
+            'Assigned to: ' . $mufti->name, Auth::id()
+        );
 
         Mail::to($mufti->email)->send(new QuestionAssignedMail($question));
 
@@ -151,8 +200,22 @@ class QuestionAdminController extends Controller
 
         if ($question->status !== 'published') {
             $question->update(['status' => 'answered']);
+
+            FatwaActivityLog::log(
+                $question->id, 'answer_submitted', 'Answer Written & Submitted for Review',
+                'bi-pencil-square', 'info',
+                'Written by: ' . (User::find($request->mufti_id)?->name ?? 'Admin'),
+                Auth::id()
+            );
+
             return redirect()->route('admin.questions.verify', $question)->with('success', 'Answer saved. Now verify and publish.');
         }
+
+        FatwaActivityLog::log(
+            $question->id, 'answer_updated', 'Published Answer Updated',
+            'bi-pencil', 'warning',
+            'Answer edited after publishing.', Auth::id()
+        );
 
         return redirect()->route('admin.questions.show', $question)->with('success', 'Published answer updated successfully.');
     }
@@ -184,6 +247,11 @@ class QuestionAdminController extends Controller
             'checked_approved_by'  => ['nullable', 'exists:users,id'],
         ]);
 
+        // Ensure Question Title (Summary) is present before publishing
+        if (!$question->title || strlen($question->title) > 200) {
+            return redirect()->back()->withErrors(['title' => 'A Question Summary (max 200 chars) is mandatory for publishing. Please edit the question details first.']);
+        }
+
         $answer = $question->muftiAnswer;
         $answer->update([
             'status'      => 'approved',
@@ -211,6 +279,15 @@ class QuestionAdminController extends Controller
 
         $question->update(['status' => 'published']);
 
+        FatwaActivityLog::log(
+            $question->id, 'published', 'Fatwa Published Publicly',
+            'bi-patch-check-fill', 'success',
+            'Published by: ' . Auth::user()->name .
+            ($request->verified_by ? ' | Verified by: ' . optional(User::find($request->verified_by))->name : '') .
+            ($request->checked_approved_by ? ' | Approved by: ' . optional(User::find($request->checked_approved_by))->name : ''),
+            Auth::id(), $fatwa->id
+        );
+
         // Notify questioner
         Mail::to($question->user->email)->send(new FatwaPublishedMail($fatwa));
 
@@ -227,6 +304,13 @@ class QuestionAdminController extends Controller
             'reviewed_at' => now(),
         ]);
         $question->update(['status' => 'under_review']);
+
+        FatwaActivityLog::log(
+            $question->id, 'rejected', 'Answer Rejected — Returned to Mufti',
+            'bi-x-circle', 'danger',
+            'Admin notes: ' . $request->admin_notes, Auth::id()
+        );
+
         return redirect()->back()->with('success', 'Answer rejected with notes.');
     }
 
@@ -238,6 +322,13 @@ class QuestionAdminController extends Controller
             'admin_notes' => $request->admin_notes,
         ]);
         $question->update(['status' => 'under_review']);
+
+        FatwaActivityLog::log(
+            $question->id, 'correction_requested', 'Correction Requested from Mufti',
+            'bi-arrow-repeat', 'warning',
+            'Admin notes: ' . $request->admin_notes, Auth::id()
+        );
+
         return redirect()->back()->with('success', 'Correction requested from Mufti.');
     }
 

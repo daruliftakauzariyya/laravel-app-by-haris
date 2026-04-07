@@ -66,18 +66,38 @@
         @endif
 
         {{-- Top Countries --}}
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm mb-3">
             <div class="card-header bg-white border-0 py-3">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-globe2 me-2"></i>Top Countries</h6>
+                <h6 class="mb-0 fw-bold"><i class="bi bi-globe2 me-2 text-info"></i>Top Countries</h6>
             </div>
             <div class="card-body py-2">
                 @forelse($topCountries as $c)
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                    <span class="small fw-semibold"><i class="bi bi-geo-alt me-1 text-muted"></i>{{ $c->country }}</span>
-                    <span class="badge bg-success rounded-pill">{{ $c->count }}</span>
+                    <span class="small fw-semibold">
+                        @if($c->country_code) <span class="text-uppercase text-muted me-1">{{ $c->country_code }}</span> @endif
+                        {{ $c->country }}
+                    </span>
+                    <span class="badge bg-primary rounded-pill">{{ $c->count }}</span>
                 </div>
                 @empty
-                <p class="text-muted small py-2 mb-0">No country data yet.</p>
+                <p class="text-muted small py-2 mb-0">Waiting for visitors... (Make sure to run migrations!)</p>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Top States/Regions --}}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt me-2 text-danger"></i>Top States / Regions</h6>
+            </div>
+            <div class="card-body py-2">
+                @forelse($topStates as $s)
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="small fw-semibold">{{ $s->region }} <span class="text-muted small">({{ $s->country }})</span></span>
+                    <span class="badge bg-secondary rounded-pill">{{ $s->count }}</span>
+                </div>
+                @empty
+                <p class="text-muted small py-2 mb-0">No regional data yet.</p>
                 @endforelse
             </div>
         </div>

@@ -12,8 +12,16 @@ Artisan::command('inspire', function () {
 // Mufti Pending Reminder — runs every 3 days
 // ============================================================
 Schedule::command('mufti:send-reminders')
-    ->everyThreeDays()
-    ->at('08:00')
+    ->cron('0 8 */3 * *')
     ->timezone('Asia/Kolkata')
     ->withoutOverlapping()
     ->description('Send pending fatwa reminder to muftis');
+
+// ============================================================
+// Fatwa View Snapshots — every 45 days
+// ============================================================
+Schedule::command('fatwa:snapshot-views')
+    ->cron('0 0 */45 * *')
+    ->timezone('Asia/Kolkata')
+    ->withoutOverlapping()
+    ->description('Snapshot fatwa view counts every 45 days');

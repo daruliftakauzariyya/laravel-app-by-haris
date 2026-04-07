@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Fatwa;
+use App\Models\FatwaActivityLog;
 use App\Models\FatwaUserView;
+use App\Models\FatwaViewSnapshot;
 use Illuminate\Http\Request;
 
 class FatwaController extends Controller
@@ -104,14 +106,27 @@ class FatwaController extends Controller
 
         // Track questioner's own views (logged-in user only)
         if (auth()->check()) {
+            $existed = FatwaUserView::where('fatwa_id', $fatwa->id)
+                ->where('user_id', auth()->id())
+                ->exists();
+
             FatwaUserView::updateOrCreate(
                 ['fatwa_id' => $fatwa->id, 'user_id' => auth()->id()],
-                ['views'    => 1] // default on create
+                ['views'    => 1]
             );
-            // If already exists, increment their personal view count
             FatwaUserView::where('fatwa_id', $fatwa->id)
                 ->where('user_id', auth()->id())
                 ->increment('views');
+
+            // Log first read event in timeline
+            if (!$existed && $fatwa->question->user_id === auth()->id()) {
+                FatwaActivityLog::log(
+                    $fatwa->question_id, 'questioner_read', 'Questioner Read Their Fatwa (First Open)',
+                    'bi-eye', 'info',
+                    auth()->user()->name . ' opened their published fatwa for the first time.',
+                    auth()->id(), $fatwa->id
+                );
+            }
         }
 
         return view('fatwa-show', compact('fatwa', 'relatedFatwas', 'recentFatwas', 'allCategories'));

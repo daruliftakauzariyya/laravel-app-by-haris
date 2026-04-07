@@ -62,7 +62,7 @@
                         <small class="text-muted"><i class="bi bi-calendar me-1"></i>{{ $fatwa->published_at?->format('d M Y') }}</small>
                     </div>
                     <h5 class="fw-bold mb-2 {{ $langClass }}">
-                        {{ $fatwa->question->title ?: Str::limit(strip_tags($fatwa->question->body), 100) }}
+                        {{ Str::limit($fatwa->question->title, 200) }}
                     </h5>
                     <p class="text-muted mb-3 {{ $langClass }}">{{ Str::limit($fatwa->muftiAnswer->summary, 160) }}</p>
                     <div class="d-flex justify-content-between align-items-center">

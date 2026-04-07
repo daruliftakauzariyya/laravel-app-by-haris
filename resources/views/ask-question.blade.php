@@ -18,9 +18,10 @@
         <form method="POST" action="{{ route('question.store') }}" enctype="multipart/form-data" id="askForm">
             @csrf
             <div class="mb-3">
-                <label class="form-label fw-semibold">Question Title <small class="text-muted">(Optional)</small></label>
-                <input type="text" name="title" class="form-control" value="{{ old('title') }}"
-                       placeholder="A brief title for your question">
+                <label class="form-label fw-semibold">Question Title / Summary <span class="text-danger">*</span></label>
+                <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title') }}"
+                       placeholder="A brief summary of your question (max 200 chars)" maxlength="200" required>
+                @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="mb-3">
