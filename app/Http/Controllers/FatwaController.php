@@ -9,24 +9,50 @@ class FatwaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Fatwa::with(['question', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences'])
+        $query = Fatwa::with(['question.category', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences'])
                       ->latest('published_at');
 
+        // Filter by Madhab
         if ($request->filled('madhab')) {
             $query->whereHas('question', fn($q) => $q->where('madhab', $request->madhab));
         }
 
+        // Filter by Category
+        if ($request->filled('category')) {
+            $query->whereHas('question', fn($q) => $q->where('category_id', $request->category));
+        }
+
+        // Universal fatwa search: Question, Answer, Category, References, Madhab
         if ($request->filled('search')) {
             $term = $request->search;
-            $query->whereHas('question', function ($q) use ($term) {
-                $q->where('body', 'like', "%{$term}%")
-                  ->orWhere('title', 'like', "%{$term}%")
-                  ->orWhere('question_id', 'like', "%{$term}%");
+            $query->where(function ($q) use ($term) {
+                // Search in Question
+                $q->whereHas('question', function ($sq) use ($term) {
+                    $sq->where('body', 'like', "%{$term}%")
+                       ->orWhere('title', 'like', "%{$term}%")
+                       ->orWhere('question_id', 'like', "%{$term}%")
+                       ->orWhere('madhab', 'like', "%{$term}%");
+                });
+                // Search in Answer
+                $q->orWhereHas('muftiAnswer', function ($aq) use ($term) {
+                    $aq->where('full_answer', 'like', "%{$term}%")
+                       ->orWhere('summary', 'like', "%{$term}%");
+                });
+                // Search in Category
+                $q->orWhereHas('question.category', function ($cq) use ($term) {
+                    $cq->where('name', 'like', "%{$term}%");
+                });
+                // Search in Supporting References
+                $q->orWhereHas('muftiAnswer.supportingReferences', function ($rq) use ($term) {
+                    $rq->where('arabic_text', 'like', "%{$term}%")
+                       ->orWhere('book_name', 'like', "%{$term}%");
+                });
             });
         }
 
+        $allCategories = \App\Models\Category::whereNull('parent_id')->orderBy('sort_order')->get();
         $fatwas = $query->paginate(10)->withQueryString();
-        return view('fatwa-archive', compact('fatwas'));
+        return view('fatwa-archive', compact('fatwas', 'allCategories'));
     }
 
     public function show(Fatwa $fatwa)

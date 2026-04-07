@@ -127,9 +127,9 @@ class QuestionAdminController extends Controller
             ]
         );
 
-        // If it was already published, we keep it published but update the answer
+        // If it was already published, we keep it approved but update the answer
         if ($question->status === 'published') {
-            $answer->update(['status' => 'reviewed']);
+            $answer->update(['status' => 'approved']);
         }
 
         // Save supporting references (clean and recreate for simplicity)

@@ -32,11 +32,13 @@
         .ur-text { font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; text-align: right; }
         .ml-text { font-family: 'Noto Serif Malayalam', serif; }
 
-        .navbar { background: var(--green) !important; }
-        .navbar-brand { font-size: 1.4rem; font-weight: 700; color: #fff !important; }
+        .navbar { background: var(--green) !important; min-height: 45px; padding-top: 0 !important; padding-bottom: 0 !important; }
+        .navbar .container { min-height: 45px; }
+        .navbar-brand { font-size: 1.1rem; font-weight: 700; color: #fff !important; padding-top: 0; padding-bottom: 0; line-height: 45px; }
         .navbar-brand span { color: var(--gold); }
-        .nav-link { color: rgba(255,255,255,.85) !important; font-weight: 500; }
+        .nav-link { color: rgba(255,255,255,.85) !important; font-weight: 500; padding-top: 0 !important; padding-bottom: 0 !important; line-height: 45px; font-size: 0.88rem; }
         .nav-link:hover, .nav-link.active { color: var(--gold) !important; }
+        .navbar-nav { align-items: center; }
         .btn-primary { background: var(--green); border-color: var(--green); }
         .btn-primary:hover { background: var(--green-dark); border-color: var(--green-dark); }
         .btn-gold { background: var(--gold); border-color: var(--gold); color: #fff; }
