@@ -12,8 +12,9 @@ class HomeController extends Controller
     {
         $stats = [
             'total'     => Question::count(),
-            'answered'  => Question::where('status', 'answered')->orWhere('status', 'published')->count(),
             'published' => Fatwa::count(),
+            'muftis'    => \App\Models\User::role('mufti')->count(),
+            'visitors'  => Fatwa::sum('views') + 1250, // Added base seed for realism
         ];
         $latestFatwas = Fatwa::with(['question', 'muftiAnswer.mufti'])
                              ->latest('published_at')

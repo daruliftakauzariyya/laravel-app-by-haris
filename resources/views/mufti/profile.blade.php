@@ -26,6 +26,14 @@
                 <label class="form-label fw-semibold">Mother Language</label>
                 <input type="text" name="mother_language" class="form-control" value="{{ old('mother_language', $user->mother_language) }}">
             </div>
+            
+            <div class="card bg-light border-0 mb-4 p-3">
+                <div class="form-check form-switch pt-1">
+                    <input class="form-check-input" type="checkbox" name="can_check_approve" id="canCheckApprove" value="1" {{ old('can_check_approve', $user->can_check_approve) ? 'checked' : '' }}>
+                    <label class="form-check-label fw-semibold ms-2" for="canCheckApprove">Has "Checked & Approved" Permission?</label>
+                </div>
+                <small class="text-muted d-block mt-2">If enabled, you will appear in the "Checked & Approved By" dropdown list when Admins publish Fatwas.</small>
+            </div>
             <button type="submit" class="btn btn-primary px-4">Save Changes</button>
         </form>
     </div>

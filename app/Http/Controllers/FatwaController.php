@@ -32,6 +32,20 @@ class FatwaController extends Controller
     public function show(Fatwa $fatwa)
     {
         $fatwa->load(['question.user', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences', 'publisher']);
+
+        $question = $fatwa->question;
+        
+        // Restrict access if not published
+        if ($question->status !== 'published') {
+            $user = auth()->user();
+            if (!$user) {
+                abort(404);
+            }
+            if (!$user->hasRole(['admin', 'mufti']) && $question->user_id !== $user->id) {
+                abort(404);
+            }
+        }
+
         $fatwa->incrementViews();
         return view('fatwa-show', compact('fatwa'));
     }

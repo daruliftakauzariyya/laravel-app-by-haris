@@ -54,7 +54,7 @@
             <h5 class="fw-bold text-green mb-3"><i class="bi bi-check-circle-fill"></i> Mufti's Answer</h5>
             
             <div class="p-3 rounded mt-3" style="font-size: 1.1rem; line-height: 1.6; background-color: #f8FAF8;">
-                {!! nl2br(e($question->muftiAnswer->full_answer)) !!}
+                {!! $question->muftiAnswer->full_answer !!}
             </div>
 
             @if($question->status == 'published')

@@ -68,7 +68,7 @@
             <div class="alert alert-success-subtle border-0 p-3 mb-4" style="background:#f0faf4; border-left:4px solid #1a7a4a !important; border-left-width:4px;">
                 <strong>Summary:</strong> {{ $fatwa->muftiAnswer->summary }}
             </div>
-            <div class="{{ $langClass }}" style="line-height:1.9;">{!! nl2br(e($fatwa->muftiAnswer->full_answer)) !!}</div>
+            <div class="{{ $langClass }}" style="line-height:1.9;">{!! $fatwa->muftiAnswer->full_answer !!}</div>
         </div>
     </div>
 

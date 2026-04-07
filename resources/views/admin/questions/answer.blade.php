@@ -2,6 +2,9 @@
 @section('title', 'Write Answer')
 @section('topbar-title', 'Write Answer on Behalf of Mufti')
 @section('content')
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+@endpush
 <div class="card border-0 shadow-sm" style="max-width:860px;">
     <div class="card-header bg-white border-0 py-3">
         <h6 class="mb-0 fw-bold"><i class="bi bi-pencil me-2"></i>Write Fatwa Answer — {{ $question->question_id }}</h6>
@@ -78,7 +81,20 @@
 </div>
 
 @push('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
 <script>
+$(document).ready(function() {
+    $('textarea[name="full_answer"]').summernote({
+        height: 300,
+        toolbar: [
+            ['style', ['style']],
+            ['font', ['bold', 'italic', 'underline', 'clear']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['view', ['fullscreen', 'codeview', 'help']]
+        ]
+    });
+});
 document.getElementById('add-reference').addEventListener('click', function() {
     const container = document.getElementById('references-container');
     const template = container.querySelector('.reference-row').cloneNode(true);

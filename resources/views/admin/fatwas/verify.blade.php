@@ -26,7 +26,7 @@
                 <div class="alert alert-info border-0 py-2 mb-3">
                     <strong>Summary:</strong> {{ $question->muftiAnswer->summary }}
                 </div>
-                <p style="line-height:1.9;">{{ $question->muftiAnswer->full_answer }}</p>
+                <p style="line-height:1.9;">{!! $question->muftiAnswer->full_answer !!}</p>
             </div>
         </div>
 
@@ -57,6 +57,27 @@
                 <p class="small text-muted mb-3">This will publish the fatwa publicly and notify the questioner by email.</p>
                 <form method="POST" action="{{ route('admin.questions.approve', $question) }}">
                     @csrf
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Verified by:</label>
+                        <select name="verified_by" class="form-select form-select-sm">
+                            <option value="">-- Select Verifier --</option>
+                            @foreach($verifierMuftis as $mufti)
+                                <option value="{{ $mufti->id }}">{{ $mufti->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Checked & Approved by:</label>
+                        <select name="checked_approved_by" class="form-select form-select-sm">
+                            <option value="">-- Select Approver --</option>
+                            @foreach($approverMuftis as $mufti)
+                                <option value="{{ $mufti->id }}">{{ $mufti->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <button class="btn btn-success w-100" onclick="return confirm('Publish this fatwa?')">
                         <i class="bi bi-patch-check me-2"></i>Approve & Publish
                     </button>
