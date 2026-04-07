@@ -178,14 +178,22 @@
 
             {{-- Metadata --}}
             <div class="meta-grid">
-                <div class="row g-0">
+                {{-- Row 1: Qu-Id & Madhab --}}
+                <div class="row g-0 mb-2">
                     <div class="col-6">
-                        <div class="meta-item"><span class="meta-label">Qu-Id:</span> <span class="meta-value">{{ $fatwa->question->question_id }}</span></div>
-                        <div class="meta-item"><span class="meta-label">Category:</span> <span class="meta-value">{{ $fatwa->question->category->name }}</span></div>
+                        <div class="meta-item"><span class="meta-label text-dark">Qu-Id:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $fatwa->question->question_id }}</span></div>
                     </div>
                     <div class="col-6">
-                        <div class="meta-item"><span class="meta-label">Madhab:</span> <span class="meta-value">{{ $fatwa->question->madhab }}</span></div>
-                        <div class="meta-item"><span class="meta-label">Published:</span> <span class="meta-value">{{ $fatwa->published_at?->format('d-m-Y') }}</span></div>
+                        <div class="meta-item"><span class="meta-label text-dark">Madhab:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $fatwa->question->madhab }}</span></div>
+                    </div>
+                </div>
+                {{-- Row 2: Category & Published --}}
+                <div class="row g-0">
+                    <div class="col-6">
+                        <div class="meta-item"><span class="meta-label text-dark">Category:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $fatwa->question->category->name }}</span></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="meta-item"><span class="meta-label text-dark">Published:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $fatwa->published_at?->format('d-m-Y') }}</span></div>
                     </div>
                 </div>
             </div>
@@ -193,7 +201,7 @@
             {{-- Question Content --}}
             <div class="content-body">
                 <span class="section-label">Question:</span>
-                <div class="body-text {{ $langClass }}">{!! nl2br(e($fatwa->question->body)) !!}</div>
+                <div class="body-text {{ $langClass }}">{!! $fatwa->question->body !!}</div>
             </div>
 
             <hr class="mx-4 my-0" style="opacity: 0.1;">
@@ -228,26 +236,26 @@
 
             {{-- Closing & Signatures --}}
             <div class="signature-section">
-                <div class="arabic-block" style="text-align: right; margin-bottom: 20px;">
+                <div class="arabic-block" style="text-align: right; margin-bottom: 25px; border-top: 1px solid #f0f0f0; padding-top: 20px;">
                     والله أعلم بالصواب
                 </div>
 
                 <div class="signature-item">
-                    <span class="sig-label">Written by:</span>
-                    <span class="sig-value">{{ $fatwa->muftiAnswer->mufti->name }}</span>
+                    <span class="sig-label text-dark">Written by:</span>
+                    <span class="sig-value" style="color: #1a7a4a;">{{ $fatwa->muftiAnswer->mufti->name }}</span>
                 </div>
 
                 @if($fatwa->verifiedBy)
                 <div class="signature-item">
-                    <span class="sig-label">Verified by:</span>
-                    <span class="sig-value">{{ $fatwa->verifiedBy->name }}</span>
+                    <span class="sig-label text-dark">Verified by:</span>
+                    <span class="sig-value" style="color: #1a7a4a;">{{ $fatwa->verifiedBy->name }}</span>
                 </div>
                 @endif
 
                 @if($fatwa->checkedApprovedBy)
                 <div class="signature-item">
-                    <span class="sig-label">Checked & Approved by:</span>
-                    <span class="sig-value">{{ $fatwa->checkedApprovedBy->name }}</span>
+                    <span class="sig-label text-dark">Checked & Approved by:</span>
+                    <span class="sig-value" style="color: #1a7a4a;">{{ $fatwa->checkedApprovedBy->name }}</span>
                 </div>
                 @endif
             </div>

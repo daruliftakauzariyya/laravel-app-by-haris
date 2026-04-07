@@ -12,7 +12,7 @@
     <div class="card-body">
         {{-- Question Summary --}}
         <div class="alert alert-light border mb-4">
-            <strong>Question:</strong><br>{{ Str::limit($question->body, 300) }}
+            <strong>Question:</strong><br>{{ Str::limit(strip_tags($question->body), 300) }}
         </div>
 
         <form method="POST" action="{{ route('admin.questions.answer.store', $question) }}">

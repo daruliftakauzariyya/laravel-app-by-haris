@@ -1,48 +1,58 @@
 <?php
 
 /**
- * Laravel Web Deployer & Migration Runner
+ * Laravel Web Deployer & Migration Runner (Laravel 11 Version)
  * 
- * Usage: domain.com/deploy.php?token=YOUR_SECRET_TOKEN
- * 
- * Instructions:
- * 1. Upload this file to your public/ directory on the live server.
- * 2. Set a secret token below.
- * 3. Visit the URL in your browser to run migrations.
+ * Usage: domain.com/deploy.php?token=fatwa_deploy_2026
  */
 
-$token = 'fatwa_deploy_2026'; // Change this to a secure token before uploading!
+$token = 'fatwa_deploy_2026'; // Token for security
 
-if ($_GET['token'] !== $token) {
-    die('Unauthorized access.');
+if (!isset($_GET['token']) || $_GET['token'] !== $token) {
+    die('Unauthorized access. Please provide the correct token.');
 }
 
+// Bootstrap Laravel
 require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
+// IMPORTANT for Laravel 11+: Bootstrap the Console Kernel to enable Artisan Facade in web context
+$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 
 try {
-    echo "<h1>Laravel Deployment Status</h1>";
+    echo "<h1>Laravel 11 Deployment Status</h1>";
+    echo "<p>Bootstrapping Laravel... Done.</p>";
     
     echo "<h3>1. Running Migrations...</h3>";
     Artisan::call('migrate', ['--force' => true]);
-    echo "<pre>" . Artisan::output() . "</pre>";
+    echo "<pre style='background:#f8f9fa; border:1px solid #ddd; padding:10px;'>" . Artisan::output() . "</pre>";
     
-    echo "<h3>2. Clearing Cache...</h3>";
+    echo "<h3>2. Clearing All Caches...</h3>";
+    
+    echo "Cleaning Config cache... ";
     Artisan::call('config:clear');
-    Artisan::call('cache:clear');
+    echo "Done.<br>";
+    
+    echo "Cleaning Route cache... ";
+    Artisan::call('route:clear');
+    echo "Done.<br>";
+    
+    echo "Cleaning View cache... ";
     Artisan::call('view:clear');
     echo "Done.<br>";
-
-    echo "<h3>3. Seeding Database (Optional)...</h3>";
-    // Uncomment the next line if you need to seed initial data
-    // Artisan::call('db:seed', ['--force' => true]);
     
-    echo "<br><b style='color:green;'>Deployment Step Completed Successfully!</b>";
+    echo "Cleaning General cache... ";
+    Artisan::call('cache:clear');
+    echo "Done.<br>";
+
+    echo "<br><b style='color:green; font-size:1.2rem;'>✓ Deployment & Cache Clearing Completed Successfully!</b>";
+    echo "<p>Navigate back to <a href='/admin/dashboard'>Admin Dashboard</a>.</p>";
     
 } catch (Exception $e) {
     echo "<b style='color:red;'>Error during deployment:</b><br>";
-    echo $e->getMessage();
+    echo "<pre>" . $e->getMessage() . "</pre>";
+    Log::error("Deployment Error: " . $e->getMessage());
 }

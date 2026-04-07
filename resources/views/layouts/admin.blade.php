@@ -69,6 +69,9 @@
             <i class="bi bi-chat-check"></i> For Review
         </a>
         <div class="sidebar-section">Settings</div>
+        <a href="{{ route('admin.muftis.index') }}" class="nav-link {{ request()->routeIs('admin.muftis*') ? 'active' : '' }}">
+            <i class="bi bi-person-badge"></i> Mufti Management
+        </a>
         <a href="{{ route('admin.categories.index') }}" class="nav-link {{ request()->routeIs('admin.categories*') ? 'active' : '' }}">
             <i class="bi bi-tags"></i> Categories
         </a>

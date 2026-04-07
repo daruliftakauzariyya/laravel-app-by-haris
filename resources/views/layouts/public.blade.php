@@ -16,6 +16,7 @@
             --green-dark: #145e38;
             --gold: #c9a84c;
             --bg-light: #f8f9fa;
+            --slate-blue: #4A6372;
         }
         body { font-family: 'Inter', sans-serif; background: var(--bg-light); }
         

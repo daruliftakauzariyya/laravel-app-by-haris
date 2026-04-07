@@ -56,8 +56,11 @@ class QuestionController extends Controller
         // Email admin
         $admin = User::role('admin')->first();
         if ($admin) {
-            Mail::to($admin->email)->send(new NewQuestionMail($question));
+            Mail::to($admin->email)->send(new \App\Mail\NewQuestionMail($question));
         }
+
+        // Email the user
+        Mail::to($request->user()->email)->send(new \App\Mail\UserQuestionSubmittedMail($question));
 
         return redirect()->route('home')->with('success', 'Your question has been submitted successfully! Question ID: ' . $question->question_id);
     }

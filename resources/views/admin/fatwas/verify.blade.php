@@ -11,7 +11,7 @@
             </div>
             <div class="card-body">
                 @if($question->title)<h5 class="fw-bold">{{ $question->title }}</h5>@endif
-                <p style="line-height:1.8;">{{ $question->body }}</p>
+                <p style="line-height:1.8;">{!! $question->body !!}</p>
                 <small class="text-muted">By: {{ $question->user->name }} | Madhab: {{ $question->madhab == 'Shafii' ? "Shafi'i" : $question->madhab }}</small>
             </div>
         </div>

@@ -67,7 +67,9 @@
             </div>
             <div class="card-body">
                 <p class="fw-semibold">Summary: {{ $question->muftiAnswer->summary }}</p>
-                <p>{{ Str::limit($question->muftiAnswer->full_answer, 300) }}</p>
+                <div class="mufti-answer-body" style="line-height:1.8;">
+                    {!! $question->muftiAnswer->full_answer !!}
+                </div>
                 @if(in_array($question->status, ['answered']))
                 <a href="{{ route('admin.questions.verify', $question) }}" class="btn btn-warning">
                     <i class="bi bi-shield-check me-1"></i>Verify & Publish
@@ -140,11 +142,20 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
-                        <select name="category_id" class="form-select" required>
-                            <option value="">Select Category...</option>
-                            @foreach($categories as $cat)
+                        <label class="form-label fw-semibold">Main Category <span class="text-danger">*</span></label>
+                        <select id="main_category" class="form-select" required>
+                            <option value="">Select Main Category...</option>
+                            @foreach($mainCategories as $cat)
                                 <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3" id="sub_category_container" style="display:none;">
+                        <label class="form-label fw-semibold">Sub Category <span class="text-danger">*</span></label>
+                        <select name="category_id" id="sub_category" class="form-select" required>
+                            <option value="">Select Sub Category...</option>
+                            @foreach($subCategories as $sub)
+                                <option value="{{ $sub->id }}" data-parent="{{ $sub->parent_id }}">{{ $sub->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -157,4 +168,43 @@
         </div>
     </div>
 </div>
+
+<script>
+// Store all original subcategory options in a safe place
+const allSubOptions = Array.from(document.querySelectorAll('#sub_category option[data-parent]'));
+
+document.getElementById('main_category').addEventListener('change', function() {
+    const parentId = this.value;
+    const subContainer = document.getElementById('sub_category_container');
+    const subSelect = document.getElementById('sub_category');
+
+    // Create a fresh list of options starting with the placeholder
+    subSelect.innerHTML = '<option value="">Select Sub Category...</option>';
+
+    if (parentId) {
+        // Find matching options from our stored list
+        const matches = allSubOptions.filter(opt => opt.getAttribute('data-parent') === parentId);
+
+        if (matches.length > 0) {
+            subContainer.style.display = 'block';
+            matches.forEach(opt => {
+                // Re-append the matching option a clone to keep the data
+                subSelect.appendChild(opt.cloneNode(true));
+            });
+        } else {
+            // Show a "No subcategories" message if nothing matches
+            const emptyOpt = document.createElement('option');
+            emptyOpt.text = "No subcategories found for this section";
+            emptyOpt.disabled = true;
+            subSelect.appendChild(emptyOpt);
+            subContainer.style.display = 'block';
+        }
+    } else {
+        // Hide if no main category selected
+        subContainer.style.display = 'none';
+    }
+    
+    subSelect.value = ''; // Reset selection
+});
+</script>
 @endsection

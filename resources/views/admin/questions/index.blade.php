@@ -53,7 +53,7 @@
                 <tr>
                     <td><span class="badge bg-secondary">{{ $q->question_id }}</span></td>
                     <td>{{ $q->user->name }}<br><small class="text-muted">{{ $q->user->email }}</small></td>
-                    <td>{{ Str::limit($q->body, 70) }}</td>
+                    <td>{{ Str::limit(strip_tags($q->body), 70) }}</td>
                     <td>{{ $q->madhab == 'Shafii' ? "Shafi'i" : $q->madhab }}</td>
                     <td>{{ $q->assignedMufti?->name ?? '—' }}</td>
                     <td><small class="text-muted">{{ $q->created_at->format('d M Y') }}</small></td>

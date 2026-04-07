@@ -46,11 +46,11 @@ class QuestionAdminController extends Controller
     public function show(Question $question)
     {
         $question->load('user', 'category', 'files', 'assignedMufti', 'muftiAnswer.supportingReferences');
-        $muftis     = User::role('mufti')->get();
-        $categories = Category::whereNotNull('parent_id')->get(); // Only subcategories
-        if($categories->isEmpty()) $categories = Category::all();
+        $muftis         = User::role('mufti')->get();
+        $mainCategories = Category::whereNull('parent_id')->get();
+        $subCategories  = Category::whereNotNull('parent_id')->get();
         
-        return view('admin.questions.show', compact('question', 'muftis', 'categories'));
+        return view('admin.questions.show', compact('question', 'muftis', 'mainCategories', 'subCategories'));
     }
 
     /** Accept and update question details */

@@ -42,7 +42,7 @@
                 <tr>
                     <td><span class="badge bg-secondary">{{ $q->question_id }}</span></td>
                     <td>{{ $q->user->name }}</td>
-                    <td>{{ Str::limit($q->body, 60) }}</td>
+                    <td>{{ Str::limit(strip_tags($q->body), 60) }}</td>
                     <td>{{ $q->madhab == 'Shafii' ? "Shafi'i" : $q->madhab }}</td>
                     <td><span class="badge badge-status-{{ $q->status }}">{{ ucfirst($q->status) }}</span></td>
                     <td><small class="text-muted">{{ $q->created_at->format('d M') }}</small></td>

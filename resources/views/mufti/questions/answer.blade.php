@@ -15,7 +15,7 @@
             </div>
             <div class="card-body">
                 @if($question->title)<h6 class="fw-bold">{{ $question->title }}</h6>@endif
-                <p style="line-height:1.8;">{{ $question->body }}</p>
+                <p style="line-height:1.8;">{!! $question->body !!}</p>
                 @if($question->files->count())
                     <small class="text-muted"><i class="bi bi-paperclip me-1"></i>{{ $question->files->count() }} file(s) attached</small>
                 @endif

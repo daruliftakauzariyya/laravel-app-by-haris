@@ -49,22 +49,7 @@ class DatabaseSeeder extends Seeder
         $mufti->assignRole($muftiRole);
 
         // Seed Categories
-        $categories = [
-            ['name' => 'Aqeedah (Beliefs)', 'slug' => 'aqeedah'],
-            ['name' => 'Purity (Taharah)', 'slug' => 'taharah'],
-            ['name' => 'Prayer (Salah)', 'slug' => 'salah'],
-            ['name' => 'Zakat & Charity', 'slug' => 'zakat'],
-            ['name' => 'Fasting (Sawm)', 'slug' => 'fasting'],
-            ['name' => 'Hajj & Umrah', 'slug' => 'hajj'],
-            ['name' => 'Marriage & Divorce', 'slug' => 'nikah'],
-            ['name' => 'Business & Finance', 'slug' => 'business'],
-            ['name' => 'Food & Drink', 'slug' => 'halal-haram'],
-            ['name' => 'Miscellaneous', 'slug' => 'misc'],
-        ];
-
-        foreach ($categories as $cat) {
-            \App\Models\Category::firstOrCreate(['slug' => $cat['slug']], ['name' => $cat['name']]);
-        }
+        $this->call(CategorySeeder::class);
 
         $this->command->info('Roles, admin user, and categories seeded successfully.');
         $this->command->info('Admin  → admin@daruliftaportal.com / Admin@123');

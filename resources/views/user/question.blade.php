@@ -195,14 +195,22 @@
 
             {{-- Metadata --}}
             <div class="meta-grid">
-                <div class="row g-0">
+                {{-- Row 1: Qu-Id & Madhab --}}
+                <div class="row g-0 mb-2">
                     <div class="col-6">
-                        <div class="meta-item"><span class="meta-label">Qu-Id:</span> <span class="meta-value">{{ $question->question_id }}</span></div>
-                        <div class="meta-item"><span class="meta-label">Category:</span> <span class="meta-value">{{ $question->category->name }}</span></div>
+                        <div class="meta-item"><span class="meta-label text-dark">Qu-Id:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->question_id }}</span></div>
                     </div>
                     <div class="col-6">
-                        <div class="meta-item"><span class="meta-label">Madhab:</span> <span class="meta-value">{{ $question->madhab }}</span></div>
-                        <div class="meta-item"><span class="meta-label">Published:</span> <span class="meta-value">{{ $question->fatwa?->published_at?->format('d-m-Y') ?: 'Pending' }}</span></div>
+                        <div class="meta-item"><span class="meta-label text-dark">Madhab:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->madhab }}</span></div>
+                    </div>
+                </div>
+                {{-- Row 2: Category & Published --}}
+                <div class="row g-0">
+                    <div class="col-6">
+                        <div class="meta-item"><span class="meta-label text-dark">Category:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->category->name }}</span></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="meta-item"><span class="meta-label text-dark">Published:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->fatwa?->published_at?->format('d-m-Y') ?: 'Pending' }}</span></div>
                     </div>
                 </div>
             </div>
@@ -247,26 +255,26 @@
 
             {{-- Closing & Signatures --}}
             <div class="signature-section">
-                <div class="arabic-block" style="text-align: right; margin-bottom: 20px;">
+                <div class="arabic-block" style="text-align: right; margin-bottom: 25px; border-top: 1px solid #f0f0f0; padding-top: 20px;">
                     والله أعلم بالصواب
                 </div>
 
                 <div class="signature-item">
-                    <span class="sig-label">Written by:</span>
-                    <span class="sig-value">{{ $question->muftiAnswer->mufti->name }}</span>
+                    <span class="sig-label text-dark">Written by:</span>
+                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->muftiAnswer->mufti->name }}</span>
                 </div>
 
                 @if($question->fatwa && $question->fatwa->verifiedBy)
                 <div class="signature-item">
-                    <span class="sig-label">Verified by:</span>
-                    <span class="sig-value">{{ $question->fatwa->verifiedBy->name }}</span>
+                    <span class="sig-label text-dark">Verified by:</span>
+                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->fatwa->verifiedBy->name }}</span>
                 </div>
                 @endif
 
                 @if($question->fatwa && $question->fatwa->checkedApprovedBy)
                 <div class="signature-item">
-                    <span class="sig-label">Checked & Approved by:</span>
-                    <span class="sig-value">{{ $question->fatwa->checkedApprovedBy->name }}</span>
+                    <span class="sig-label text-dark">Checked & Approved by:</span>
+                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->fatwa->checkedApprovedBy->name }}</span>
                 </div>
                 @endif
             </div>
