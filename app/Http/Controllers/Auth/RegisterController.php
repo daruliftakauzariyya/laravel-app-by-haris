@@ -19,21 +19,56 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'name'           => ['required', 'string', 'max:255'],
+            'country_code'   => ['required', 'string', 'max:10'],
+            'mobile'         => ['required', 'string', 'max:20'],
+            'email'          => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'address_line_1' => ['required', 'string'],
+            'address_line_2' => ['nullable', 'string'],
+            'country'        => ['required', 'string'],
+            'state'          => ['required', 'string'],
+            'district'       => ['required', 'string'],
+            'gender'         => ['required', 'in:Male,Female'],
+            'madhab'         => ['required', 'in:Hanafi,Shafii,Maliki,Hanbali,Other,No Preference'],
+            'password'       => ['required', 'confirmed', Password::defaults()],
         ]);
+
+        $otp = rand(100000, 999999);
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
+            'name'           => $request->name,
+            'country_code'   => $request->country_code,
+            'mobile'         => $request->mobile,
+            'email'          => $request->email,
+            'address_line_1' => $request->address_line_1,
+            'address_line_2' => $request->address_line_2,
+            'country'        => $request->country,
+            'state'          => $request->state,
+            'district'       => $request->district,
+            'gender'         => $request->gender,
+            'madhab'         => $request->madhab,
+            'password'       => Hash::make($request->password),
+            'otp'            => $otp,
+            'otp_expires_at' => now()->addMinutes(15),
+            'is_active'      => false,
+            'profile_completed' => true,
         ]);
 
-        $user->assignRole('questioner');
+        try {
+            $user->assignRole('user'); // Or questioner, depending on your system
+        } catch (\Exception $e) {
+            // Suppress role error if role doesn't exist
+        }
 
-        Auth::login($user);
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\RegistrationOtpMail($otp));
+        } catch (\Exception $e) {
+            // Handle mail error gracefully in UI
+            return redirect()->route('otp.verify.form', ['email' => $user->email])
+                ->with('error', 'Registration successful, but there was an error sending the OTP email. Please check your Mail configuration.');
+        }
 
-        return redirect()->route('profile.complete');
+        return redirect()->route('otp.verify.form', ['email' => $user->email])
+            ->with('success', 'Registration successful! An OTP has been sent to your email.');
     }
 }

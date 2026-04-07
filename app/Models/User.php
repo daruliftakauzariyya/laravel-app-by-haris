@@ -19,10 +19,18 @@ class User extends Authenticatable
         'avatar',
         'gender',
         'country',
+        'country_code',
         'mobile',
+        'address_line_1',
+        'address_line_2',
+        'state',
+        'district',
+        'madhab',
         'mother_language',
         'profile_completed',
         'is_active',
+        'otp',
+        'otp_expires_at',
     ];
 
     protected $hidden = [

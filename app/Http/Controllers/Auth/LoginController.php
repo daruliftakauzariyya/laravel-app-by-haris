@@ -15,12 +15,14 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+        $request->validate([
+            'login_id' => ['required', 'string'],
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        $login_type = filter_var($request->login_id, FILTER_VALIDATE_EMAIL) ? 'email' : 'mobile';
+
+        if (Auth::attempt([$login_type => $request->login_id, 'password' => $request->password], $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             $user = Auth::user();
@@ -33,8 +35,37 @@ class LoginController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+            'login_id' => 'The provided credentials do not match our records.',
+        ])->onlyInput('login_id');
+    }
+
+    public function sendLoginOtp(Request $request)
+    {
+        $request->validate([
+            'login_id' => ['required', 'string'],
+        ]);
+
+        $login_type = filter_var($request->login_id, FILTER_VALIDATE_EMAIL) ? 'email' : 'mobile';
+        
+        $user = \App\Models\User::where($login_type, $request->login_id)->first();
+        if (!$user) {
+            return back()->withErrors(['login_id' => 'The provided credentials do not match our records.'])->onlyInput('login_id');
+        }
+
+        $otp = rand(100000, 999999);
+        $user->update([
+            'otp' => $otp,
+            'otp_expires_at' => now()->addMinutes(15),
+        ]);
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\RegistrationOtpMail($otp));
+        } catch (\Exception $e) {
+            return back()->withErrors(['login_id' => 'Error sending OTP. Please check your Mail configuration.']);
+        }
+
+        return redirect()->route('otp.verify.form', ['email' => $user->email])
+            ->with('success', 'An OTP has been sent to your email.');
     }
 
     public function logout(Request $request)
@@ -53,6 +84,6 @@ class LoginController extends Controller
         if ($user->hasRole('mufti')) {
             return redirect()->route('mufti.dashboard');
         }
-        return redirect()->route('home');
+        return redirect()->route('user.dashboard');
     }
 }

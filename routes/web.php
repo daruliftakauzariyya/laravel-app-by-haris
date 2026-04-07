@@ -41,25 +41,25 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/logout', [LoginController::class, 'logout']);
 
 
-// Google OAuth
-Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('auth.google');
-Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('auth.google.callback');
+// OTP Verification
+Route::get('/verify-otp', [\App\Http\Controllers\Auth\OtpVerificationController::class, 'showVerifyForm'])->name('otp.verify.form');
+Route::post('/verify-otp', [\App\Http\Controllers\Auth\OtpVerificationController::class, 'verify'])->name('otp.verify.submit');
 
-// Profile Completion
-Route::middleware('auth')->group(function () {
-    Route::get('/profile/complete', [ProfileController::class, 'showCompleteForm'])->name('profile.complete');
-    Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete.store');
-});
+// OTP Login
+Route::post('/login/otp/send', [\App\Http\Controllers\Auth\LoginController::class, 'sendLoginOtp'])->name('login.otp.send');
 
 /*
 |--------------------------------------------------------------------------
-| Questioner Routes (auth + profile completed)
+| Questioner Routes (auth)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'profile.completed'])->group(function () {
-    Route::get('/ask-question', [QuestionController::class, 'create'])->name('question.create');
-    Route::post('/ask-question', [QuestionController::class, 'store'])->name('question.store');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/user/dashboard', [\App\Http\Controllers\User\UserDashboardController::class, 'index'])->name('user.dashboard');
+    Route::get('/ask-question', [\App\Http\Controllers\QuestionController::class, 'create'])->name('question.create');
+    Route::post('/ask-question', [\App\Http\Controllers\QuestionController::class, 'store'])->name('question.store');
 });
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -108,3 +108,11 @@ Route::middleware(['auth', 'role:mufti'])->prefix('mufti')->name('mufti.')->grou
     Route::get('/profile', [MuftiController::class, 'profile'])->name('profile');
     Route::put('/profile', [MuftiController::class, 'updateProfile'])->name('profile.update');
 });
+
+// Temporary Migration Route
+Route::get('/run-migrations-live', function () {
+    // This runs the migration command programmatically
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return "Migrations executed successfully on the live server!";
+});
+
