@@ -61,19 +61,28 @@
         {{-- Mufti Answer (if exists) --}}
         @if($question->muftiAnswer)
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-2 d-flex justify-content-between">
+            <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 fw-bold"><i class="bi bi-chat-text me-2"></i>Mufti Answer</h6>
-                <span class="badge badge-status-{{ $question->muftiAnswer->status }}">{{ ucfirst(str_replace('_',' ',$question->muftiAnswer->status)) }}</span>
+                <div class="d-flex gap-2">
+                    <span class="badge badge-status-{{ $question->muftiAnswer->status }} me-2">{{ ucfirst(str_replace('_',' ',$question->muftiAnswer->status)) }}</span>
+                    @if(in_array($question->status, ['published', 'answered']))
+                    <a href="{{ route('admin.questions.answer', $question) }}" class="btn btn-sm btn-outline-primary py-0">
+                        <i class="bi bi-pencil me-1"></i>Edit Answer
+                    </a>
+                    @endif
+                </div>
             </div>
             <div class="card-body">
-                <p class="fw-semibold">Summary: {{ $question->muftiAnswer->summary }}</p>
-                <div class="mufti-answer-body" style="line-height:1.8;">
+                <p class="fw-semibold">Summary: {!! $question->muftiAnswer->summary !!}</p>
+                <div class="mufti-answer-body" style="line-height:1.8; color: #333;">
                     {!! $question->muftiAnswer->full_answer !!}
                 </div>
-                @if(in_array($question->status, ['answered']))
-                <a href="{{ route('admin.questions.verify', $question) }}" class="btn btn-warning">
-                    <i class="bi bi-shield-check me-1"></i>Verify & Publish
-                </a>
+                @if(in_array($question->status, ['answered', 'for_review']))
+                <div class="mt-3">
+                    <a href="{{ route('admin.questions.verify', $question) }}" class="btn btn-warning btn-sm">
+                        <i class="bi bi-shield-check me-1"></i>Verify & Publish
+                    </a>
+                </div>
                 @endif
             </div>
         </div>

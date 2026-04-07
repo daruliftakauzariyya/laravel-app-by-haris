@@ -90,10 +90,10 @@ class QuestionAdminController extends Controller
         return redirect()->route('admin.questions.show', $question)->with('success', 'Question assigned to ' . $mufti->name);
     }
 
-    /** Admin writes answer on behalf of Mufti */
+    /** Admin writes or edits answer on behalf of Mufti */
     public function createAnswer(Question $question)
     {
-        $question->load('user', 'files');
+        $question->load('user', 'files', 'muftiAnswer.supportingReferences');
         $muftis = User::role('mufti')->get();
         return view('admin.questions.answer', compact('question', 'muftis'));
     }
@@ -109,16 +109,26 @@ class QuestionAdminController extends Controller
             'ref_language.*'   => ['nullable', 'string'],
         ]);
 
-        $answer = MuftiAnswer::create([
-            'question_id'  => $question->id,
-            'mufti_id'     => $request->mufti_id,
-            'summary'      => $request->summary,
-            'full_answer'  => $request->full_answer,
-            'status'       => 'submitted',
-            'submitted_at' => now(),
-        ]);
+        // Find existing answer or create new one
+        $answer = MuftiAnswer::updateOrCreate(
+            ['question_id' => $question->id],
+            [
+                'mufti_id'     => $request->mufti_id,
+                'summary'      => $request->summary,
+                'full_answer'  => $request->full_answer,
+                'status'       => $question->status === 'published' ? 'submitted' : 'submitted', // Keep as submitted for review if not already published
+                'submitted_at' => now(),
+            ]
+        );
 
-        // Save supporting references
+        // If it was already published, we keep it published but update the answer
+        if ($question->status === 'published') {
+            $answer->update(['status' => 'reviewed']);
+        }
+
+        // Save supporting references (clean and recreate for simplicity)
+        $answer->supportingReferences()->delete();
+        
         if ($request->filled('arabic_text')) {
             foreach ($request->arabic_text as $i => $text) {
                 if ($text) {
@@ -133,8 +143,12 @@ class QuestionAdminController extends Controller
             }
         }
 
-        $question->update(['status' => 'answered']);
-        return redirect()->route('admin.questions.verify', $question)->with('success', 'Answer saved. Now verify and publish.');
+        if ($question->status !== 'published') {
+            $question->update(['status' => 'answered']);
+            return redirect()->route('admin.questions.verify', $question)->with('success', 'Answer saved. Now verify and publish.');
+        }
+
+        return redirect()->route('admin.questions.show', $question)->with('success', 'Published answer updated successfully.');
     }
 
     /** Admin verifies Mufti's answer */
