@@ -139,4 +139,80 @@
         </div>
     </div>
 </div>
+
+{{-- Device & Access Tracking --}}
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white border-0 py-3">
+        <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-device-ssd me-2"></i>Device & Access Tracking</h6>
+        <p class="small text-muted mb-0">Analytics for user visits, specifically to the "Ask Question" page.</p>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr class="small text-uppercase">
+                        <th class="ps-4">Access Time</th>
+                        <th>Page</th>
+                        <th class="text-center">Device</th>
+                        <th class="text-center">OS</th>
+                        <th class="text-center">Browser</th>
+                        <th class="text-center">IP Address</th>
+                        <th class="ps-4">Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($visitorLogs as $log)
+                    <tr>
+                        <td class="ps-4">
+                            <small class="fw-semibold d-block">{{ $log->created_at->format('d M Y') }}</small>
+                            <small class="text-muted">{{ $log->created_at->format('H:i:s') }}</small>
+                        </td>
+                        <td>
+                            @if(str_contains($log->page, 'ask-question'))
+                                <span class="badge bg-warning text-dark px-2">Ask Question</span>
+                            @else
+                                <small class="text-muted text-truncate d-inline-block" style="max-width: 150px;">
+                                    /{{ collect(explode('/', $log->page))->last() }}
+                                </small>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            @php
+                                $deviceIcon = 'bi-display';
+                                if($log->device_type === 'Mobile') $deviceIcon = 'bi-phone';
+                                elseif($log->device_type === 'Tab') $deviceIcon = 'bi-tablet';
+                            @endphp
+                            <span class="badge bg-light text-dark border py-2 px-3">
+                                <i class="bi {{ $deviceIcon }} me-2 text-primary"></i>{{ $log->device_type ?? 'Web' }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            @php
+                                $osIcon = 'bi-cpu';
+                                if($log->operating_system === 'Windows') $osIcon = 'bi-windows';
+                                elseif($log->operating_system === 'Android') $osIcon = 'bi-android';
+                                elseif($log->operating_system === 'iOS') $osIcon = 'bi-apple';
+                                elseif($log->operating_system === 'Linux' || $log->operating_system === 'Ubuntu') $osIcon = 'bi-ubuntu';
+                            @endphp
+                            <small class="fw-bold"><i class="bi {{ $osIcon }} me-1"></i>{{ $log->operating_system ?? 'Other' }}</small>
+                        </td>
+                        <td class="text-center">
+                            <small class="text-muted">{{ $log->browser ?? 'Other' }}</small>
+                        </td>
+                        <td class="text-center">
+                            <small class="font-monospace text-muted">{{ $log->ip_address }}</small>
+                        </td>
+                        <td class="ps-4">
+                            <small class="d-block fw-semibold">{{ $log->city ?? 'Unknown' }}, {{ $log->country_code ?? '??' }}</small>
+                            <small class="text-muted small">{{ $log->country ?? 'Unknown' }}</small>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="7" class="text-center text-muted py-5 small italic">No access logs available for this session.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 @endsection

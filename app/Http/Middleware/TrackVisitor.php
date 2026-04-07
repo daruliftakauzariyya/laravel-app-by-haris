@@ -27,7 +27,8 @@ class TrackVisitor
             try {
                 PortalVisitorLog::logVisit(
                     $request->ip(),
-                    $request->fullUrl()
+                    $request->fullUrl(),
+                    auth()->id()
                 );
             } catch (\Exception $e) {
                 // Fail silently to not break the user experience

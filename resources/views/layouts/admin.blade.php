@@ -42,6 +42,8 @@
             .card-header { background: #f8f9fa !important; color: #000 !important; border-bottom: 2px solid #eee !important; }
         }
     </style>
+    <!-- Cropper.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
     @stack('styles')
 </head>
 <body>
@@ -130,6 +132,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 @stack('scripts')
 </body>
 </html>

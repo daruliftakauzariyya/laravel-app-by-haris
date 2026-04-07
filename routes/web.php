@@ -58,6 +58,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/user/questions/{question}', [\App\Http\Controllers\User\UserDashboardController::class, 'show'])->name('user.question.show');
     Route::get('/ask-question', [\App\Http\Controllers\QuestionController::class, 'create'])->name('question.create');
     Route::post('/ask-question', [\App\Http\Controllers\QuestionController::class, 'store'])->name('question.store');
+    
+    // AJAX File Uploading
+    Route::post('/question-files/upload', [\App\Http\Controllers\QuestionFileController::class, 'upload'])->name('question.files.upload');
+    Route::post('/question-files/delete', [\App\Http\Controllers\QuestionFileController::class, 'delete'])->name('question.files.delete');
 });
 
 
@@ -124,10 +128,5 @@ Route::middleware(['auth', 'role:mufti'])->prefix('mufti')->name('mufti.')->grou
     Route::put('/profile', [MuftiController::class, 'updateProfile'])->name('profile.update');
 });
 
-// Temporary Migration Route
-Route::get('/run-migrations-live', function () {
-    // This runs the migration command programmatically
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    return "Migrations executed successfully on the live server!";
-});
+
 

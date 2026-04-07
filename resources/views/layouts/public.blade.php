@@ -100,6 +100,9 @@
                             @if(Auth::user()->hasRole('mufti'))
                                 <li><a class="dropdown-item" href="{{ route('mufti.dashboard') }}"><i class="bi bi-person-badge me-2"></i>Mufti Panel</a></li>
                             @endif
+                            @if(Auth::user()->hasRole('user'))
+                                <li><a class="dropdown-item" href="{{ route('user.dashboard') }}"><i class="bi bi-grid-fill me-2"></i>My Dashboard</a></li>
+                            @endif
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">

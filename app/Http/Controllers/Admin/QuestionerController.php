@@ -71,14 +71,20 @@ class QuestionerController extends Controller
                 ];
             });
 
-        // Group stats
+        // Group stats for the dashboard counters
         $stats = [
-            'total'     => $questions->count(),
-            'pending'   => $questions->filter(fn($r) => in_array($r['question']->status, ['pending','accepted','assigned','answered']))->count(),
-            'published' => $questions->filter(fn($r) => $r['question']->status === 'published')->count(),
+            'total'       => $questions->count(),
+            'pending'     => $questions->filter(fn($r) => in_array($r['question']->status, ['pending','accepted','assigned','answered']))->count(),
+            'published'   => $questions->filter(fn($r) => $r['question']->status === 'published')->count(),
             'total_reads' => $questions->sum('public_reads'),
         ];
 
-        return view('admin.questioners.show', compact('user', 'questions', 'stats'));
+        // Fetch recent visitor logs for this user (Access history)
+        $visitorLogs = \App\Models\PortalVisitorLog::where('user_id', $user->id)
+            ->latest()
+            ->take(50)
+            ->get();
+
+        return view('admin.questioners.show', compact('user', 'questions', 'stats', 'visitorLogs'));
     }
 }

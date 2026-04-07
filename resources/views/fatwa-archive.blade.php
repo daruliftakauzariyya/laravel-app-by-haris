@@ -44,42 +44,149 @@
     @else
     <div class="row g-4">
         @foreach($fatwas as $fatwa)
-        @php
-            $langClass = '';
-            if($fatwa->question->language == 'Urdu') $langClass = 'gulzar-font';
-            elseif($fatwa->question->language == 'Arabic') $langClass = 'alyamama-font';
-            elseif($fatwa->question->language == 'Malayalam') $langClass = 'noto-serif-malayalam-font';
-            else $langClass = 'inter-font';
-        @endphp
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-                        <div>
-                            <span class="badge bg-secondary me-2">{{ $fatwa->question->question_id }}</span>
-                            <span class="badge" style="background:#1a7a4a;">{{ $fatwa->question->madhab == 'Shafii' ? "Shafi'i" : $fatwa->question->madhab }}</span>
-                        </div>
-                        <small class="text-muted"><i class="bi bi-calendar me-1"></i>{{ $fatwa->published_at?->format('d M Y') }}</small>
+        <div class="col-md-6 col-lg-4">
+            <a href="{{ route('fatwa.show', $fatwa) }}" class="text-decoration-none">
+                <div class="fatwa-card h-100">
+                    {{-- Thumbnail --}}
+                    <div class="fatwa-thumb">
+                        <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}"
+                             alt="Fatwa"
+                             onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
+                        <span class="madhab-badge">{{ $fatwa->question->madhab }}</span>
                     </div>
-                    <h5 class="fw-bold mb-2 {{ $langClass }}">
-                        {{ Str::limit($fatwa->question->title, 200) }}
-                    </h5>
-                    <p class="text-muted mb-3 {{ $langClass }}">{{ Str::limit($fatwa->muftiAnswer->summary, 160) }}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">
-                            <i class="bi bi-person-badge me-1"></i>{{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
-                            &nbsp;|&nbsp;<i class="bi bi-eye me-1"></i>{{ $fatwa->views }} views
-                        </small>
-                        <a href="{{ route('fatwa.show', $fatwa) }}" class="btn btn-outline-success btn-sm">
-                            Read Full Fatwa <i class="bi bi-arrow-right"></i>
-                        </a>
+
+                    {{-- Card Body --}}
+                    <div class="fatwa-body">
+                        <div class="fatwa-meta">
+                            <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category->name ?? 'General' }}</span>
+                            <span>{{ $fatwa->published_at?->format('d M Y') }}</span>
+                        </div>
+
+                        <h6 class="fatwa-title">
+                            {{ Str::limit($fatwa->question->title ?: strip_tags($fatwa->question->body), 75) }}
+                        </h6>
+
+                        <p class="fatwa-excerpt">
+                            {{ Str::limit(strip_tags($fatwa->muftiAnswer->summary ?: $fatwa->muftiAnswer->full_answer), 95) }}
+                        </p>
+
+                        <div class="fatwa-footer">
+                            <span class="fatwa-author">
+                                <i class="bi bi-person-circle me-1"></i>{{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
+                            </span>
+                            <span class="read-more-btn">Read More <i class="bi bi-arrow-right"></i></span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         @endforeach
     </div>
-    <div class="mt-4">{{ $fatwas->links() }}</div>
+    <div class="mt-5">{{ $fatwas->links() }}</div>
     @endif
 </div>
+
+@push('styles')
+<style>
+    /* ============================================
+       Fatwa Card — Sync with Home Page Design
+       ============================================ */
+    .fatwa-card {
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border: 1px solid #edf2f7;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        display: flex;
+        flex-direction: column;
+    }
+    .fatwa-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(26, 122, 74, 0.12);
+        border-color: #c6e9d8;
+    }
+
+    .fatwa-thumb {
+        position: relative;
+        width: 100%;
+        height: 180px;
+        overflow: hidden;
+        background: #f0f4f8;
+    }
+    .fatwa-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+    .fatwa-card:hover .fatwa-thumb img { transform: scale(1.04); }
+
+    .madhab-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: #1a7a4a;
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        letter-spacing: 0.5px;
+    }
+
+    .fatwa-body {
+        padding: 18px 20px 16px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .fatwa-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: #a0aec0;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+    .fatwa-meta span:first-child { color: #1a7a4a; font-weight: 600; }
+
+    .fatwa-title {
+        font-size: 0.98rem;
+        font-weight: 800;
+        color: #1a202c;
+        line-height: 1.45;
+        margin-bottom: 10px;
+        flex-grow: 1;
+    }
+
+    .fatwa-excerpt {
+        font-size: 0.83rem;
+        color: #718096;
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+
+    .fatwa-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+        margin-top: auto;
+    }
+    .fatwa-author { font-size: 0.8rem; color: #4a5568; font-weight: 600; }
+    .read-more-btn {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #1a7a4a;
+        border: 1.5px solid #1a7a4a;
+        padding: 4px 14px;
+        border-radius: 20px;
+        transition: 0.2s;
+    }
+    .fatwa-card:hover .read-more-btn { background: #1a7a4a; color: #fff; }
+</style>
+@endpush
 @endsection

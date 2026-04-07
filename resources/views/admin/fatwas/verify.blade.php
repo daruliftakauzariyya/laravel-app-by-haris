@@ -59,56 +59,161 @@
                     @csrf
                     
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Featured Image (Placeholder) <span class="text-muted">(200x120)</span>:</label>
-                        <input type="file" name="featured_image" class="form-control form-control-sm" accept="image/*" onchange="previewImage(this)">
-                        <div id="image-preview" class="mt-2 d-none">
-                            <img src="" alt="Preview" class="rounded border shadow-sm" style="width: 200px; height: 120px; object-fit: cover;">
+                        <label class="form-label small fw-bold">Featured Image <span class="text-muted">(16:9 Aspect Ratio)</span>:</label>
+                        <input type="file" id="image-input" class="form-control form-control-sm" accept="image/*">
+                        <input type="hidden" name="featured_image_cropped" id="featured_image_cropped">
+                        
+                        <div id="image-preview-container" class="mt-2 {{ $question->fatwa?->featured_image ? '' : 'd-none' }}">
+                            <img id="image-preview" src="{{ $question->fatwa?->featured_image ? asset($question->fatwa->featured_image) : '' }}" 
+                                 alt="Preview" class="rounded border shadow-sm w-100" style="aspect-ratio: 16/9; object-fit: cover;">
+                            <div class="text-center mt-1">
+                                <span class="badge bg-success small">Ready to Publish</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Verified by:</label>
-                        <select name="verified_by" class="form-select form-select-sm">
+                        <select name="verified_by" id="verified_by" class="form-select form-select-sm" required>
                             <option value="">-- Select Verifier --</option>
                             @foreach($verifierMuftis as $mufti)
-                                <option value="{{ $mufti->id }}">{{ $mufti->name }}</option>
+                                <option value="{{ $mufti->id }}" {{ $question->fatwa?->verified_by == $mufti->id ? 'selected' : '' }}>{{ $mufti->name }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="mb-4">
                         <label class="form-label small fw-bold">Checked & Approved by:</label>
-                        <select name="checked_approved_by" class="form-select form-select-sm">
+                        <select name="checked_approved_by" id="checked_approved_by" class="form-select form-select-sm" required>
                             <option value="">-- Select Approver --</option>
                             @foreach($approverMuftis as $mufti)
-                                <option value="{{ $mufti->id }}">{{ $mufti->name }}</option>
+                                <option value="{{ $mufti->id }}" {{ $question->fatwa?->checked_approved_by == $mufti->id ? 'selected' : '' }}>{{ $mufti->name }}</option>
                             @endforeach
                         </select>
                     </div>
 
-                    <button class="btn btn-success w-100" onclick="return confirm('Publish this fatwa?')">
+                    <button class="btn btn-success w-100" id="publish-btn">
                         <i class="bi bi-patch-check me-2"></i>Approve & Publish
                     </button>
                 </form>
-
-                <script>
-                    function previewImage(input) {
-                        const preview = document.querySelector('#image-preview');
-                        const img = preview.querySelector('img');
-                        if (input.files && input.files[0]) {
-                            const reader = new FileReader();
-                            reader.onload = function(e) {
-                                img.src = e.target.result;
-                                preview.classList.remove('d-none');
-                            }
-                            reader.readAsDataURL(input.files[0]);
-                        } else {
-                            preview.classList.add('d-none');
-                        }
-                    }
-                </script>
             </div>
         </div>
+
+        {{-- Cropping Modal --}}
+        <div class="modal fade" id="cropModal" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title fw-bold">Crop Featured Image (16:9)</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body overflow-hidden">
+                        <div class="img-container">
+                            <img id="cropper-image" src="" style="max-width: 100%;">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="crop-save-btn">Crop & Use Image</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @push('scripts')
+        <script>
+            // --- Mufti Filtering Logic ---
+            const writtenById = "{{ $question->muftiAnswer->mufti_id }}";
+            const verifierSelect = document.getElementById('verified_by');
+            const approverSelect = document.getElementById('checked_approved_by');
+
+            function filterMuftis() {
+                const selectedVerifier = verifierSelect.value;
+                const selectedApprover = approverSelect.value;
+
+                // Simple client-side filtering: disable the options
+                Array.from(verifierSelect.options).forEach(opt => {
+                    if (opt.value === writtenById) opt.disabled = true;
+                });
+
+                Array.from(approverSelect.options).forEach(opt => {
+                    // Hide if written by or currently selected as verifier
+                    if (opt.value === writtenById || (selectedVerifier && opt.value === selectedVerifier)) {
+                        opt.disabled = true;
+                        if (opt.selected) approverSelect.value = ""; // Reset if it was selected
+                    } else {
+                        opt.disabled = false;
+                    }
+                });
+            }
+
+            verifierSelect.addEventListener('change', filterMuftis);
+            window.addEventListener('load', filterMuftis);
+
+            // --- Cropper Logic ---
+            let cropper;
+            const imageInput = document.getElementById('image-input');
+            const cropperImage = document.getElementById('cropper-image');
+            const cropModal = new bootstrap.Modal(document.getElementById('cropModal'));
+            const previewImg = document.getElementById('image-preview');
+            const previewContainer = document.getElementById('image-preview-container');
+            const hiddenInput = document.getElementById('featured_image_cropped');
+
+            imageInput.addEventListener('change', function (e) {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        cropperImage.src = event.target.result;
+                        cropModal.show();
+                    };
+                    reader.readAsDataURL(files[0]);
+                }
+            });
+
+            document.getElementById('cropModal').addEventListener('shown.bs.modal', function () {
+                cropper = new Cropper(cropperImage, {
+                    aspectRatio: 16 / 9,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                });
+            });
+
+            document.getElementById('cropModal').addEventListener('hidden.bs.modal', function () {
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                imageInput.value = ''; // Reset input to allow re-selection
+            });
+
+            document.getElementById('crop-save-btn').addEventListener('click', function () {
+                if (!cropper) return;
+                
+                // Get optimized canvas (400px width is plenty for cards)
+                const canvas = cropper.getCroppedCanvas({
+                    width: 800,
+                    height: 450,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                });
+
+                // Convert to base64 with quality optimization (0.8)
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                
+                previewImg.src = dataUrl;
+                hiddenInput.value = dataUrl;
+                previewContainer.classList.remove('d-none');
+                cropModal.hide();
+            });
+
+            document.getElementById('publish-btn').addEventListener('click', function(e) {
+                if (!confirm('Are you sure you want to approve and publish this fatwa?')) {
+                    e.preventDefault();
+                }
+            });
+        </script>
+        @endpush
 
         {{-- Request Correction --}}
         <div class="card border-0 shadow-sm mb-3">

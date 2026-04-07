@@ -48,17 +48,29 @@ class QuestionController extends Controller
             null, $question->created_at
         );
 
-        // Handle file uploads
-        if ($request->hasFile('files')) {
-            foreach ($request->file('files') as $file) {
-                $path = $file->store('question_files', 'local');
-                QuestionFile::create([
-                    'question_id'   => $question->id,
-                    'original_name' => $file->getClientOriginalName(),
-                    'file_path'     => $path,
-                    'file_type'     => $file->getClientOriginalExtension(),
-                    'file_size'     => $file->getSize(),
-                ]);
+        // Handle pre-uploaded files
+        if ($request->has('uploaded_files')) {
+            foreach ($request->uploaded_files as $fileJson) {
+                $fileData = json_decode($fileJson, true);
+                if ($fileData && isset($fileData['path'])) {
+                    // Files are already in question_files/temp
+                    // We can keep them there or move them. For now, we'll just record the path.
+                    // If we want to move them to a non-temp folder:
+                    $oldPath = $fileData['path'];
+                    $newPath = str_replace('question_files/temp/', 'question_files/', $oldPath);
+                    
+                    if (Storage::disk('local')->exists($oldPath)) {
+                        Storage::disk('local')->move($oldPath, $newPath);
+                        
+                        QuestionFile::create([
+                            'question_id'   => $question->id,
+                            'original_name' => $fileData['name'],
+                            'file_path'     => $newPath,
+                            'file_type'     => $fileData['type'],
+                            'file_size'     => $fileData['size'],
+                        ]);
+                    }
+                }
             }
         }
 

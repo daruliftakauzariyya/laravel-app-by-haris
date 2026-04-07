@@ -218,7 +218,7 @@
             {{-- Question Content --}}
             <div class="content-body">
                 <span class="section-label">Question:</span>
-                <div class="body-text {{ $langClass }}">{!! nl2br(e($question->body)) !!}</div>
+                <div class="body-text {{ $langClass }}">{!! $question->body !!}</div>
             </div>
 
             @if($question->muftiAnswer && in_array($question->status, ['answered', 'approved', 'published']))

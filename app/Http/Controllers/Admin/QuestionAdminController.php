@@ -179,6 +179,14 @@ class QuestionAdminController extends Controller
         // If it was already published, we keep it approved but update the answer
         if ($question->status === 'published') {
             $answer->update(['status' => 'approved']);
+            
+            // Handle featured image update for published fatwa
+            if ($request->filled('featured_image_cropped')) {
+                $imagePath = $this->saveCroppedImage($request->featured_image_cropped);
+                if ($imagePath && $question->fatwa) {
+                    $question->fatwa->update(['featured_image' => $imagePath]);
+                }
+            }
         }
 
         // Save supporting references (clean and recreate for simplicity)
@@ -260,7 +268,9 @@ class QuestionAdminController extends Controller
         ]);
 
         $featuredImagePath = null;
-        if ($request->hasFile('featured_image')) {
+        if ($request->filled('featured_image_cropped')) {
+            $featuredImagePath = $this->saveCroppedImage($request->featured_image_cropped);
+        } elseif ($request->hasFile('featured_image')) {
             $image = $request->file('featured_image');
             $filename = time() . '_' . $image->getClientOriginalName();
             $image->move(public_path('uploads/fatwas'), $filename);
@@ -336,5 +346,31 @@ class QuestionAdminController extends Controller
     public function downloadFile(\App\Models\QuestionFile $file)
     {
         return Storage::disk('local')->download($file->file_path, $file->original_name);
+    }
+    /** Helper to decode base64 cropped image and save to disk */
+    private function saveCroppedImage($base64Data)
+    {
+        try {
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                $data = substr($base64Data, strpos($base64Data, ',') + 1);
+                $type = strtolower($type[1]); // jpg, png, etc
+                $data = base64_decode($data);
+
+                if ($data === false) return null;
+
+                $filename = 'fatwa_' . time() . '_' . \Illuminate\Support\Str::random(5) . '.' . $type;
+                $directory = public_path('uploads/fatwas');
+                
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+
+                file_put_contents($directory . '/' . $filename, $data);
+                return 'uploads/fatwas/' . $filename;
+            }
+        } catch (\Exception $e) {
+            \Log::error("Cropped Image upload error: " . $e->getMessage());
+        }
+        return null;
     }
 }
