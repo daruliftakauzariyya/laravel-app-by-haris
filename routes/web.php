@@ -55,6 +55,7 @@ Route::post('/login/otp/send', [\App\Http\Controllers\Auth\LoginController::clas
 */
 Route::middleware(['auth'])->group(function () {
     Route::get('/user/dashboard', [\App\Http\Controllers\User\UserDashboardController::class, 'index'])->name('user.dashboard');
+    Route::get('/user/questions/{question}', [\App\Http\Controllers\User\UserDashboardController::class, 'show'])->name('user.question.show');
     Route::get('/ask-question', [\App\Http\Controllers\QuestionController::class, 'create'])->name('question.create');
     Route::post('/ask-question', [\App\Http\Controllers\QuestionController::class, 'store'])->name('question.store');
 });

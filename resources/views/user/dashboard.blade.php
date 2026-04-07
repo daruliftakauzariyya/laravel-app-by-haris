@@ -21,6 +21,7 @@
                             <th class="py-3">Subject / Title</th>
                             <th class="py-3">Date Submitted</th>
                             <th class="py-3">Status</th>
+                            <th class="py-3 text-end px-4">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -42,10 +43,13 @@
                                     <span class="badge bg-secondary">{{ ucfirst(str_replace('_', ' ', $question->status)) }}</span>
                                 @endif
                             </td>
+                            <td class="align-middle text-end px-4">
+                                <a href="{{ route('user.question.show', $question->id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                            </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">
+                            <td colspan="5" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox d-block mb-3" style="font-size: 2rem;"></i>
                                 You have not submitted any queries yet.
                             </td>
