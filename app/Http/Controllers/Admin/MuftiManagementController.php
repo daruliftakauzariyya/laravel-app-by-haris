@@ -13,7 +13,27 @@ class MuftiManagementController extends Controller
     /** List all scholars with the 'mufti' role */
     public function index()
     {
-        $muftis = User::role('mufti')->latest()->get();
+        $muftis = User::role('mufti')
+            ->withCount([
+                'assignedQuestions as total_assigned',
+                'assignedQuestions as pending_count' => fn($q) => $q->where('status', 'assigned'),
+                'assignedQuestions as answered_count' => fn($q) => $q->whereIn('status', ['answered', 'published']),
+                'assignedQuestions as published_count' => fn($q) => $q->where('status', 'published'),
+                'muftiAnswers as total_answers',
+            ])
+            ->latest()
+            ->get()
+            ->each(function ($mufti) {
+                // Avg days from assigned_at to answer submitted_at
+                $mufti->avg_days = \App\Models\MuftiAnswer::where('mufti_id', $mufti->id)
+                    ->whereNotNull('submitted_at')
+                    ->join('questions', 'mufti_answers.question_id', '=', 'questions.id')
+                    ->whereNotNull('questions.assigned_at')
+                    ->selectRaw('AVG(DATEDIFF(mufti_answers.submitted_at, questions.assigned_at)) as avg')
+                    ->value('avg');
+                $mufti->avg_days = $mufti->avg_days ? round($mufti->avg_days, 1) : null;
+            });
+
         return view('admin.muftis.index', compact('muftis'));
     }
 

@@ -3,7 +3,7 @@
 @section('topbar-title', 'Dashboard Overview')
 @section('content')
 
-{{-- Stat Cards --}}
+{{-- Primary Stat Cards --}}
 <div class="row g-3 mb-4">
     @foreach([
         ['Total Questions', $stats['total'], 'bi-question-circle', 'linear-gradient(135deg,#1a7a4a,#145e38)'],
@@ -11,6 +11,8 @@
         ['Assigned', $stats['assigned'], 'bi-person-check', 'linear-gradient(135deg,#0dcaf0,#0aa5c5)'],
         ['Answered', $stats['answered'], 'bi-chat-check', 'linear-gradient(135deg,#0d6efd,#0a58ca)'],
         ['Published Fatwas', $stats['published'], 'bi-patch-check', 'linear-gradient(135deg,#c9a84c,#a8883a)'],
+        ['Total Reads', $stats['total_reads'], 'bi-eye', 'linear-gradient(135deg,#6f42c1,#5a349a)'],
+        ['Questioners', $stats['questioners'], 'bi-people', 'linear-gradient(135deg,#20c997,#12b886)'],
     ] as [$label, $val, $icon, $bg])
     <div class="col-6 col-xl">
         <div class="stat-card shadow-sm" style="background:{{ $bg }};">
@@ -25,6 +27,86 @@
     </div>
     @endforeach
 </div>
+
+{{-- Analytics Row --}}
+<div class="row g-4 mb-4">
+    {{-- Monthly Chart --}}
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart me-2"></i>Questions Submitted (Last 6 Months)</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart" height="90"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {{-- Top Countries + Category --}}
+    <div class="col-lg-4">
+        {{-- Most Popular Category --}}
+        @if($topCategory)
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-0 py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-trophy me-2 text-warning"></i>Most Queried Category</h6>
+            </div>
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:48px;height:48px;background:#fff8e1;color:#c9a84c;font-size:1.5rem;">
+                        <i class="bi bi-bookmark-star"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold">{{ $topCategory->name }}</div>
+                        <small class="text-muted">{{ $topCategory->q_count }} published question(s)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        {{-- Top Countries --}}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-globe2 me-2"></i>Top Countries</h6>
+            </div>
+            <div class="card-body py-2">
+                @forelse($topCountries as $c)
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="small fw-semibold"><i class="bi bi-geo-alt me-1 text-muted"></i>{{ $c->country }}</span>
+                    <span class="badge bg-success rounded-pill">{{ $c->count }}</span>
+                </div>
+                @empty
+                <p class="text-muted small py-2 mb-0">No country data yet.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const ctx = document.getElementById('monthlyChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: @json($monthlyLabels),
+        datasets: [{
+            label: 'Questions Submitted',
+            data: @json($monthlyCounts),
+            backgroundColor: 'rgba(26,122,74,0.8)',
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    }
+});
+</script>
+@endpush
 
 {{-- Recent Questions --}}
 <div class="card border-0 shadow-sm">

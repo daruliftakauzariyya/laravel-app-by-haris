@@ -16,9 +16,13 @@
                 <tr>
                     <th>Scholar Name</th>
                     <th>Email Address</th>
+                    <th class="text-center">Assigned</th>
+                    <th class="text-center">Pending</th>
+                    <th class="text-center">Answered</th>
+                    <th class="text-center">Published</th>
+                    <th class="text-center">Avg Days</th>
                     <th>Account Status</th>
                     <th>Check & Approve</th>
-                    <th>Created On</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -32,7 +36,32 @@
                             <span class="fw-semibold text-dark">{{ $mufti->name }}</span>
                         </div>
                     </td>
-                    <td>{{ $mufti->email }}</td>
+                    <td><small>{{ $mufti->email }}</small></td>
+                    <td class="text-center">
+                        <span class="badge bg-secondary rounded-pill">{{ $mufti->total_assigned ?? 0 }}</span>
+                    </td>
+                    <td class="text-center">
+                        @if(($mufti->pending_count ?? 0) > 0)
+                            <span class="badge bg-warning text-dark rounded-pill">{{ $mufti->pending_count }}</span>
+                        @else
+                            <span class="text-muted small">—</span>
+                        @endif
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-info text-dark rounded-pill">{{ $mufti->answered_count ?? 0 }}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-success rounded-pill">{{ $mufti->published_count ?? 0 }}</span>
+                    </td>
+                    <td class="text-center">
+                        @if($mufti->avg_days)
+                            <span class="badge {{ $mufti->avg_days <= 2 ? 'bg-success' : ($mufti->avg_days <= 5 ? 'bg-warning text-dark' : 'bg-danger') }}">
+                                {{ $mufti->avg_days }}d
+                            </span>
+                        @else
+                            <span class="text-muted small">—</span>
+                        @endif
+                    </td>
                     <td>
                         <form method="POST" action="{{ route('admin.muftis.toggle-status', $mufti) }}">
                             @csrf
@@ -62,7 +91,7 @@
                                 @if(!$mufti->muftiAnswers()->exists() && !$mufti->assignedQuestions()->exists())
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form method="POST" action="{{ route('admin.muftis.destroy', $mufti) }}" onsubmit="return confirm('Detele Mufti profile?');">
+                                    <form method="POST" action="{{ route('admin.muftis.destroy', $mufti) }}" onsubmit="return confirm('Delete Mufti profile?');">
                                         @csrf
                                         @method('DELETE')
                                         <button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete Scholar</button>
@@ -74,7 +103,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center text-muted py-5">No scholars found.</td></tr>
+                <tr><td colspan="10" class="text-center text-muted py-5">No scholars found.</td></tr>
                 @endforelse
             </tbody>
         </table>

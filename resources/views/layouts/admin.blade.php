@@ -77,6 +77,9 @@
         <a href="{{ route('admin.categories.index') }}" class="nav-link {{ request()->routeIs('admin.categories*') ? 'active' : '' }}">
             <i class="bi bi-tags"></i> Categories
         </a>
+        <a href="{{ route('admin.questioners.index') }}" class="nav-link {{ request()->routeIs('admin.questioners*') ? 'active' : '' }}">
+            <i class="bi bi-people"></i> Questioners
+        </a>
         <div class="mt-3 px-2">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf

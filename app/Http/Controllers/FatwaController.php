@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Fatwa;
+use App\Models\FatwaUserView;
 use Illuminate\Http\Request;
 
 class FatwaController extends Controller
@@ -99,7 +100,20 @@ class FatwaController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        $fatwa->incrementViews();
+        $fatwa->incrementViews(); // Public reads counter
+
+        // Track questioner's own views (logged-in user only)
+        if (auth()->check()) {
+            FatwaUserView::updateOrCreate(
+                ['fatwa_id' => $fatwa->id, 'user_id' => auth()->id()],
+                ['views'    => 1] // default on create
+            );
+            // If already exists, increment their personal view count
+            FatwaUserView::where('fatwa_id', $fatwa->id)
+                ->where('user_id', auth()->id())
+                ->increment('views');
+        }
+
         return view('fatwa-show', compact('fatwa', 'relatedFatwas', 'recentFatwas', 'allCategories'));
     }
 }

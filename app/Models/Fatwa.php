@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\FatwaUserView;
 
 class Fatwa extends Model
 {
@@ -50,6 +51,11 @@ class Fatwa extends Model
     public function checkedApprovedBy()
     {
         return $this->belongsTo(User::class, 'checked_approved_by');
+    }
+
+    public function userViews()
+    {
+        return $this->hasMany(FatwaUserView::class);
     }
 
     public function incrementViews()
