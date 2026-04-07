@@ -13,6 +13,8 @@ class Fatwa extends Model
         'question_id',
         'mufti_answer_id',
         'published_by',
+        'verified_by',
+        'checked_approved_by',
         'fatwa_number',
         'is_featured',
         'views',
@@ -37,6 +39,16 @@ class Fatwa extends Model
     public function publisher()
     {
         return $this->belongsTo(User::class, 'published_by');
+    }
+
+    public function verifiedBy()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    public function checkedApprovedBy()
+    {
+        return $this->belongsTo(User::class, 'checked_approved_by');
     }
 
     public function incrementViews()

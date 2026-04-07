@@ -24,9 +24,28 @@ class UserDashboardController extends Controller
             abort(403, 'Unauthorized access to this query.');
         }
 
-        // We load the relationship if it exists so we can display answers
-        $question->load(['category', 'muftiAnswer']);
+        // Load all relationships needed for the full details page
+        $question->load([
+            'category',
+            'muftiAnswer.mufti',
+            'muftiAnswer.reviewer',
+            'muftiAnswer.supportingReferences',
+            'fatwa.publisher',
+            'fatwa.verifiedBy',
+            'fatwa.checkedApprovedBy',
+        ]);
 
-        return view('user.question', compact('question'));
+        // Fetch related questions from the same category
+        $relatedQuestions = collect();
+        if ($question->category_id) {
+            $relatedQuestions = \App\Models\Question::where('category_id', $question->category_id)
+                ->where('id', '!=', $question->id)
+                ->where('status', 'published')
+                ->latest()
+                ->take(5)
+                ->get();
+        }
+
+        return view('user.question', compact('question', 'relatedQuestions'));
     }
 }

@@ -29,6 +29,7 @@ class User extends Authenticatable
         'mother_language',
         'profile_completed',
         'is_active',
+        'can_check_approve',
         'otp',
         'otp_expires_at',
     ];

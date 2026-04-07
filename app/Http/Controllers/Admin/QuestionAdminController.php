@@ -141,11 +141,29 @@ class QuestionAdminController extends Controller
     public function verify(Question $question)
     {
         $question->load('muftiAnswer.mufti', 'muftiAnswer.supportingReferences', 'user');
-        return view('admin.fatwas.verify', compact('question'));
+
+        $writtenByMuftiId = $question->muftiAnswer->mufti_id;
+
+        // All muftis except the one who wrote the answer (for 'Verified by')
+        $verifierMuftis = User::role('mufti')
+            ->where('id', '!=', $writtenByMuftiId)
+            ->get();
+
+        // Only muftis with can_check_approve permission (for 'Checked & Approved by')
+        $approverMuftis = User::role('mufti')
+            ->where('can_check_approve', true)
+            ->get();
+
+        return view('admin.fatwas.verify', compact('question', 'verifierMuftis', 'approverMuftis'));
     }
 
     public function approve(Request $request, Question $question)
     {
+        $request->validate([
+            'verified_by'          => ['nullable', 'exists:users,id'],
+            'checked_approved_by'  => ['nullable', 'exists:users,id'],
+        ]);
+
         $answer = $question->muftiAnswer;
         $answer->update([
             'status'      => 'approved',
@@ -154,10 +172,12 @@ class QuestionAdminController extends Controller
         ]);
 
         $fatwa = Fatwa::create([
-            'question_id'     => $question->id,
-            'mufti_answer_id' => $answer->id,
-            'published_by'    => Auth::id(),
-            'published_at'    => now(),
+            'question_id'         => $question->id,
+            'mufti_answer_id'     => $answer->id,
+            'published_by'        => Auth::id(),
+            'verified_by'         => $request->verified_by,
+            'checked_approved_by' => $request->checked_approved_by,
+            'published_at'        => now(),
         ]);
 
         $question->update(['status' => 'published']);

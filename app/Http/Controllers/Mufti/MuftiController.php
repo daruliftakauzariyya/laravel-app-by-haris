@@ -100,13 +100,17 @@ class MuftiController extends Controller
     public function updateProfile(Request $request)
     {
         $request->validate([
-            'name'            => ['required', 'string', 'max:255'],
-            'mobile'          => ['nullable', 'string', 'max:20'],
-            'country'         => ['nullable', 'string', 'max:100'],
-            'mother_language' => ['nullable', 'string', 'max:50'],
+            'name'              => ['required', 'string', 'max:255'],
+            'mobile'            => ['nullable', 'string', 'max:20'],
+            'country'           => ['nullable', 'string', 'max:100'],
+            'mother_language'   => ['nullable', 'string', 'max:50'],
+            'can_check_approve' => ['nullable', 'boolean'],
         ]);
 
-        Auth::user()->update($request->only('name', 'mobile', 'country', 'mother_language'));
+        $data = $request->only('name', 'mobile', 'country', 'mother_language');
+        $data['can_check_approve'] = $request->boolean('can_check_approve');
+
+        Auth::user()->update($data);
         return redirect()->route('mufti.profile')->with('success', 'Profile updated.');
     }
 }
