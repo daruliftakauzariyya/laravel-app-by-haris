@@ -31,7 +31,14 @@ class FatwaController extends Controller
 
     public function show(Fatwa $fatwa)
     {
-        $fatwa->load(['question.user', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences', 'publisher']);
+        $fatwa->load([
+            'question.category', 
+            'muftiAnswer.mufti', 
+            'muftiAnswer.supportingReferences', 
+            'publisher',
+            'verifiedBy',
+            'checkedApprovedBy'
+        ]);
 
         $question = $fatwa->question;
         
@@ -46,7 +53,16 @@ class FatwaController extends Controller
             }
         }
 
+        // Fetch related fatwas from the same category
+        $relatedFatwas = Fatwa::whereHas('question', function($q) use ($question) {
+                $q->where('category_id', $question->category_id);
+            })
+            ->where('id', '!=', $fatwa->id)
+            ->latest('published_at')
+            ->take(5)
+            ->get();
+
         $fatwa->incrementViews();
-        return view('fatwa-show', compact('fatwa'));
+        return view('fatwa-show', compact('fatwa', 'relatedFatwas'));
     }
 }
