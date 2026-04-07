@@ -36,60 +36,114 @@
         </div>
     </form>
 
-    @if($fatwas->isEmpty())
-        <div class="text-center py-5 text-muted">
-            <i class="bi bi-inbox" style="font-size:3rem;"></i>
-            <p class="mt-3">No fatwas found. <a href="{{ route('question.create') }}">Be the first to ask!</a></p>
-        </div>
-    @else
     <div class="row g-4">
-        @foreach($fatwas as $fatwa)
-        <div class="col-md-6 col-lg-4">
-            <a href="{{ route('fatwa.show', $fatwa) }}" class="text-decoration-none">
-                <div class="fatwa-card h-100">
-                    {{-- Thumbnail --}}
-                    <div class="fatwa-thumb">
-                        <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}"
-                             alt="Fatwa"
-                             onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
-                        <span class="madhab-badge">{{ $fatwa->question->madhab }}</span>
-                    </div>
-
-                    {{-- Card Body --}}
-                    <div class="fatwa-body">
-                        <div class="fatwa-meta">
-                            <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category->name ?? 'General' }}</span>
-                            <span>{{ $fatwa->published_at?->format('d M Y') }}</span>
-                        </div>
-
-                        <h6 class="fatwa-title">
-                            {{ Str::limit($fatwa->question->title ?: strip_tags($fatwa->question->body), 75) }}
-                        </h6>
-
-                        <p class="fatwa-excerpt">
-                            {{ Str::limit(strip_tags($fatwa->muftiAnswer->summary ?: $fatwa->muftiAnswer->full_answer), 95) }}
-                        </p>
-
-                        <div class="fatwa-footer">
-                            <span class="fatwa-author">
-                                <i class="bi bi-person-circle me-1"></i>{{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
-                            </span>
-                            <span class="read-more-btn">Read More <i class="bi bi-arrow-right"></i></span>
-                        </div>
-                    </div>
+        {{-- Main Content --}}
+        <div class="col-lg-8">
+            @if($fatwas->isEmpty())
+                <div class="text-center py-5 text-muted card border-0 shadow-sm">
+                    <i class="bi bi-inbox" style="font-size:3rem;"></i>
+                    <p class="mt-3">No fatwas found. <a href="{{ route('question.create') }}">Be the first to ask!</a></p>
                 </div>
-            </a>
+            @else
+            <div class="row g-4">
+                @foreach($fatwas as $fatwa)
+                <div class="col-md-6">
+                    <a href="{{ route('fatwa.show', $fatwa) }}" class="text-decoration-none text-dark">
+                        <div class="fatwa-card h-100">
+                            {{-- Thumbnail --}}
+                            <div class="fatwa-thumb">
+                                <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}"
+                                     alt="Fatwa"
+                                     onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
+                                <span class="madhab-badge">{{ $fatwa->question->madhab }}</span>
+                            </div>
+
+                            {{-- Card Body --}}
+                            <div class="fatwa-body">
+                                <div class="fatwa-meta">
+                                    <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category->name ?? 'General' }}</span>
+                                    <span>{{ $fatwa->published_at?->format('d M Y') }}</span>
+                                </div>
+
+                                <h6 class="fatwa-title">
+                                    {{ Str::limit($fatwa->question->title ?: strip_tags($fatwa->question->body), 75) }}
+                                </h6>
+
+                                <p class="fatwa-excerpt">
+                                    {{ Str::limit(strip_tags($fatwa->muftiAnswer->summary ?: $fatwa->muftiAnswer->full_answer), 95) }}
+                                </p>
+
+                                <div class="fatwa-footer">
+                                    <span class="fatwa-author">
+                                        <i class="bi bi-person-circle me-1"></i>{{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
+                                    </span>
+                                    <span class="read-more-btn">Read More <i class="bi bi-arrow-right"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                @endforeach
+            </div>
+            <div class="mt-5">{{ $fatwas->links() }}</div>
+            @endif
         </div>
-        @endforeach
+
+        {{-- Sidebar --}}
+        <div class="col-lg-4">
+            {{-- Widget: Search --}}
+            <div class="sidebar-widget sidebar-search">
+                <form action="{{ route('fatwa.archive') }}" method="GET">
+                    <div class="position-relative">
+                        <input type="text" name="search" class="form-control" placeholder="Search fatwas..." value="{{ request('search') }}">
+                        <button class="btn position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent pe-3">
+                            <i class="bi bi-search text-muted"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- Widget: Categories --}}
+            <div class="sidebar-widget">
+                <span class="widget-title">Categories</span>
+                <ul class="cat-list">
+                    @foreach($allCategories as $cat)
+                    <li>
+                        <a href="{{ route('fatwa.archive', ['category' => $cat->id]) }}" class="{{ request('category') == $cat->id ? 'active text-primary' : '' }}">
+                            <span>{{ $cat->name }}</span>
+                            <span class="cat-count">{{ $cat->questions_count }}</span>
+                        </a>
+                    </li>
+                    @endforeach
+                </ul>
+            </div>
+
+            {{-- Widget: Madhab Quick Select --}}
+            <div class="sidebar-widget">
+                <span class="widget-title">Madhabs</span>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    @foreach(['Hanafi','Shafii','Maliki','Hanbali'] as $m)
+                        <a href="{{ route('fatwa.archive', ['madhab' => $m]) }}" 
+                           class="btn btn-sm btn-outline-success px-3 rounded-pill {{ request('madhab') == $m ? 'active' : '' }}">
+                            {{ $m == 'Shafii' ? "Shafi'i" : $m }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="mt-5">{{ $fatwas->links() }}</div>
-    @endif
 </div>
 
 @push('styles')
 <style>
+    :root {
+        --slate-blue: #4A6372;
+        --brand-green: #1a7a4a;
+        --border-color: #edf2f7;
+    }
+
     /* ============================================
-       Fatwa Card — Sync with Home Page Design
+       Fatwa Card
        ============================================ */
     .fatwa-card {
         background: #fff;
@@ -187,6 +241,50 @@
         transition: 0.2s;
     }
     .fatwa-card:hover .read-more-btn { background: #1a7a4a; color: #fff; }
+
+    /* ============================================
+       Sidebar Widgets
+       ============================================ */
+    .sidebar-widget {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        border: 1px solid var(--border-color);
+    }
+    .widget-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--slate-blue);
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--brand-green);
+        display: inline-block;
+        width: 100%;
+    }
+
+    .sidebar-search .form-control {
+        border-radius: 8px;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.95rem;
+    }
+
+    .cat-list { list-style: none; padding: 0; margin: 0; }
+    .cat-list li { margin-bottom: 12px; }
+    .cat-list a {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-decoration: none;
+        color: #4a5568;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: 0.2s;
+    }
+    .cat-list a:hover { color: var(--brand-green); }
+    .cat-count { background: #edf2f7; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; color: #718096; }
 </style>
 @endpush
 @endsection

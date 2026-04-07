@@ -53,8 +53,12 @@ class FatwaController extends Controller
             });
         }
 
-        $allCategories = \App\Models\Category::whereNull('parent_id')->orderBy('sort_order')->get();
-        $fatwas = $query->paginate(10)->withQueryString();
+        $allCategories = \App\Models\Category::whereNull('parent_id')
+            ->withCount(['questions' => fn($q) => $q->where('status', 'published')])
+            ->orderBy('sort_order')
+            ->get();
+            
+        $fatwas = $query->paginate(12)->withQueryString();
         return view('fatwa-archive', compact('fatwas', 'allCategories'));
     }
 
@@ -98,7 +102,7 @@ class FatwaController extends Controller
             ->get();
 
         $allCategories = \App\Models\Category::whereNull('parent_id')
-            ->withCount('questions')
+            ->withCount(['questions' => fn($q) => $q->where('status', 'published')])
             ->orderBy('sort_order')
             ->get();
 
