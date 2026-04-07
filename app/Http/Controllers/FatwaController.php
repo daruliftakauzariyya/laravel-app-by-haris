@@ -62,7 +62,18 @@ class FatwaController extends Controller
             ->take(5)
             ->get();
 
+        // New sidebar data
+        $recentFatwas = Fatwa::latest('published_at')
+            ->where('id', '!=', $fatwa->id)
+            ->take(5)
+            ->get();
+
+        $allCategories = \App\Models\Category::whereNull('parent_id')
+            ->withCount('questions')
+            ->orderBy('sort_order')
+            ->get();
+
         $fatwa->incrementViews();
-        return view('fatwa-show', compact('fatwa', 'relatedFatwas'));
+        return view('fatwa-show', compact('fatwa', 'relatedFatwas', 'recentFatwas', 'allCategories'));
     }
 }

@@ -9,7 +9,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Alyamama&family=Gulzar&family=Noto+Serif+Malayalam:wght@100..900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/app-fonts.css') }}">
     <style>
         :root {
             --green: #1a7a4a;
@@ -20,16 +21,16 @@
         }
         body { font-family: 'Inter', sans-serif; background: var(--bg-light); }
         
-        /* Language Specific Fonts */
-        .inter-font { font-family: "Inter", sans-serif; }
-        .alyamama-font { font-family: "Alyamama", serif; }
-        .gulzar-font { font-family: "Gulzar", serif; }
-        .noto-serif-malayalam-font { font-family: "Noto Serif Malayalam", serif; }
+        /* Language Specific Fonts (Local - see public/assets/css/app-fonts.css) */
+        .inter-font              { font-family: 'Google Sans Eng', 'Inter', sans-serif; }
+        .alyamama-font           { font-family: 'Noto Naskh Arabic', serif; }
+        .gulzar-font             { font-family: 'Noto Nastaliq Urdu', serif; }
+        .noto-serif-malayalam-font { font-family: 'Noto Serif Malayalam', serif; }
         
         /* Typography Utility Classes */
-        .ar-text { font-family: "Alyamama", serif; direction: rtl; text-align: right; }
-        .ur-text { font-family: "Gulzar", serif; direction: rtl; text-align: right; }
-        .ml-text { font-family: "Noto Serif Malayalam", serif; }
+        .ar-text { font-family: 'Noto Naskh Arabic', serif; direction: rtl; text-align: right; }
+        .ur-text { font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; text-align: right; }
+        .ml-text { font-family: 'Noto Serif Malayalam', serif; }
 
         .navbar { background: var(--green) !important; }
         .navbar-brand { font-size: 1.4rem; font-weight: 700; color: #fff !important; }

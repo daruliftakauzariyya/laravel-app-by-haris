@@ -1,0 +1,56 @@
+/* Fatwa Portal — Local Font Registration */
+
+/* 1. English / Global — Google Sans */
+@font-face {
+    font-family: 'Google Sans Eng';
+    src: url('../fonts/Google_Sans_eng/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 2. Arabic — Noto Naskh Arabic */
+@font-face {
+    font-family: 'Noto Naskh Arabic';
+    src: url('../fonts/Noto_Naskh_Arabic/NotoNaskhArabic-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 3. Urdu — Noto Nastaliq Urdu */
+@font-face {
+    font-family: 'Noto Nastaliq Urdu';
+    src: url('../fonts/Noto_Nastaliq_Urdu/NotoNastaliqUrdu-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 4. Malayalam — Noto Serif Malayalam */
+@font-face {
+    font-family: 'Noto Serif Malayalam';
+    src: url('../fonts/Noto_Serif_Malayalam/NotoSerifMalayalam-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ================================================
+   Language Typography Utility Classes
+   ================================================ */
+.font-eng       { font-family: 'Google Sans Eng', 'Inter', sans-serif !important; }
+.font-arabic    { font-family: 'Noto Naskh Arabic', serif !important; direction: rtl; text-align: right; }
+.font-urdu      { font-family: 'Noto Nastaliq Urdu', serif !important; direction: rtl; text-align: right; }
+.font-malayalam { font-family: 'Noto Serif Malayalam', serif !important; }
+
+/* Backward-compatible aliases used in existing views */
+.ar-text        { font-family: 'Noto Naskh Arabic', serif !important; direction: rtl; text-align: right; }
+.ur-text        { font-family: 'Noto Nastaliq Urdu', serif !important; direction: rtl; text-align: right; line-height: 2.2; }
+.ml-text        { font-family: 'Noto Serif Malayalam', serif !important; }
+.en-text        { font-family: 'Google Sans Eng', 'Inter', sans-serif !important; }
+.inter-font     { font-family: 'Google Sans Eng', 'Inter', sans-serif !important; }
+
+/* Urdu/Arabic need more line height for readability */
+.font-urdu p, .ur-text p  { line-height: 2.4 !important; }
+.font-arabic p, .ar-text p { line-height: 2 !important; }

@@ -33,6 +33,31 @@
                        placeholder="Brief one-line summary of the question" value="{{ old('summary', $question->muftiAnswer?->summary) }}" required>
                 @error('summary')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
+
+            {{-- Language Selector --}}
+            <div class="mb-4 p-3 rounded" style="background:#f8f9fa; border:1px solid #e5e7eb;">
+                <label class="form-label fw-bold mb-3">
+                    <i class="bi bi-translate me-2 text-success"></i>Question Language 
+                    <span class="text-muted small fw-normal">(Sets font on the public page)</span>
+                </label>
+                <div class="row g-3 align-items-start">
+                    <div class="col-md-5">
+                        <select name="language" id="language-select" class="form-select">
+                            <option value="English"   {{ old('language', $question->language) == 'English'   ? 'selected' : '' }}>🇬🇧 English</option>
+                            <option value="Arabic"    {{ old('language', $question->language) == 'Arabic'    ? 'selected' : '' }}>🇸🇦 Arabic</option>
+                            <option value="Urdu"      {{ old('language', $question->language) == 'Urdu'      ? 'selected' : '' }}>🇵🇰 Urdu</option>
+                            <option value="Malayalam" {{ old('language', $question->language) == 'Malayalam' ? 'selected' : '' }}>🇮🇳 Malayalam</option>
+                            <option value="Hindi"     {{ old('language', $question->language) == 'Hindi'     ? 'selected' : '' }}>🇮🇳 Hindi</option>
+                        </select>
+                    </div>
+                    <div class="col-md-7">
+                        <div id="font-preview-box" class="font-preview text-muted" style="min-height:48px; font-size:1.1rem;">
+                            — Font preview will appear here —
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="mb-4">
                 <label class="form-label fw-semibold">Full Answer <span class="text-danger">*</span></label>
                 <textarea name="full_answer" rows="8" class="form-control @error('full_answer') is-invalid @enderror"
@@ -143,11 +168,39 @@ document.addEventListener('click', function(e) {
         if (rows.length > 1) {
             e.target.closest('.reference-row').remove();
         } else {
-            // If only one row, just clear it
             e.target.closest('.reference-row').querySelectorAll('textarea, input').forEach(el => el.value = '');
         }
     }
 });
+
+// ================================================
+// Live Font Preview for Language Selector
+// ================================================
+const fontMap = {
+    'English':   { font: "'Google Sans Eng', 'Inter', sans-serif", dir: 'ltr', sample: 'The ruling on this matter is as follows in Islamic jurisprudence...' },
+    'Arabic':    { font: "'Noto Naskh Arabic', serif",             dir: 'rtl', sample: 'بسم الله الرحمن الرحيم — الجواب وبالله التوفيق والنجاح' },
+    'Urdu':      { font: "'Noto Nastaliq Urdu', serif",            dir: 'rtl', sample: 'بسم اللہ الرحمٰن الرحیم — اس مسئلے کا جواب یہ ہے...' },
+    'Malayalam': { font: "'Noto Serif Malayalam', serif",          dir: 'ltr', sample: 'ബിസ്മില്ലാഹ് — ഈ കാര്യത്തിൽ ഇസ്‌ലാമിക വിധി ഇപ്രകാരമാണ്...' },
+    'Hindi':     { font: "'Google Sans Eng', 'Inter', sans-serif", dir: 'ltr', sample: 'इस्लामी न्यायशास्त्र के अनुसार इस विषय में यह निर्णय है...' },
+};
+
+function updateFontPreview(lang) {
+    const preview = document.getElementById('font-preview-box');
+    const config = fontMap[lang] || fontMap['English'];
+    preview.style.fontFamily = config.font;
+    preview.style.direction = config.dir;
+    preview.style.textAlign = config.dir === 'rtl' ? 'right' : 'left';
+    preview.style.fontSize = lang === 'Urdu' ? '1.3rem' : '1.1rem';
+    preview.style.lineHeight = (lang === 'Urdu' || lang === 'Arabic') ? '2.2' : '1.6';
+    preview.style.color = '#1a202c';
+    preview.textContent = config.sample;
+}
+
+const langSelect = document.getElementById('language-select');
+if (langSelect) {
+    updateFontPreview(langSelect.value); // run on load
+    langSelect.addEventListener('change', function() { updateFontPreview(this.value); });
+}
 </script>
 @endpush
 @endsection

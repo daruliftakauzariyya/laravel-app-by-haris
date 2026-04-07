@@ -17,290 +17,353 @@
         --slate-blue: #4A6372;
         --brand-green: #1a7a4a;
         --bg-soft: #f4f7f9;
+        --border-color: #edf2f7;
     }
-    .fatwa-container {
-        max-width: 800px;
+    
+    .main-wrapper {
+        max-width: 1200px;
         margin: 0 auto;
+        padding: 0 15px;
     }
-    .app-card {
+
+    /* Redesigned Card */
+    .fatwa-card {
         background: #fff;
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        border: none;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        border: 1px solid var(--border-color);
+        margin-bottom: 30px;
     }
-    .app-header {
-        background-color: var(--slate-blue);
-        color: #fff;
-        padding: 30px 25px;
+
+    .featured-image-wrapper {
+        width: 100%;
+        max-height: 480px;
+        overflow: hidden;
+        background: #f0f0f0;
     }
-    .app-header h1 {
-        font-size: 1.4rem;
-        font-weight: 700;
-        line-height: 1.5;
-        margin: 0;
+    .featured-image-wrapper img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
     }
-    .meta-grid {
-        background: #fff;
-        padding: 20px 25px;
-        border-bottom: 1px solid #edf2f7;
+
+    .editorial-meta {
+        padding: 20px 25px 0;
+        font-size: 0.9rem;
+        color: #718096;
     }
-    .meta-item {
-        margin-bottom: 10px;
+    .editorial-meta b { color: #2d3748; }
+
+    .header-section {
+        padding: 15px 25px 25px;
+        border-bottom: 1px solid var(--border-color);
     }
-    .meta-label {
-        font-weight: 700;
-        font-size: 0.85rem;
-        color: #333;
-        width: 80px;
-        display: inline-block;
+    .header-section h1 {
+        font-size: 1.85rem;
+        font-weight: 800;
+        color: #1a202c;
+        line-height: 1.3;
+        margin-bottom: 20px;
     }
-    .meta-value {
-        font-weight: 600;
-        font-size: 0.85rem;
-        color: var(--brand-green);
+
+    .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px 30px;
+        padding-top: 15px;
+        border-top: 1px solid #f7fafc;
     }
-    .content-body {
-        padding: 25px;
-    }
-    .section-label {
-        font-weight: 700;
-        font-size: 1.1rem;
-        color: #000;
-        margin-bottom: 15px;
-        display: block;
-    }
-    .body-text {
-        font-size: 1.05rem;
-        line-height: 1.8;
-        color: #333;
-    }
-    .arabic-block {
+    .meta-unit { display: flex; align-items: center; gap: 8px; }
+    .meta-unit .label { font-weight: 700; font-size: 0.8rem; color: #4a5568; text-transform: uppercase; letter-spacing: 0.5px; }
+    .meta-unit .value { font-weight: 600; font-size: 0.85rem; color: var(--brand-green); }
+
+    .body-content { padding: 30px 25px; }
+    .content-block { margin-bottom: 35px; }
+    .content-block:last-child { margin-bottom: 0; }
+    .block-h { font-weight: 800; font-size: 1.15rem; color: #000; margin-bottom: 15px; display: block; border-left: 4px solid var(--brand-green); padding-left: 12px; }
+    .block-text { font-size: 1.05rem; line-height: 1.85; color: #2d3748; }
+    .block-text p { margin-bottom: 1rem; }
+
+    .arabic-quote {
         font-family: 'Amiri', 'Alyamama', serif;
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         text-align: center;
         direction: rtl;
-        margin: 20px 0;
-        color: #000;
+        margin: 25px 0;
+        color: #1a202c;
+        line-height: 2;
     }
-    .signature-section {
-        padding: 0 25px 25px;
-    }
-    .signature-item {
-        margin-bottom: 15px;
-    }
-    .sig-label {
-        font-weight: 700;
-        font-size: 0.95rem;
-        display: block;
-        color: #000;
-    }
-    .sig-value {
-        color: var(--brand-green);
-        font-weight: 600;
-        font-size: 0.95rem;
-    }
-    .references-section {
-        background-color: #f9fafb;
-        margin: 20px 25px;
-        padding: 20px;
-        border-radius: 8px;
-        border-right: 4px solid var(--brand-green);
-    }
-    .tags-footer {
-        padding: 15px 25px;
-        border-top: 1px solid #edf2f7;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .tag-item {
-        color: #666;
-        font-size: 0.9rem;
-        margin-right: 8px;
-        text-decoration: none;
-    }
-    .share-icon {
-        color: var(--slate-blue);
-        font-size: 1.2rem;
-    }
-    .related-section {
-        background-color: #eef2f5;
-        border-radius: 20px 20px 0 0;
-        margin-top: 30px;
+
+    /* Sidebar Styles */
+    .sidebar-widget {
+        background: #fff;
+        border-radius: 12px;
         padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        border: 1px solid var(--border-color);
     }
-    .related-title {
-        font-weight: 700;
+    .widget-title {
+        font-size: 1.1rem;
+        font-weight: 800;
         color: var(--slate-blue);
         margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--brand-green);
+        display: inline-block;
     }
-    .search-box {
-        background: #fff;
+
+    .sidebar-search .form-control {
         border-radius: 8px;
-        padding: 10px 15px;
-        display: flex;
-        align-items: center;
-        margin-bottom: 20px;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.95rem;
     }
-    .related-card {
-        background: #fff;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 12px;
+
+    .recent-item {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
         text-decoration: none;
         color: inherit;
-        transition: transform 0.2s;
+        transition: 0.2s;
     }
-    .related-card:hover { border-left: 3px solid var(--brand-green); transform: translateX(5px); }
+    .recent-item:hover { opacity: 0.8; }
+    .recent-thumb {
+        width: 120px; /* Adjusted to look good in sidebar, we'll keep the ratio */
+        height: 72px;
+        border-radius: 6px;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: #f7fafc;
+    }
+    .recent-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .recent-info h6 { font-size: 0.9rem; font-weight: 700; line-height: 1.4; margin: 0; color: #2d3748; }
+    .recent-info .date { font-size: 0.75rem; color: #a0aec0; margin-top: 5px; display: block; }
+
+    .cat-list { list-style: none; padding: 0; margin: 0; }
+    .cat-list li { margin-bottom: 12px; }
+    .cat-list a {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-decoration: none;
+        color: #4a5568;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: 0.2s;
+    }
+    .cat-list a:hover { color: var(--brand-green); }
+    .cat-count { background: #edf2f7; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; color: #718096; }
+
+    /* Signatures Section */
+    .signature-box {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 25px;
+        margin-top: 40px;
+        border: 1px solid #e2e8f0;
+    }
+    .sig-row { margin-bottom: 12px; display: flex; gap: 8px; font-size: 0.95rem; }
+    .sig-row b { color: #1a202c; }
+    .sig-row span { color: var(--brand-green); font-weight: 700; }
+
+    .ref-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid var(--brand-green);
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 15px;
+    }
 </style>
 
-<div class="container py-4">
-    <div class="fatwa-container">
-        
-        {{-- Breadcrumb for desktop --}}
-        <nav aria-label="breadcrumb" class="mb-3 d-none d-md-block">
-            <ol class="breadcrumb small">
-                <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-muted">Home</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('fatwa.archive') }}" class="text-muted">Archive</a></li>
-                <li class="breadcrumb-item active">{{ $fatwa->question->question_id }}</li>
-            </ol>
-        </nav>
-
-        <div class="app-card mb-4">
-            {{-- Header --}}
-            <div class="app-header">
-                <h1 class="{{ $langClass }}">{{ $fatwa->question->title ?: 'Islamic Query Detail' }}</h1>
-            </div>
-
-            {{-- Metadata --}}
-            <div class="meta-grid">
-                {{-- Row 1: Qu-Id & Madhab --}}
-                <div class="row g-0 mb-2">
-                    <div class="col-6">
-                        <div class="meta-item"><span class="meta-label text-dark">Qu-Id:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $fatwa->question->question_id }}</span></div>
+<div class="main-wrapper py-5">
+    <div class="row">
+        {{-- Left Column: Main Content --}}
+        <div class="col-lg-8">
+            <div class="fatwa-card">
+                {{-- 1. Featured Image --}}
+                @if($fatwa->featured_image)
+                    <div class="featured-image-wrapper">
+                        <img src="{{ asset($fatwa->featured_image) }}" alt="Fatwa Banner">
                     </div>
-                    <div class="col-6">
-                        <div class="meta-item"><span class="meta-label text-dark">Madhab:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $fatwa->question->madhab }}</span></div>
-                    </div>
-                </div>
-                {{-- Row 2: Category & Published --}}
-                <div class="row g-0">
-                    <div class="col-6">
-                        <div class="meta-item"><span class="meta-label text-dark">Category:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $fatwa->question->category->name }}</span></div>
-                    </div>
-                    <div class="col-6">
-                        <div class="meta-item"><span class="meta-label text-dark">Published:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $fatwa->published_at?->format('d-m-Y') }}</span></div>
-                    </div>
-                </div>
-            </div>
+                @endif
 
-            {{-- Question Content --}}
-            <div class="content-body">
-                <span class="section-label">Question:</span>
-                <div class="body-text {{ $langClass }}">{!! $fatwa->question->body !!}</div>
-            </div>
-
-            <hr class="mx-4 my-0" style="opacity: 0.1;">
-
-            {{-- Answer Content --}}
-            <div class="content-body">
-                <span class="section-label">Answer:</span>
-                
-                <div class="arabic-block">
-                    بسم الله الرحمن الرحيم <br>
-                    الجواب وبالله التوفيق والنجاح
+                {{-- 2. Editorial Info --}}
+                <div class="editorial-meta">
+                    By <b>{{ $fatwa->muftiAnswer->mufti->name }}</b> in <b>{{ $fatwa->question->category->name }}</b>
                 </div>
 
-                <div class="body-text {{ $langClass }} mt-3">
-                    {!! $fatwa->muftiAnswer->full_answer !!}
-                </div>
-            </div>
-
-            {{-- Quotes / References --}}
-            @if($fatwa->muftiAnswer->supportingReferences->count())
-            <div class="references-section">
-                @foreach($fatwa->muftiAnswer->supportingReferences as $ref)
-                    <div class="mb-4">
-                        <div class="arabic-text mb-2 text-dark {{ $ref->language == 'Urdu' ? 'gulzar-font' : 'alyamama-font' }}" style="font-size: 1.2rem; line-height: 1.7;">
-                            {{ $ref->arabic_text }}
+                {{-- 3. Header Section --}}
+                <div class="header-section">
+                    <h1 class="{{ $langClass }}">{{ $fatwa->question->title ?: 'Islamic Query Detail' }}</h1>
+                    
+                    <div class="meta-row">
+                        <div class="meta-unit">
+                            <span class="label">Qu-Id:</span>
+                            <span class="value">{{ $fatwa->question->question_id }}</span>
                         </div>
-                        <div class="small text-muted"><i class="bi bi-book me-1"></i>{{ $ref->book_name }}</div>
+                        <div class="meta-unit">
+                            <span class="label">Madhab:</span>
+                            <span class="value">{{ $fatwa->question->madhab }}</span>
+                        </div>
+                        <div class="meta-unit">
+                            <span class="label">Date:</span>
+                            <span class="value">{{ $fatwa->published_at?->format('d-m-Y') }}</span>
+                        </div>
+                        <div class="meta-unit ms-auto no-print">
+                            <a href="javascript:window.print()" class="text-muted small"><i class="bi bi-printer me-1"></i>Print</a>
+                        </div>
                     </div>
+                </div>
+
+                {{-- 4. Content Body --}}
+                <div class="body-content">
+                    {{-- Question --}}
+                    <div class="content-block">
+                        <span class="block-h">Question:</span>
+                        <div class="block-text {{ $langClass }}">
+                            {!! $fatwa->question->body !!}
+                        </div>
+                    </div>
+
+                    <hr class="my-5" style="opacity: 0.1;">
+
+                    {{-- Answer --}}
+                    <div class="content-block">
+                        <span class="block-h">Answer:</span>
+                        
+                        <div class="arabic-quote">
+                            بسم الله الرحمن الرحيم <br>
+                            الجواب وبالله التوفيق والنجاح
+                        </div>
+
+                        <div class="block-text {{ $langClass }}">
+                            {!! $fatwa->muftiAnswer->full_answer !!}
+                        </div>
+
+                        <div class="arabic-quote" style="text-align: right; border-top: 1px solid #f1f5f9; padding-top: 15px; margin-top: 30px;">
+                            والله أعلم بالصواب
+                        </div>
+                    </div>
+
+                    {{-- Supporting References --}}
+                    @if($fatwa->muftiAnswer->supportingReferences->count())
+                    <div class="content-block mt-5">
+                        <span class="block-h">References:</span>
+                        @foreach($fatwa->muftiAnswer->supportingReferences as $ref)
+                            <div class="ref-card">
+                                <div class="arabic-text mb-2 {{ $ref->language == 'Urdu' ? 'gulzar-font' : 'alyamama-font' }}" style="font-size: 1.25rem; line-height: 1.8; color: #000;">
+                                    {{ $ref->arabic_text }}
+                                </div>
+                                <div class="small text-muted fw-bold"><i class="bi bi-book me-1"></i>{{ $ref->book_name }}</div>
+                            </div>
+                        @endforeach
+                    </div>
+                    @endif
+
+                    {{-- Signatures --}}
+                    <div class="signature-box">
+                        <div class="sig-row">
+                            <b>Written by:</b> <span>{{ $fatwa->muftiAnswer->mufti->name }}</span>
+                        </div>
+                        @if($fatwa->verifiedBy)
+                        <div class="sig-row">
+                            <b>Verified by:</b> <span>{{ $fatwa->verifiedBy->name }}</span>
+                        </div>
+                        @endif
+                        @if($fatwa->checkedApprovedBy)
+                        <div class="sig-row">
+                            <b>Checked & Approved by:</b> <span>{{ $fatwa->checkedApprovedBy->name }}</span>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Tags Footer --}}
+                <div class="p-4 border-top bg-light d-flex justify-content-between align-items-center no-print">
+                    <div>
+                        <span class="fw-bold small me-3">Tags:</span>
+                        @foreach(['#fiqh', '#islamic_query', '#fatwa'] as $tag)
+                            <a href="#" class="text-muted small me-2 text-decoration-none">{{ $tag }}</a>
+                        @endforeach
+                    </div>
+                    <a href="#" class="btn btn-outline-secondary btn-sm rounded-circle"><i class="bi bi-share"></i></a>
+                </div>
+            </div>
+        </div>
+
+        {{-- Right Column: Sidebar --}}
+        <div class="col-lg-4 no-print">
+            {{-- Widget: Search --}}
+            <div class="sidebar-widget sidebar-search">
+                <form action="{{ route('fatwa.archive') }}" method="GET">
+                    <div class="position-relative">
+                        <input type="text" name="search" class="form-control" placeholder="Search fatwas...">
+                        <button class="btn position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent pe-3">
+                            <i class="bi bi-search text-muted"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- Widget: Recent Posts --}}
+            @if(isset($recentFatwas) && $recentFatwas->count())
+            <div class="sidebar-widget">
+                <span class="widget-title">Recent Fatwas</span>
+                @foreach($recentFatwas as $rf)
+                <a href="{{ route('fatwa.show', $rf) }}" class="recent-item">
+                    <div class="recent-thumb">
+                        <img src="{{ asset($rf->featured_image ?: 'assets/img/placeholder.jpg') }}" alt="Fatwa">
+                    </div>
+                    <div class="recent-info">
+                        <h6>{{ Str::limit($rf->question->title ?: strip_tags($rf->question->body), 50) }}</h6>
+                        <span class="date">{{ $rf->published_at?->format('M d, Y') }}</span>
+                    </div>
+                </a>
                 @endforeach
             </div>
             @endif
 
-            {{-- Closing & Signatures --}}
-            <div class="signature-section">
-                <div class="arabic-block" style="text-align: right; margin-bottom: 25px; border-top: 1px solid #f0f0f0; padding-top: 20px;">
-                    والله أعلم بالصواب
-                </div>
-
-                <div class="signature-item">
-                    <span class="sig-label text-dark">Written by:</span>
-                    <span class="sig-value" style="color: #1a7a4a;">{{ $fatwa->muftiAnswer->mufti->name }}</span>
-                </div>
-
-                @if($fatwa->verifiedBy)
-                <div class="signature-item">
-                    <span class="sig-label text-dark">Verified by:</span>
-                    <span class="sig-value" style="color: #1a7a4a;">{{ $fatwa->verifiedBy->name }}</span>
-                </div>
-                @endif
-
-                @if($fatwa->checkedApprovedBy)
-                <div class="signature-item">
-                    <span class="sig-label text-dark">Checked & Approved by:</span>
-                    <span class="sig-value" style="color: #1a7a4a;">{{ $fatwa->checkedApprovedBy->name }}</span>
-                </div>
-                @endif
+            {{-- Widget: Related Fatwas --}}
+            @if(isset($relatedFatwas) && $relatedFatwas->count())
+            <div class="sidebar-widget">
+                <span class="widget-title">Related Content</span>
+                @php $displayedIds = $recentFatwas->pluck('id')->toArray(); @endphp
+                @foreach($relatedFatwas as $rf)
+                    @if(!in_array($rf->id, $displayedIds))
+                    <a href="{{ route('fatwa.show', $rf) }}" class="recent-item">
+                        <div class="recent-thumb">
+                            <img src="{{ asset($rf->featured_image ?: 'assets/img/placeholder.jpg') }}" alt="Fatwa">
+                        </div>
+                        <div class="recent-info">
+                            <h6>{{ Str::limit($rf->question->title ?: strip_tags($rf->question->body), 50) }}</h6>
+                            <span class="date text-success">Related Question</span>
+                        </div>
+                    </a>
+                    @endif
+                @endforeach
             </div>
+            @endif
 
-            {{-- Tags & Share --}}
-            <div class="tags-footer">
-                <div>
-                    <span class="fw-bold small me-2">Tags:</span>
-                    <a href="#" class="tag-item">#islam</a>
-                    <a href="#" class="tag-item">#figh</a>
-                    <a href="#" class="tag-item">#hadiya</a>
-                    <a href="#" class="tag-item">#salath</a>
-                </div>
-                <a href="#" class="share-icon"><i class="bi bi-share"></i></a>
+            {{-- Widget: Categories --}}
+            @if(isset($allCategories) && $allCategories->count())
+            <div class="sidebar-widget">
+                <span class="widget-title">Categories</span>
+                <ul class="cat-list">
+                    @foreach($allCategories as $cat)
+                    <li>
+                        <a href="{{ route('fatwa.archive', ['category' => $cat->id]) }}">
+                            <span>{{ $cat->name }}</span>
+                            <span class="cat-count">{{ $cat->questions_count }}</span>
+                        </a>
+                    </li>
+                    @endforeach
+                </ul>
             </div>
-        </div>
-
-        {{-- Related Questions --}}
-        @if(isset($relatedFatwas) && $relatedFatwas->count())
-        <div class="related-section">
-            <h5 class="related-title">Related Questions</h5>
-            
-            <div class="search-box no-print">
-                <i class="bi bi-search text-muted me-2"></i>
-                <input type="text" class="form-control border-0 p-0 shadow-none" placeholder="Search...">
-            </div>
-
-            @foreach($relatedFatwas as $rf)
-            <a href="{{ route('fatwa.show', $rf) }}" class="related-card">
-                <div class="pe-3">
-                    <div class="body-text small text-dark mb-0">{{ Str::limit($rf->question->title ?: $rf->question->body, 60) }}</div>
-                </div>
-                <div class="text-end" style="min-width: 100px;">
-                    <span class="fw-bold small" style="color:#666;">(QU ID {{ $rf->id }})</span>
-                </div>
-            </a>
-            @endforeach
-        </div>
-        @endif
-
-        {{-- Back Button --}}
-        <div class="mt-4 text-center no-print">
-            <a href="{{ route('fatwa.archive') }}" class="btn btn-link text-muted text-decoration-none">
-                <i class="bi bi-arrow-left me-1"></i>Back to Archive
-            </a>
+            @endif
         </div>
     </div>
 </div>

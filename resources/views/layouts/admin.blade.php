@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/app-fonts.css') }}">
     <style>
         :root { --green:#1a7a4a; --green-dark:#145e38; --gold:#c9a84c; --sidebar-w:240px; }
         body { font-family:'Inter',sans-serif; background:#f4f6f9; }
@@ -23,7 +24,8 @@
         .topbar { background:#fff; border-bottom:1px solid #e5e7eb; padding:.75rem 1.5rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
         .page-content { padding:1.5rem; }
         .stat-card { border-radius:.75rem; padding:1.25rem 1.5rem; color:#fff; }
-        .arabic-text { font-family:'Amiri',serif; font-size:1.2rem; direction:rtl; text-align:right; }
+        .arabic-text { font-family: 'Noto Naskh Arabic', 'Amiri', serif; font-size: 1.2rem; direction: rtl; text-align: right; }
+        .font-preview { border: 1px solid #e5e7eb; padding: 10px; border-radius: 6px; background: #fafafa; }
         .badge-status-pending    { background:#ffc107; color:#000; }
         .badge-status-accepted   { background:#6f42c1; color:#fff; }
         .badge-status-assigned   { background:#0dcaf0; color:#000; }

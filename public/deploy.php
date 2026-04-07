@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Laravel Web Deployer & Migration Runner (Laravel 11 Version)
+ * Laravel Web Deployer & Cache Cleanser (Laravel 11 Version)
  * 
  * Usage: domain.com/deploy.php?token=fatwa_deploy_2026
  */
@@ -20,39 +20,41 @@ $app = require_once __DIR__.'/../bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Log;
 
 try {
-    echo "<h1>Laravel 11 Deployment Status</h1>";
-    echo "<p>Bootstrapping Laravel... Done.</p>";
+    header('Content-Type: text/html; charset=utf-8');
+    echo "<body style='font-family: sans-serif; padding: 40px; background: #f4f7f9; color: #333;'>";
+    echo "<div style='max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);'>";
+    echo "<h1 style='color: #4A6372; margin-top: 0;'>Server Cache Cleansing</h1>";
+    echo "<hr style='opacity:0.1; margin-bottom: 25px;'>";
     
-    echo "<h3>1. Running Migrations...</h3>";
-    Artisan::call('migrate', ['--force' => true]);
-    echo "<pre style='background:#f8f9fa; border:1px solid #ddd; padding:10px;'>" . Artisan::output() . "</pre>";
-    
-    echo "<h3>2. Clearing All Caches...</h3>";
-    
-    echo "Cleaning Config cache... ";
-    Artisan::call('config:clear');
-    echo "Done.<br>";
-    
-    echo "Cleaning Route cache... ";
-    Artisan::call('route:clear');
-    echo "Done.<br>";
-    
-    echo "Cleaning View cache... ";
-    Artisan::call('view:clear');
-    echo "Done.<br>";
-    
-    echo "Cleaning General cache... ";
-    Artisan::call('cache:clear');
-    echo "Done.<br>";
+    $commands = [
+        'config:clear' => 'Configuration Cache',
+        'route:clear'  => 'Routes Cache',
+        'view:clear'   => 'Views & Templates',
+        'cache:clear'  => 'General App Memory',
+        'optimize:clear' => 'Optimization Files'
+    ];
 
-    echo "<br><b style='color:green; font-size:1.2rem;'>✓ Deployment & Cache Clearing Completed Successfully!</b>";
-    echo "<p>Navigate back to <a href='/admin/dashboard'>Admin Dashboard</a>.</p>";
+    foreach ($commands as $command => $label) {
+        echo "<div style='margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;'>";
+        echo "<span>Clearing <b>$label</b>...</span>";
+        Artisan::call($command);
+        echo "<span style='color: #1a7a4a; font-weight: bold;'>[ DONE ]</span>";
+        echo "</div>";
+    }
+
+    echo "<hr style='opacity:0.1; margin: 25px 0;'>";
+    echo "<div style='text-align: center;'>";
+    echo "<b style='color: #1a7a4a; font-size: 1.25rem;'>✓ Success: All Caches Cleared!</b>";
+    echo "<p style='color: #666;'>Your latest UI edits and design changes are now live.</p>";
+    echo "<a href='/admin/dashboard' style='display: inline-block; margin-top: 15px; padding: 10px 25px; background: #4A6372; color: #fff; text-decoration: none; border-radius: 6px;'>Back to Dashboard</a>";
+    echo "</div>";
+    echo "</div></body>";
     
 } catch (Exception $e) {
-    echo "<b style='color:red;'>Error during deployment:</b><br>";
-    echo "<pre>" . $e->getMessage() . "</pre>";
-    Log::error("Deployment Error: " . $e->getMessage());
+    echo "<div style='max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; border-left: 5px solid red;'>";
+    echo "<b style='color:red;'>System Error:</b><br>";
+    echo "<pre style='background: #f8f9fa; padding: 10px; margin-top:10px;'>" . $e->getMessage() . "</pre>";
+    echo "</div>";
 }

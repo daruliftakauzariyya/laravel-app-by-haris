@@ -104,10 +104,16 @@ class QuestionAdminController extends Controller
             'mufti_id'         => ['required', 'exists:users,id'],
             'summary'          => ['required', 'string'],
             'full_answer'      => ['required', 'string'],
+            'language'         => ['nullable', 'string', 'in:English,Arabic,Urdu,Malayalam,Hindi'],
             'arabic_text.*'    => ['nullable', 'string'],
             'book_name.*'      => ['nullable', 'string'],
             'ref_language.*'   => ['nullable', 'string'],
         ]);
+
+        // Update the question language if provided
+        if ($request->filled('language')) {
+            $question->update(['language' => $request->language]);
+        }
 
         // Find existing answer or create new one
         $answer = MuftiAnswer::updateOrCreate(
@@ -185,12 +191,21 @@ class QuestionAdminController extends Controller
             'reviewed_at' => now(),
         ]);
 
+        $featuredImagePath = null;
+        if ($request->hasFile('featured_image')) {
+            $image = $request->file('featured_image');
+            $filename = time() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('uploads/fatwas'), $filename);
+            $featuredImagePath = 'uploads/fatwas/' . $filename;
+        }
+
         $fatwa = Fatwa::create([
             'question_id'         => $question->id,
             'mufti_answer_id'     => $answer->id,
             'published_by'        => Auth::id(),
             'verified_by'         => $request->verified_by,
             'checked_approved_by' => $request->checked_approved_by,
+            'featured_image'      => $featuredImagePath,
             'published_at'        => now(),
         ]);
 

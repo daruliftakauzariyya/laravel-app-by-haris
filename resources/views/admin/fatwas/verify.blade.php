@@ -55,9 +55,17 @@
             <div class="card-body">
                 <h6 class="fw-bold text-success mb-3"><i class="bi bi-check-circle me-2"></i>Approve & Publish</h6>
                 <p class="small text-muted mb-3">This will publish the fatwa publicly and notify the questioner by email.</p>
-                <form method="POST" action="{{ route('admin.questions.approve', $question) }}">
+                <form method="POST" action="{{ route('admin.questions.approve', $question) }}" enctype="multipart/form-data">
                     @csrf
                     
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Featured Image (Placeholder) <span class="text-muted">(200x120)</span>:</label>
+                        <input type="file" name="featured_image" class="form-control form-control-sm" accept="image/*" onchange="previewImage(this)">
+                        <div id="image-preview" class="mt-2 d-none">
+                            <img src="" alt="Preview" class="rounded border shadow-sm" style="width: 200px; height: 120px; object-fit: cover;">
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Verified by:</label>
                         <select name="verified_by" class="form-select form-select-sm">
@@ -82,6 +90,23 @@
                         <i class="bi bi-patch-check me-2"></i>Approve & Publish
                     </button>
                 </form>
+
+                <script>
+                    function previewImage(input) {
+                        const preview = document.querySelector('#image-preview');
+                        const img = preview.querySelector('img');
+                        if (input.files && input.files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                img.src = e.target.result;
+                                preview.classList.remove('d-none');
+                            }
+                            reader.readAsDataURL(input.files[0]);
+                        } else {
+                            preview.classList.add('d-none');
+                        }
+                    }
+                </script>
             </div>
         </div>
 

@@ -16,6 +16,7 @@ class Fatwa extends Model
         'verified_by',
         'checked_approved_by',
         'fatwa_number',
+        'featured_image',
         'is_featured',
         'views',
         'published_at',
