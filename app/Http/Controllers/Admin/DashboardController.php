@@ -38,7 +38,7 @@ class DashboardController extends Controller
             ->orderByDesc('q_count')
             ->first();
 
-        // Top Countries by visitor count
+        // Consolidated Geographic Logic for Dashboard (Top 5)
         $topCountries = PortalVisitorLog::whereNotNull('country')
             ->where('country', '!=', 'Unknown')
             ->select('country', 'country_code', DB::raw('count(*) as count'))
@@ -47,14 +47,25 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Top 5 States/Regions
-        $topStates = PortalVisitorLog::whereNotNull('region')
-            ->where('region', '!=', '')
-            ->select('country', 'region', DB::raw('count(*) as count'))
-            ->groupBy('country', 'region')
-            ->orderByDesc('count')
-            ->take(5)
-            ->get();
+        $geoReach = [];
+        foreach ($topCountries as $c) {
+            // Get top region for this country
+            $topRegion = PortalVisitorLog::where('country', $c->country)
+                ->whereNotNull('region')
+                ->where('region', '!=', '')
+                ->select('region', DB::raw('count(*) as r_count'))
+                ->groupBy('region')
+                ->orderByDesc('r_count')
+                ->first();
+
+            $geoReach[] = [
+                'country_code' => $c->country_code,
+                'country'      => $c->country,
+                'total_count'  => $c->count,
+                'top_region'   => $topRegion ? $topRegion->region : 'Unknown',
+                'region_count' => $topRegion ? $topRegion->r_count : 0
+            ];
+        }
 
         // Questions submitted per month (last 6 months)
         $monthlyData = Question::select(
@@ -84,9 +95,40 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', compact(
             'stats', 'recentQuestions',
-            'topCategory', 'topCountries', 'topStates',
+            'topCategory', 'geoReach',
             'monthlyLabels', 'monthlyCounts'
         ));
+    }
+
+    /**
+     * Display a comprehensive listing of all global visitors (The Sprite Page)
+     */
+    public function visitorInsights()
+    {
+        // Full Country List
+        $countries = PortalVisitorLog::whereNotNull('country')
+            ->select('country', 'country_code', DB::raw('count(*) as count'))
+            ->groupBy('country', 'country_code')
+            ->orderByDesc('count')
+            ->paginate(20, ['*'], 'country_page');
+
+        // Full Region/State List
+        $regions = PortalVisitorLog::whereNotNull('region')
+            ->where('region', '!=', '')
+            ->select('country', 'region', DB::raw('count(*) as count'))
+            ->groupBy('country', 'region')
+            ->orderByDesc('count')
+            ->paginate(20, ['*'], 'region_page');
+
+        // Full City List
+        $cities = PortalVisitorLog::whereNotNull('city')
+            ->where('city', '!=', '')
+            ->select('country', 'region', 'city', DB::raw('count(*) as count'))
+            ->groupBy('country', 'region', 'city')
+            ->orderByDesc('count')
+            ->paginate(20, ['*'], 'city_page');
+
+        return view('admin.analytics.visitors', compact('countries', 'regions', 'cities'));
     }
 
     /**

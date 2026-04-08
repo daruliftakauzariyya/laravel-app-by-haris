@@ -130,6 +130,9 @@
             <i class="bi bi-people"></i> Questioners
         </a>
         <div class="sidebar-section">System Control</div>
+        <a href="{{ route('admin.visitor.insights') }}" class="nav-link {{ request()->routeIs('admin.visitor.insights') ? 'active' : '' }}">
+            <i class="bi bi-globe-americas"></i> Visitor Insights
+        </a>
         <a href="{{ route('admin.settings.system') }}" class="nav-link {{ request()->routeIs('admin.settings.system') ? 'active' : '' }}">
             <i class="bi bi-gear-wide-connected"></i> System Settings
         </a>

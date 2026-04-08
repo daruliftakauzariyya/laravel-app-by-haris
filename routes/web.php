@@ -78,6 +78,7 @@ Route::middleware(['auth'])->group(function () {
 */
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/visitor-insights', [DashboardController::class, 'visitorInsights'])->name('visitor.insights');
 
     // Questions
     Route::get('/questions', [QuestionAdminController::class, 'index'])->name('questions.index');
