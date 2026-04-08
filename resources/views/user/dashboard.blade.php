@@ -130,6 +130,20 @@
         box-shadow: var(--shadow-sm);
         border: 1px solid #eef2f7;
     }
+    .avatar-upload-placeholder {
+        width: 100px;
+        height: 100px;
+        border-radius: 1.5rem;
+        border: 2px dashed #cbd5e1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition-base);
+        position: relative;
+        overflow: hidden;
+    }
+    .avatar-upload-placeholder:hover { border-color: var(--brand-blue); background: #f8fafc; }
 </style>
 
 <div class="dashboard-wrapper">
@@ -169,6 +183,16 @@
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4" role="alert">
                 <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4" role="alert">
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
@@ -244,52 +268,108 @@
             {{-- Profile Tab --}}
             <div class="tab-pane fade" id="profile" role="tabpanel">
                 <div class="row justify-content-center">
-                    <div class="col-lg-8">
+                    <div class="col-lg-10">
                         <div class="form-section-card">
-                            <h4 class="fw-bold mb-4">Profile Information</h4>
-                            <form action="{{ route('user.profile.update') }}" method="POST">
+                            <h4 class="fw-bold mb-4">Scholarly Profile Management</h4>
+                            <form action="{{ route('user.profile.update') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 @method('PUT')
-                                <div class="row g-3">
+                                
+                                {{-- Avatar Upload --}}
+                                <div class="mb-5 d-flex align-items-center gap-4">
+                                    <div class="avatar-upload-placeholder" onclick="document.getElementById('avatarInput').click()">
+                                        <img id="avatarPreview" src="{{ Auth::user()->avatar ?: 'https://ui-avatars.com/api/?name='.urlencode(Auth::user()->name).'&background=f1f5f9&color=64748b' }}" style="width:100%; height:100%; object-fit:cover;">
+                                        <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-25 text-white opacity-0 hover-opacity-100 transition-all">
+                                            <i class="bi bi-camera-fill"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-1">Profile Photo</h6>
+                                        <p class="text-muted x-small mb-2">JPG, PNG or GIF. Max size of 2MB.</p>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary px-3" onclick="document.getElementById('avatarInput').click()">Change Photo</button>
+                                        <input type="file" id="avatarInput" name="avatar_file" class="d-none" accept="image/*" onchange="previewAvatar(this)">
+                                    </div>
+                                </div>
+
+                                <h6 class="text-muted text-uppercase x-small fw-bold tracking-wider mb-3">Personal Details</h6>
+                                <div class="row g-3 mb-4">
                                     <div class="col-md-6">
-                                        <div class="form-floating mb-3">
-                                            <input type="text" name="name" class="form-control rounded-3" value="{{ old('name', Auth::user()->name) }}" placeholder="Name">
+                                        <div class="form-floating">
+                                            <input type="text" name="name" class="form-control" value="{{ old('name', Auth::user()->name) }}" placeholder="Name">
                                             <label>Full Name</label>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="form-floating mb-3">
-                                            <input type="text" name="mobile" class="form-control rounded-3" value="{{ old('mobile', Auth::user()->mobile) }}" placeholder="Mobile">
+                                        <div class="form-floating">
+                                            <input type="text" name="mobile" class="form-control" value="{{ old('mobile', Auth::user()->mobile) }}" placeholder="Mobile">
                                             <label>Mobile Number</label>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="form-floating mb-3">
-                                            <select name="madhab" class="form-select rounded-3">
+                                        <div class="form-floating">
+                                            <select name="gender" class="form-select">
+                                                <option value="Male" {{ Auth::user()->gender == 'Male' ? 'selected' : '' }}>Male</option>
+                                                <option value="Female" {{ Auth::user()->gender == 'Female' ? 'selected' : '' }}>Female</option>
+                                            </select>
+                                            <label>Gender</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select name="madhab" class="form-select">
                                                 <option value="Hanafi" {{ Auth::user()->madhab == 'Hanafi' ? 'selected' : '' }}>Hanafi</option>
                                                 <option value="Shafii" {{ Auth::user()->madhab == 'Shafii' ? 'selected' : '' }}>Shafi'i</option>
                                                 <option value="Maliki" {{ Auth::user()->madhab == 'Maliki' ? 'selected' : '' }}>Maliki</option>
                                                 <option value="Hanbali" {{ Auth::user()->madhab == 'Hanbali' ? 'selected' : '' }}>Hanbali</option>
                                                 <option value="Other" {{ Auth::user()->madhab == 'Other' ? 'selected' : '' }}>Other</option>
                                             </select>
-                                            <label>Preferred Madhab</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-floating mb-3">
-                                            <input type="text" name="country" class="form-control rounded-3" value="{{ old('country', Auth::user()->country) }}" placeholder="Country">
-                                            <label>Country of Residence</label>
+                                            <label>Madhab Preference</label>
                                         </div>
                                     </div>
                                     <div class="col-12">
-                                        <div class="form-floating mb-3">
-                                            <input type="text" name="mother_language" class="form-control rounded-3" value="{{ old('mother_language', Auth::user()->mother_language) }}" placeholder="Language">
+                                        <div class="form-floating">
+                                            <input type="text" name="mother_language" class="form-control" value="{{ old('mother_language', Auth::user()->mother_language) }}" placeholder="Language">
                                             <label>Mother Language</label>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="text-end mt-4">
-                                    <button class="btn btn-brand px-5 py-2 fw-bold">Save Profile Changes</button>
+
+                                <h6 class="text-muted text-uppercase x-small fw-bold tracking-wider mb-3">Address Information</h6>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" name="address_line_1" class="form-control" value="{{ old('address_line_1', Auth::user()->address_line_1) }}" placeholder="Addr 1">
+                                            <label>Address Line 1</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" name="address_line_2" class="form-control" value="{{ old('address_line_2', Auth::user()->address_line_2) }}" placeholder="Addr 2">
+                                            <label>Address Line 2 (Optional)</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" name="country" class="form-control" value="{{ old('country', Auth::user()->country) }}" placeholder="Country">
+                                            <label>Country</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" name="state" class="form-control" value="{{ old('state', Auth::user()->state) }}" placeholder="State">
+                                            <label>State</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" name="district" class="form-control" value="{{ old('district', Auth::user()->district) }}" placeholder="District">
+                                            <label>District</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-end mt-5 pt-3 border-top">
+                                    <button class="btn btn-brand btn-lg px-5 py-2 fw-bold rounded-pill shadow-sm">Save All Changes</button>
                                 </div>
                             </form>
                         </div>
@@ -302,26 +382,31 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-6">
                         <div class="form-section-card">
-                            <h4 class="fw-bold mb-4">Account Security</h4>
-                            <p class="text-muted small mb-4">Ensure your account is using a long, random password to stay secure.</p>
+                            <h4 class="fw-bold mb-4">Reset Authentication</h4>
+                            <p class="text-muted small mb-4">Securely update your portal access credentials. A strong password helps protect your scholarly history.</p>
                             
                             <form action="{{ route('user.password.update') }}" method="POST">
                                 @csrf
                                 @method('PUT')
                                 <div class="form-floating mb-3">
-                                    <input type="password" name="current_password" class="form-control rounded-3" placeholder="Current">
-                                    <label>Current Password</label>
-                                </div>
-                                <div class="form-floating mb-3">
-                                    <input type="password" name="password" class="form-control rounded-3" placeholder="New">
-                                    <label>New Password</label>
+                                    <input type="password" name="password" class="form-control border-0 bg-light rounded-4" placeholder="New" required>
+                                    <label>Define New Password</label>
                                 </div>
                                 <div class="form-floating mb-4">
-                                    <input type="password" name="password_confirmation" class="form-control rounded-3" placeholder="Confirm">
-                                    <label>Confirm New Password</label>
+                                    <input type="password" name="password_confirmation" class="form-control border-0 bg-light rounded-4" placeholder="Confirm" required>
+                                    <label>Confirm Defined Password</label>
                                 </div>
-                                <button class="btn btn-dark w-100 py-2 fw-bold">Update Security Credentials</button>
+                                <button class="btn btn-dark w-100 py-3 fw-extrabold rounded-4 shadow-sm border-0 transition-all hover-translate-y">
+                                    <i class="bi bi-shield-check me-2"></i>Apply New Credentials
+                                </button>
                             </form>
+
+                            <div class="mt-4 p-3 bg-warning bg-opacity-10 rounded-4 border border-warning border-opacity-25">
+                                <p class="x-small text-warning-emphasis mb-0">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    Security Notice: Once updated, your previous password will be immediately invalidated across all devices.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -330,5 +415,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    function previewAvatar(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
 
 @endsection

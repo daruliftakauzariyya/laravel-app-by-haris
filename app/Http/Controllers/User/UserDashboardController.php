@@ -30,10 +30,28 @@ class UserDashboardController extends Controller
         $validated = $request->validate([
             'name'            => 'required|string|max:255',
             'mobile'          => 'nullable|string|max:20',
-            'country'         => 'nullable|string|max:100',
+            'gender'          => 'nullable|string|in:Male,Female',
             'madhab'          => 'nullable|string|max:50',
+            'address_line_1'  => 'nullable|string|max:255',
+            'address_line_2'  => 'nullable|string|max:255',
+            'country'         => 'nullable|string|max:100',
+            'state'           => 'nullable|string|max:100',
+            'district'        => 'nullable|string|max:100',
             'mother_language' => 'nullable|string|max:50',
+            'avatar_file'     => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+        // Handle Avatar Upload
+        if ($request->hasFile('avatar_file')) {
+            // Delete old avatar if exists and it's a local file
+            if ($user->avatar && str_contains($user->avatar, '/storage/avatars/')) {
+                $oldPath = str_replace('/storage/', 'public/', $user->avatar);
+                \Illuminate\Support\Facades\Storage::delete($oldPath);
+            }
+
+            $path = $request->file('avatar_file')->store('public/avatars');
+            $validated['avatar'] = \Illuminate\Support\Facades\Storage::url($path);
+        }
 
         $user->update($validated);
 
@@ -43,15 +61,14 @@ class UserDashboardController extends Controller
     public function updatePassword(Request $request)
     {
         $request->validate([
-            'current_password' => 'required|current_password',
-            'password'         => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         Auth::user()->update([
             'password' => \Illuminate\Support\Facades\Hash::make($request->password),
         ]);
 
-        return back()->with('success', 'Password updated successfully.');
+        return back()->with('success', 'Password updated successfully. You can now use your new password.');
     }
 
     public function show(\App\Models\Question $question)
