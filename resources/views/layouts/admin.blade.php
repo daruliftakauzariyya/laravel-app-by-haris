@@ -130,6 +130,9 @@
             <i class="bi bi-people"></i> Questioners
         </a>
         <div class="sidebar-section">System Control</div>
+        <a href="{{ route('admin.settings.system') }}" class="nav-link {{ request()->routeIs('admin.settings.system') ? 'active' : '' }}">
+            <i class="bi bi-gear-wide-connected"></i> System Settings
+        </a>
         <a href="{{ route('admin.mail-management.index') }}" class="nav-link {{ request()->routeIs('admin.mail-management*') ? 'active' : '' }}">
             <i class="bi bi-envelope-check"></i> Mailing Management
         </a>

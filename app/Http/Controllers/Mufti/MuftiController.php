@@ -22,16 +22,64 @@ class MuftiController extends Controller
                             ->count();
         $answered = MuftiAnswer::where('mufti_id', $user->id)->count();
         $recent   = Question::where('assigned_mufti_id', $user->id)->latest()->take(5)->get();
-        return view('mufti.dashboard', compact('assigned', 'answered', 'recent'));
+
+        // Performance Score Calculation
+        $totalEver = Question::where('assigned_mufti_id', $user->id)->count();
+        $score = 0;
+        if ($totalEver > 0) {
+            // 1. Base Completion Rate (0-70 pts)
+            $completionRate = ($answered / $totalEver) * 70;
+
+            // 2. Speed Factor (0-20 pts)
+            // Average days to answer
+            $avgDays = MuftiAnswer::where('mufti_id', $user->id)
+                ->join('questions', 'mufti_answers.question_id', '=', 'questions.id')
+                ->whereNotNull('questions.assigned_at')
+                ->selectRaw('AVG(DATEDIFF(mufti_answers.submitted_at, questions.assigned_at)) as avg_days')
+                ->value('avg_days') ?: 5; // Default to 5 days if no data
+            
+            $speedPoints = 0;
+            if ($avgDays <= 2) $speedPoints = 20;
+            elseif ($avgDays <= 5) $speedPoints = 15;
+            elseif ($avgDays <= 10) $speedPoints = 10;
+            else $speedPoints = 5;
+
+            // 3. Volume Bonus (0-10 pts)
+            // Rewards starting from 5 fatwas, max at 50
+            $volumePoints = min(10, ($answered / 5));
+
+            $score = round($completionRate + $speedPoints + $volumePoints);
+            $score = min(100, $score);
+        }
+
+        return view('mufti.dashboard', compact('assigned', 'answered', 'recent', 'score'));
     }
 
-    public function questions()
+    public function questions(Request $request)
     {
-        $questions = Question::where('assigned_mufti_id', Auth::id())
-                             ->with('user')
-                             ->latest()
-                             ->paginate(20);
-        return view('mufti.questions.index', compact('questions'));
+        $user = Auth::user();
+        $tab = $request->get('tab', 'assigned');
+
+        // Tab counts for the badge pills
+        $counts = [
+            'assigned' => Question::where('assigned_mufti_id', $user->id)->count(),
+            'verified' => Question::whereHas('fatwa', fn($f) => $f->where('verified_by', $user->id))->count(),
+            'approved' => Question::whereHas('fatwa', fn($f) => $f->where('checked_approved_by', $user->id))->count(),
+        ];
+
+        $query = Question::with('user', 'fatwa', 'category')->latest();
+
+        if ($tab == 'verified') {
+            $query->whereHas('fatwa', fn($f) => $f->where('verified_by', $user->id));
+        } elseif ($tab == 'approved') {
+            $query->whereHas('fatwa', fn($f) => $f->where('checked_approved_by', $user->id));
+        } else {
+            $query->where('assigned_mufti_id', $user->id);
+        }
+
+        $questions = $query->paginate(20)->withQueryString();
+
+        return view('mufti.questions.index', compact('questions', 'tab', 'counts'));
     }
 
     public function showQuestion(Question $question)

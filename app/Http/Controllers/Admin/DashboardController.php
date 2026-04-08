@@ -82,15 +82,22 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $hijriAdjustment = SiteSetting::get('hijri_adjustment', 0);
-        $currentHijri = HijriHelper::now('j F Y');
-
         return view('admin.dashboard', compact(
             'stats', 'recentQuestions',
             'topCategory', 'topCountries', 'topStates',
-            'monthlyLabels', 'monthlyCounts',
-            'hijriAdjustment', 'currentHijri'
+            'monthlyLabels', 'monthlyCounts'
         ));
+    }
+
+    /**
+     * Display System Control Panel
+     */
+    public function systemControl()
+    {
+        $hijriAdjustment = SiteSetting::get('hijri_adjustment', 0);
+        $currentHijri = HijriHelper::now('j F Y');
+
+        return view('admin.settings.system', compact('hijriAdjustment', 'currentHijri'));
     }
 
     public function updateSettings(Request $request)

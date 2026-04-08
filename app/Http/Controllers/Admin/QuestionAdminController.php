@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class QuestionAdminController extends Controller
 {
@@ -345,7 +346,39 @@ class QuestionAdminController extends Controller
     /** Download question file */
     public function downloadFile(\App\Models\QuestionFile $file)
     {
-        return Storage::disk('local')->download($file->file_path, $file->original_name);
+        // Resolve the physical path regardless of storage disk
+        if (str_starts_with($file->file_path, 'public/')) {
+            $physicalPath = storage_path('app/' . $file->file_path);
+        } elseif (str_starts_with($file->file_path, 'uploads/')) {
+            $physicalPath = public_path($file->file_path);
+        } else {
+            $physicalPath = storage_path('app/' . $file->file_path);
+        }
+
+        if (!file_exists($physicalPath)) {
+            abort(404, 'File not found.');
+        }
+
+        return response()->download($physicalPath, $file->original_name);
+    }
+
+    /** Add private scholarly comment to history */
+    public function addHistoryComment(Request $request, Question $question)
+    {
+        $request->validate(['comment' => 'required|string|max:1000']);
+
+        FatwaActivityLog::log(
+            $question->id,
+            'scholarly_comment',
+            Auth::user()->hasRole('admin') ? 'Admin Note / Feedback' : 'Mufti Message / Comment',
+            'bi-chat-dots-fill',
+            Auth::user()->hasRole('admin') ? 'danger' : 'warning',
+            $request->comment,
+            Auth::id(),
+            $question->fatwa?->id
+        );
+
+        return redirect()->back()->with('success', 'Comment added to history.');
     }
     /** Helper to decode base64 cropped image and save to disk */
     private function saveCroppedImage($base64Data)

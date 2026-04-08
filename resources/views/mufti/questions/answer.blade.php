@@ -14,10 +14,31 @@
                 <span class="badge" style="background:#1a7a4a;">{{ $question->madhab == 'Shafii' ? "Shafi'i" : $question->madhab }}</span>
             </div>
             <div class="card-body">
-                @if($question->title)<h6 class="fw-bold">{{ $question->title }}</h6>@endif
-                <p style="line-height:1.8;">{!! $question->body !!}</p>
+                @if($question->title)<h6 class="fw-bold mb-3">{{ strip_tags($question->title) }}</h6>@endif
+                <div class="mb-4" style="line-height:1.8;">{!! $question->body !!}</div>
+                
+                {{-- Attachments Section for Mufti --}}
                 @if($question->files->count())
-                    <small class="text-muted"><i class="bi bi-paperclip me-1"></i>{{ $question->files->count() }} file(s) attached</small>
+                    <div class="mt-4 p-3 bg-light rounded-3 border">
+                        <h6 class="fw-bold mb-3 small text-muted text-uppercase tracking-wider">
+                            <i class="bi bi-paperclip me-1"></i>User Provided Attachments
+                        </h6>
+                        <div class="row g-2">
+                            @foreach($question->files as $file)
+                            <div class="col-md-6">
+                                <a href="{{ route('files.download', $file) }}" class="d-flex align-items-center p-2 bg-white rounded border text-decoration-none text-dark hover-shadow-sm transition-all">
+                                    <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                                        <i class="bi bi-file-earmark-arrow-down text-primary fs-5"></i>
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <div class="small fw-bold text-truncate">{{ $file->original_name }}</div>
+                                        <div class="x-small text-muted">{{ number_format($file->file_size / 1024, 1) }} KB</div>
+                                    </div>
+                                </a>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
                 @endif
             </div>
         </div>

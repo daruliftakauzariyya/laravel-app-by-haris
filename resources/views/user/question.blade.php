@@ -219,6 +219,30 @@
             <div class="content-body">
                 <span class="section-label">Question:</span>
                 <div class="body-text {{ $langClass }}">{!! $question->body !!}</div>
+
+                {{-- Attachments Section for Owner --}}
+                @if($question->files->count())
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="fw-bold mb-3 small text-muted text-uppercase tracking-wider">
+                            <i class="bi bi-paperclip me-1"></i>Your Attachments
+                        </h6>
+                        <div class="row g-2">
+                            @foreach($question->files as $file)
+                            <div class="col-md-6">
+                                <a href="{{ route('files.download', $file) }}" class="d-flex align-items-center p-2 bg-light rounded border text-decoration-none text-dark hover-shadow-sm transition-all">
+                                    <div class="bg-white p-2 rounded me-3 shadow-sm">
+                                        <i class="bi bi-file-earmark-arrow-down text-brand fs-5"></i>
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <div class="small fw-bold text-truncate">{{ $file->original_name }}</div>
+                                        <div class="x-small text-muted">{{ number_format($file->file_size / 1024, 1) }} KB</div>
+                                    </div>
+                                </a>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
             @if($question->muftiAnswer && in_array($question->status, ['answered', 'approved', 'published']))

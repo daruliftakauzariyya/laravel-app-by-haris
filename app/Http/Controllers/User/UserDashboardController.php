@@ -44,13 +44,23 @@ class UserDashboardController extends Controller
         // Handle Avatar Upload
         if ($request->hasFile('avatar_file')) {
             // Delete old avatar if exists and it's a local file
-            if ($user->avatar && str_contains($user->avatar, '/storage/avatars/')) {
-                $oldPath = str_replace('/storage/', 'public/', $user->avatar);
-                \Illuminate\Support\Facades\Storage::delete($oldPath);
+            if ($user->avatar && str_contains($user->avatar, '/assets/img/avatars/')) {
+                $oldPath = public_path(\Illuminate\Support\Str::after($user->avatar, asset('')));
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
             }
 
-            $path = $request->file('avatar_file')->store('public/avatars');
-            $validated['avatar'] = \Illuminate\Support\Facades\Storage::url($path);
+            $file = $request->file('avatar_file');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $targetDir = public_path('assets/img/avatars');
+            
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+
+            $file->move($targetDir, $filename);
+            $validated['avatar'] = asset('assets/img/avatars/' . $filename);
         }
 
         $user->update($validated);

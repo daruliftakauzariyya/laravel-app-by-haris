@@ -269,4 +269,43 @@
 
     </div>
 </div>
+
+{{-- Scholarly Feedback / Admin Messaging --}}
+@auth
+@if(Auth::user()->hasRole(['admin', 'mufti']))
+<div class="card border-0 shadow-sm mt-4 no-print">
+    <div class="card-header bg-white border-0 py-3">
+        <h6 class="fw-bold mb-0">
+            <i class="bi bi-chat-left-dots me-2 text-warning"></i>
+            Internal Scholarly Feedback
+        </h6>
+    </div>
+    <div class="card-body">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show small" role="alert">
+                <i class="bi bi-check-circle me-1"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <form action="{{ Auth::user()->hasRole('admin')
+            ? route('admin.history.comment', $question)
+            : route('mufti.questions.history.comment', $question) }}" method="POST">
+            @csrf
+            <div class="mb-3">
+                <textarea name="comment" rows="3" class="form-control" placeholder="Add a private technical note or message for the Admin..." required></textarea>
+            </div>
+            <div class="text-end">
+                <button type="submit" class="btn btn-brand btn-sm px-4 rounded-pill">
+                    <i class="bi bi-send me-2"></i>Send Internal Message
+                </button>
+            </div>
+        </form>
+        <div class="mt-3 x-small text-muted">
+            <i class="bi bi-info-circle me-1"></i>These comments are internal and strictly invisible to the public and the general questioner.
+        </div>
+    </div>
+</div>
+@endif
+@endauth
 @endsection

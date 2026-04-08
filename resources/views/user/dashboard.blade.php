@@ -153,7 +153,7 @@
         <div class="profile-header-card">
             <div class="profile-cover"></div>
             <div class="profile-avatar-wrapper position-relative">
-                <img src="{{ Auth::user()->avatar ?: 'https://ui-avatars.com/api/?name='.urlencode(Auth::user()->name).'&background=295A75&color=fff&size=200' }}" class="profile-avatar" alt="Profile">
+                <img src="{{ Auth::user()->avatar ?: 'https://ui-avatars.com/api/?name='.urlencode(Auth::user()->name).'&background=295A75&color=fff&size=200' }}" class="profile-avatar border shadow-sm" alt="Profile" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=295A75&color=fff&size=200'">
                 <div class="pb-3">
                     <h4 class="fw-bold mb-1">{{ Auth::user()->name }}</h4>
                     <p class="text-muted mb-0 small"><i class="bi bi-geo-alt me-1"></i>{{ Auth::user()->country ?: 'Planet Earth' }} • Joined {{ Auth::user()->created_at->format('M Y') }}</p>
@@ -244,8 +244,8 @@
                                     <span><i class="bi bi-folder2 me-1"></i>{{ $question->category->name ?? 'General' }}</span>
                                     <span><i class="bi bi-calendar3 me-1"></i>{{ $question->created_at->format('d M') }}</span>
                                 </div>
-                                <h6 class="q-title">{{ Str::limit($question->title ?: $question->body, 60) }}</h6>
-                                <p class="text-muted small mb-4">{{ Str::limit(strip_tags($question->body), 85) }}</p>
+                                <h6 class="q-title ml-text">{{ Str::limit(strip_tags($question->title ?: $question->body), 60) }}</h6>
+                                <p class="text-muted small mb-4 ml-text">{{ Str::limit(strip_tags($question->body), 85) }}</p>
                                 <a href="{{ route('user.question.show', $question->id) }}" class="q-btn">
                                     View Detailed Discussion <i class="bi bi-arrow-right ms-1"></i>
                                 </a>

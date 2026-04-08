@@ -98,6 +98,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // File download
     Route::get('/files/{file}/download', [QuestionAdminController::class, 'downloadFile'])->name('files.download');
+    Route::post('/questions/{question}/history/comment', [QuestionAdminController::class, 'addHistoryComment'])->name('history.comment');
 
     // Categories
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -119,6 +120,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/questioners/{user}', [\App\Http\Controllers\Admin\QuestionerController::class, 'show'])->name('questioners.show');
 
     // Site Settings
+    Route::get('/system-settings', [DashboardController::class, 'systemControl'])->name('settings.system');
     Route::post('/settings/update', [DashboardController::class, 'updateSettings'])->name('settings.update');
 
     // Mailing Management (Sprite)
@@ -139,6 +141,10 @@ Route::middleware(['auth', 'role:mufti'])->prefix('mufti')->name('mufti.')->grou
     Route::post('/questions/{question}/answer', [MuftiController::class, 'submitAnswer'])->name('questions.answer');
     Route::get('/profile', [MuftiController::class, 'profile'])->name('profile');
     Route::put('/profile', [MuftiController::class, 'updateProfile'])->name('profile.update');
+
+    // New History & Communication Gateway for Muftis
+    Route::get('/questions/{question}/history', [QuestionAdminController::class, 'history'])->name('questions.history');
+    Route::post('/questions/{question}/history/comment', [QuestionAdminController::class, 'addHistoryComment'])->name('questions.history.comment');
 });
 
 
