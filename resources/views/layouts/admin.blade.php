@@ -18,7 +18,18 @@
         :root { --sidebar-w: 240px; }
         body { font-family:'Inter',sans-serif; background:#f4f6f9; color: var(--text-main); }
         
-        .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--brand-blue-dark); position:fixed; top:0; left:0; z-index:200; overflow-y:auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar { 
+            width: var(--sidebar-w); 
+            min-height: 100vh; 
+            background: var(--brand-blue-dark); 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            z-index: 1060; 
+            overflow-y: auto; 
+            border-right: 1px solid rgba(255,255,255,0.05); 
+            transition: transform 0.3s ease;
+        }
         .sidebar-brand { padding:1.25rem 1rem; background:rgba(0,0,0,.15); border-bottom: 5px solid var(--brand-gold); }
         .sidebar-brand h6 { color:#fff; font-weight:700; font-size:1rem; margin:0; }
         .sidebar-brand span { color:var(--brand-gold); }
@@ -28,8 +39,23 @@
         .sidebar-nav .nav-link i { font-size:1.1rem; width:22px; opacity: 0.8; }
         
         .sidebar-section { padding:1.2rem 1.25rem .3rem; font-size:.65rem; text-transform:uppercase; color:rgba(255,255,255,.45); letter-spacing:1.5px; font-weight: 700; }
-        .main-content { margin-left:var(--sidebar-w); padding:0; }
+        .main-content { margin-left: var(--sidebar-w); padding: 0; transition: margin-left 0.3s ease; min-height: 100vh; }
         .topbar { background:#fff; border-bottom:1px solid #e5e7eb; padding:.75rem 1.5rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow: var(--shadow-sm); }
+        
+        /* Sidebar Responsive Logic */
+        @media (max-width: 991px) {
+            :root { --sidebar-w: 260px; }
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
+            body.sidebar-open .sidebar { transform: translateX(0); }
+            body.sidebar-open { overflow: hidden; }
+            .sidebar-overlay { 
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.5); z-index: 1050; display: none; 
+            }
+            body.sidebar-open .sidebar-overlay { display: block; }
+            .topbar { padding: 0.75rem 1rem; }
+        }
         
         .page-content { padding:1.5rem; }
         .stat-card { border-radius:.75rem; padding:1.25rem 1.5rem; color:#fff; }
@@ -116,11 +142,18 @@
     </nav>
 </div>
 
+{{-- Sidebar Overlay for Mobile --}}
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
 {{-- Main Content --}}
 <div class="main-content">
     {{-- Topbar --}}
     <div class="topbar">
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+            {{-- Mobile Toggle --}}
+            <button class="btn btn-brand d-lg-none" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
             <h6 class="mb-0 fw-bold d-none d-lg-block" style="color: var(--brand-blue);">@yield('topbar-title', 'Dashboard')</h6>
             
             {{-- Digital Clock & Enhanced Date Display --}}
@@ -187,6 +220,11 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
+    // Sidebar Toggle for Mobile
+    function toggleSidebar() {
+        document.body.classList.toggle('sidebar-open');
+    }
+
     // Digital Clock Engine
     function updateAdminClock() {
         const clockElement = document.getElementById('admin-live-clock');

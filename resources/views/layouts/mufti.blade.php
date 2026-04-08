@@ -17,20 +17,49 @@
     <style>
         :root { --sidebar-w:220px; }
         body { font-family:'Inter',sans-serif; background:#f4f6f9; color: var(--text-main); }
-        .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--brand-blue-dark); position:fixed; top:0; left:0; z-index:200; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar { 
+            width:var(--sidebar-w); 
+            min-height:100vh; 
+            background:var(--brand-blue-dark); 
+            position:fixed; 
+            top:0; 
+            left:0; 
+            z-index:1060; 
+            border-right: 1px solid rgba(255,255,255,0.05); 
+            transition: transform 0.3s ease;
+        }
         .sidebar-brand { padding:1.25rem 1rem; background:rgba(0,0,0,.15); border-bottom: 5px solid var(--brand-gold); }
         .sidebar-brand h6 { color:#fff; font-weight:700; margin:0; }
         .sidebar-brand small { color:rgba(255,255,255,.5); font-size:.75rem; }
         .sidebar-nav .nav-link { color:rgba(255,255,255,.7); padding:.7rem 1.25rem; display:flex; align-items:center; gap:.6rem; font-size:.88rem; border-left:4px solid transparent; transition: var(--transition-base); }
         .sidebar-nav .nav-link:hover, .sidebar-nav .nav-link.active { color:#fff; background:rgba(255,255,255,.05); border-left-color:var(--brand-gold); }
-        .main-content { margin-left:var(--sidebar-w); }
+        .main-content { margin-left: var(--sidebar-w); transition: margin-left 0.3s ease; min-height: 100vh; }
         .topbar { background:#fff; border-bottom:1px solid #e5e7eb; padding:.75rem 1.5rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow: var(--shadow-sm); }
         .page-content { padding:1.5rem; }
         .arabic-text { font-family:'Amiri',serif; font-size:1.2rem; direction:rtl; text-align:right; }
+
+        /* Sidebar Responsive Logic */
+        @media (max-width: 991px) {
+            :root { --sidebar-w: 240px; }
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
+            body.sidebar-open .sidebar { transform: translateX(0); }
+            body.sidebar-open { overflow: hidden; }
+            .sidebar-overlay { 
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.5); z-index: 1050; display: none; 
+            }
+            body.sidebar-open .sidebar-overlay { display: block; }
+            .topbar { padding: 0.75rem 1rem; }
+        }
     </style>
     @stack('styles')
 </head>
 <body>
+
+{{-- Sidebar Overlay --}}
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
 <div class="sidebar">
     <div class="sidebar-brand">
         <h6><i class="bi bi-person-badge me-2"></i>Mufti Panel</h6>
@@ -56,7 +85,12 @@
 </div>
 <div class="main-content">
     <div class="topbar">
-        <h6 class="mb-0 fw-bold text-muted">@yield('topbar-title', 'Mufti Panel')</h6>
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-brand d-lg-none" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+            <h6 class="mb-0 fw-bold text-muted">@yield('topbar-title', 'Mufti Panel')</h6>
+        </div>
     </div>
     <div class="px-3 pt-3">
         @if(session('success'))
@@ -69,6 +103,11 @@
     <div class="page-content">@yield('content')</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleSidebar() {
+        document.body.classList.toggle('sidebar-open');
+    }
+</script>
 @stack('scripts')
 </body>
 </html>

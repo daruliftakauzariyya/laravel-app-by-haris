@@ -4,57 +4,84 @@
 
 @section('content')
 
-{{-- Hero Section --}}
-<section style="background: linear-gradient(135deg, #1a7a4a 0%, #145e38 60%, #0d3d24 100%); color:#fff; padding: 70px 0 80px;">
-    <div class="container text-center">
-        <p class="mb-2" style="color:#c9a84c; letter-spacing:3px; font-size:.85rem; font-weight:600;">بسم الله الرحمن الرحيم</p>
-        <h1 class="display-4 fw-bold mb-3">Darul Ifta Kauzariyya</h1>
-        <p class="lead mb-5" style="color:rgba(255,255,255,.85); max-width:600px; margin: 0 auto 30px;">
-            Ask your Islamic questions and receive authentic Fatwa answers from qualified Muftis based on Quran and Sunnah.
-        </p>
-
-        {{-- Search Bar --}}
-        <div class="hero-search-wrapper mx-auto">
-            <form action="{{ route('fatwa.archive') }}" method="GET" id="hero-search-form">
-                <div class="hero-search-box">
-                    <div class="search-icon"><i class="bi bi-search"></i></div>
-                    <input type="text" name="search" id="hero-search-input"
-                           class="search-input"
-                           placeholder="Search fatwas — Questions, Answers, Categories, References..."
-                           value="{{ request('search') }}"
-                           autocomplete="off">
-                    <div class="search-divider"></div>
-                    <select name="madhab" class="search-select">
-                        <option value="">All Madhabs</option>
-                        <option value="Shafii"  {{ request('madhab') == 'Shafii'  ? 'selected' : '' }}>Shafi'i</option>
-                        <option value="Hanafi"  {{ request('madhab') == 'Hanafi'  ? 'selected' : '' }}>Hanafi</option>
-                        <option value="Maliki"  {{ request('madhab') == 'Maliki'  ? 'selected' : '' }}>Maliki</option>
-                        <option value="Hanbali" {{ request('madhab') == 'Hanbali' ? 'selected' : '' }}>Hanbali</option>
-                    </select>
-                    <button type="submit" class="search-btn">Search</button>
-                </div>
-                {{-- Search Tags / Shortcut filters --}}
-                <div class="search-tags">
-                    <span class="tag-label">Quick:</span>
-                    <a href="{{ route('fatwa.archive', ['madhab' => 'Shafii']) }}" class="search-tag">Shafi'i</a>
-                    <a href="{{ route('fatwa.archive', ['madhab' => 'Hanafi']) }}" class="search-tag">Hanafi</a>
-                    <a href="{{ route('fatwa.archive', ['search' => 'salah']) }}" class="search-tag">Salah</a>
-                    <a href="{{ route('fatwa.archive', ['search' => 'zakat']) }}" class="search-tag">Zakat</a>
-                    <a href="{{ route('fatwa.archive', ['search' => 'marriage']) }}" class="search-tag">Marriage</a>
-                    <a href="{{ route('fatwa.archive') }}" class="search-tag">View All</a>
-                </div>
-            </form>
+{{-- Hero Slider Section --}}
+<section class="hero-slider-wrapper">
+    <div id="heroCarousel" class="carousel slide carousel-fade h-100" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
         </div>
-
-        <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
-            <a href="{{ route('question.create') }}" class="btn btn-warning px-4 fw-bold">
-                <i class="bi bi-pencil-square me-2"></i>Ask a Question
-            </a>
-            <a href="{{ route('fatwa.archive') }}" class="btn btn-outline-light px-4">
-                <i class="bi bi-archive me-2"></i>Browse Archive
-            </a>
+        <div class="carousel-inner h-100">
+            <div class="carousel-item active h-100">
+                <div class="slider-image" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{{ asset('assets/img/slider/center.png') }}');"></div>
+                <div class="carousel-caption">
+                    <p class="slider-arabic">بسم الله الرحمن الرحيم</p>
+                    <h1 class="display-3 fw-bold">Darul Ifta Kauzariyya</h1>
+                    <p class="lead d-none d-md-block">Authentic Scholarly Guidance Rooted in Quran and Sunnah.</p>
+                </div>
+            </div>
+            <div class="carousel-item h-100">
+                <div class="slider-image" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{{ asset('assets/img/slider/library.png') }}');"></div>
+                <div class="carousel-caption">
+                    <p class="slider-arabic">طلب العلم فريضة على كل مسلم</p>
+                    <h1 class="display-3 fw-bold">Scholar Research Hub</h1>
+                    <p class="lead d-none d-md-block">Illuminating the path of knowledge for the global Ummah.</p>
+                </div>
+            </div>
+            <div class="carousel-item h-100">
+                <div class="slider-image" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{{ asset('assets/img/slider/quran.png') }}');"></div>
+                <div class="carousel-caption">
+                    <p class="slider-arabic">فاسألوا أهل الذكر إن كنتم لا تعلمون</p>
+                    <h1 class="display-3 fw-bold">Ask & Enlighten</h1>
+                    <p class="lead d-none d-md-block">Direct access to qualified Muftis for your modern queries.</p>
+                </div>
+            </div>
         </div>
     </div>
+
+    {{-- Search Floating Box --}}
+    <div class="hero-search-overlay">
+        <div class="container">
+            <div class="search-glass-card mx-auto">
+                <form action="{{ route('fatwa.archive') }}" method="GET" id="hero-search-form">
+                    <div class="hero-search-box-v2">
+                        <div class="search-main">
+                            <i class="bi bi-search text-brand me-2"></i>
+                            <input type="text" name="search" class="form-control border-0 shadow-none bg-transparent" 
+                                   placeholder="Search fatwas, topics or references..." value="{{ request('search') }}">
+                        </div>
+                        <div class="search-divider d-none d-md-block"></div>
+                        <div class="search-filters">
+                            <select name="madhab" class="form-select border-0 shadow-none bg-transparent">
+                                <option value="">All Madhabs</option>
+                                <option value="Shafii">Shafi'i</option>
+                                <option value="Hanafi">Hanafi</option>
+                                <option value="Maliki">Maliki</option>
+                                <option value="Hanbali">Hanbali</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-brand px-4 py-2 rounded-pill fw-bold">Search</button>
+                    </div>
+                </form>
+                {{-- Quick Access Tags --}}
+                <div class="search-tags mt-3 justify-content-center">
+                    <span class="tag-label me-2">Quick:</span>
+                    <a href="{{ route('fatwa.archive', ['search' => 'salah']) }}" class="search-tag-v2">Salah</a>
+                    <a href="{{ route('fatwa.archive', ['search' => 'zakat']) }}" class="search-tag-v2">Zakat</a>
+                    <a href="{{ route('fatwa.archive', ['search' => 'marriage']) }}" class="search-tag-v2">Marriage</a>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2 mt-4">
+                    <a href="{{ route('question.create') }}" class="btn btn-warning fw-bold px-4">
+                        <i class="bi bi-pencil-square me-2"></i>Ask a Question
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+ </div>
 </section>
 
 {{-- Stats Section --}}
@@ -222,86 +249,88 @@
     .x-small { font-size: 0.75rem; }
 
     /* ============================================
-       Hero Search Bar
+       Hero Slider & Search Overlay
        ============================================ */
-    .hero-search-wrapper {
-        max-width: 700px;
+    .hero-slider-wrapper {
+        position: relative;
         width: 100%;
+        height: calc(100vh - var(--header-height));
+        min-height: 550px;
+        overflow: hidden;
     }
-    .hero-search-box {
+    .slider-image {
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        transition: transform 6s ease-in-out;
+    }
+    .carousel-item.active .slider-image {
+        transform: scale(1.1);
+    }
+    .carousel-caption {
+        bottom: 45%;
+        z-index: 5;
+        text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .slider-arabic {
+        color: var(--brand-gold);
+        font-family: 'Amiri', serif;
+        font-size: 1.35rem;
+        margin-bottom: 1rem;
+        letter-spacing: 2px;
+    }
+
+    .hero-search-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding-bottom: 60px;
+        z-index: 10;
+    }
+    .search-glass-card {
+        max-width: 850px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    }
+    .hero-search-box-v2 {
         display: flex;
         align-items: center;
-        background: rgba(255,255,255,0.97);
+        background: #fff;
         border-radius: 50px;
-        padding: 6px 6px 6px 20px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        padding: 8px 8px 8px 25px;
         gap: 0;
     }
-    .search-icon { color: #1a7a4a; font-size: 1.1rem; flex-shrink: 0; margin-right: 10px; }
-    .search-input {
-        flex: 1;
-        border: none;
-        outline: none;
-        font-size: 0.93rem;
-        color: #2d3748;
-        background: transparent;
-        min-width: 0;
-    }
-    .search-input::placeholder { color: #a0aec0; }
-    .search-divider { width: 1px; height: 28px; background: #e2e8f0; margin: 0 10px; flex-shrink: 0; }
-    .search-select {
-        border: none;
-        outline: none;
-        font-size: 0.85rem;
-        color: #4a5568;
-        background: transparent;
-        cursor: pointer;
-        padding: 4px 8px;
-        flex-shrink: 0;
-        font-weight: 600;
-    }
-    .search-btn {
-        background: #1a7a4a;
+    .search-main { flex: 1; display: flex; align-items: center; }
+    .search-divider { width: 1px; height: 30px; background: #eee; margin: 0 15px; }
+    .search-filters { width: 180px; }
+    
+    .search-tag-v2 {
+        font-size: 0.75rem;
         color: #fff;
-        border: none;
-        border-radius: 40px;
-        padding: 10px 24px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: background 0.2s;
-        flex-shrink: 0;
-    }
-    .search-btn:hover { background: #145e38; }
-
-    /* Quick filter tags */
-    .search-tags {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 14px;
-        justify-content: center;
-    }
-    .tag-label { font-size: 0.78rem; color: rgba(255,255,255,.6); font-weight: 600; }
-    .search-tag {
-        font-size: 0.78rem;
-        color: rgba(255,255,255,.85);
-        background: rgba(255,255,255,0.12);
-        border: 1px solid rgba(255,255,255,0.25);
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 4px 15px;
         border-radius: 20px;
-        padding: 3px 12px;
         text-decoration: none;
         transition: 0.2s;
-        font-weight: 500;
     }
-    .search-tag:hover { background: rgba(255,255,255,0.25); color: #fff; }
+    .search-tag-v2:hover { background: var(--brand-gold); border-color: var(--brand-gold); color: #fff; }
 
-    @media (max-width: 576px) {
-        .hero-search-box { flex-wrap: wrap; border-radius: 16px; padding: 12px; gap: 8px; }
-        .search-divider { display: none; }
-        .search-btn { width: 100%; border-radius: 10px; padding: 10px; }
-        .search-select { width: 100%; }
+    @media (max-width: 768px) {
+        .hero-slider-wrapper { height: 75vh; min-height: 480px; }
+        .carousel-caption h1 { font-size: 2rem !important; }
+        .hero-search-box-v2 { flex-direction: column; border-radius: 15px; padding: 15px; gap: 10px; }
+        .search-filters { width: 100%; }
+        .hero-search-box-v2 .btn { width: 100%; border-radius: 10px; }
+        .search-glass-card { padding: 20px; margin: 0 10px; }
+        .hero-search-overlay { padding-bottom: 30px; }
     }
 
     /* ============================================

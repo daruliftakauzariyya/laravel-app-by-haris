@@ -74,10 +74,32 @@
         .footer-social a { font-size: 1.4rem; color: #fff; margin-right: 15px; opacity: 0.8; }
         .footer-social a:hover { opacity: 1; color: var(--brand-gold); }
 
+        {{-- Mobile Logo Fix & Styling --}}
         @media screen and (max-width: 991px) {
-            .navbar { height: auto; min-height: 70px; }
-            .navbar-brand img { max-height: 50px; }
+            .navbar { height: 80px !important; min-height: 80px; padding: 0 10px !important; }
+            .navbar-brand img { max-height: 55px !important; opacity: 1 !important; visibility: visible !important; display: block !important; }
+            .navbar-brand { display: flex !important; align-items: center !important; }
         }
+
+        /* Offcanvas Sidebar Styling (L-to-R) */
+        .offcanvas { width: 75% !important; border-right: 5px solid var(--brand-gold) !important; border-left: none !important; }
+        .offcanvas-header { background: var(--brand-blue-dark); color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .offcanvas-body { padding: 0; background: var(--bg-light); }
+        .mobile-nav-list { list-style: none; padding: 0; margin: 0; }
+        .mobile-nav-link { 
+            display: flex; 
+            align-items: center; 
+            padding: 1rem 1.5rem; 
+            color: var(--brand-blue); 
+            text-decoration: none; 
+            font-weight: 600; 
+            border-bottom: 1px solid #eef2f7;
+            transition: var(--transition-base);
+        }
+        .mobile-nav-link:hover, .mobile-nav-link.active { background: #fff; color: var(--brand-gold); padding-left: 2rem; }
+        .mobile-nav-link i { font-size: 1.2rem; width: 30px; }
+        
+        .mobile-auth-section { padding: 2rem 1.5rem; background: #fff; margin-top: auto; border-top: 1px solid #eef2f7; }
 
         @media print {
             .navbar, footer, .btn-print, .btn, .no-print { display: none !important; }
@@ -92,7 +114,7 @@
 {{-- Navbar --}}
 <nav class="navbar navbar-expand-lg navbar-light navbar-sticky shadow-sm">
     <div class="container h-100">
-        <a class="navbar-brand h-100 d-flex align-items-center" href="{{ route('home') }}">
+        <a class="navbar-brand h-100 d-none d-lg-flex align-items-center" href="{{ route('home') }}">
             <img src="{{ asset('assets/logo/logoblueNew.svg') }}" alt="Darul Ifta Kauzariyya Logo">
         </a>
 
@@ -105,10 +127,12 @@
             </div>
         @endif
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+        {{-- Mobile Hamburger --}}
+        <button class="navbar-toggler border-0 shadow-none d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
 
+        {{-- Desktop Navigation --}}
         <div class="collapse navbar-collapse h-100" id="navMain">
             <ul class="navbar-nav mx-auto gap-3">
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Home</a></li>
@@ -154,6 +178,66 @@
         </div>
     </div>
 </nav>
+
+{{-- Mobile Offcanvas Menu (L-to-R) --}}
+<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold" id="mobileMenuLabel">
+            <i class="bi bi-grid-3x3-gap me-2"></i>Scholar Menu
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column h-100">
+        <div class="p-3 text-center border-bottom bg-white">
+            <img src="{{ asset('assets/logo/logoblueNew.svg') }}" style="max-height: 50px;">
+        </div>
+        
+        <div class="mobile-nav-list">
+            <a href="{{ route('home') }}" class="mobile-nav-link {{ request()->routeIs('home') ? 'active' : '' }}">
+                <i class="bi bi-house-door"></i> Home
+            </a>
+            <a href="{{ route('fatwa.archive') }}" class="mobile-nav-link {{ request()->routeIs('fatwa.*') ? 'active' : '' }}">
+                <i class="bi bi-journal-bookmark"></i> Fatwa Archive
+            </a>
+            <a href="{{ route('question.create') }}" class="mobile-nav-link {{ request()->routeIs('question.*') ? 'active' : '' }}">
+                <i class="bi bi-pencil-square"></i> Ask a Question
+            </a>
+            <a href="{{ route('contact') }}" class="mobile-nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">
+                <i class="bi bi-envelope"></i> Contact Us
+            </a>
+        </div>
+
+        <div class="mobile-auth-section mt-auto">
+            @guest
+                <div class="d-grid gap-2">
+                    <a href="{{ route('login') }}" class="btn btn-outline-brand fw-bold">Login to Account</a>
+                    <a href="{{ route('register') }}" class="btn btn-gold py-2">Create Free Profile</a>
+                </div>
+            @else
+                <div class="d-flex align-items-center gap-3 mb-4 p-2 bg-light rounded-3">
+                    <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode(Auth::user()->name).'&background=1a7a4a&color=fff' }}" 
+                         class="rounded-circle" width="45" height="45">
+                    <div>
+                        <div class="fw-bold">{{ Auth::user()->name }}</div>
+                        <small class="text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Scholar Panel Access</small>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    @if(Auth::user()->hasRole('admin'))
+                        <a href="{{ route('admin.dashboard') }}" class="btn btn-brand btn-sm text-start"><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</a>
+                    @endif
+                    @if(Auth::user()->hasRole('mufti'))
+                        <a href="{{ route('mufti.dashboard') }}" class="btn btn-brand btn-sm text-start"><i class="bi bi-person-badge me-2"></i>Scholars Portal</a>
+                    @endif
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button class="btn btn-danger btn-sm text-start w-100 mt-2"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</button>
+                    </form>
+                </div>
+            @endguest
+        </div>
+    </div>
+</div>
 
 {{-- Flash messages --}}
 <div class="container mt-3">
