@@ -9,7 +9,8 @@
             <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
                 <div>
                     <span class="badge bg-secondary me-2">{{ $question->question_id }}</span>
-                    <span class="badge badge-status-{{ $question->status }}">{{ ucfirst(str_replace('_',' ',$question->status)) }}</span>
+                    <span class="badge badge-status-{{ $question->status }} me-2">{{ ucfirst(str_replace('_',' ',$question->status)) }}</span>
+                    <span class="badge bg-warning text-dark px-2 border-0"><i class="bi bi-hourglass-split me-1"></i>{{ floor($question->created_at->diffInDays(now())) }} Days Ago</span>
                 </div>
                 <div class="d-flex gap-2 no-print">
                     <a href="{{ route('admin.questions.history', $question) }}" class="btn btn-sm btn-outline-info">
@@ -107,6 +108,26 @@
                 <div class="mufti-answer-body" style="line-height:1.8; color: #333;">
                     {!! $question->muftiAnswer->full_answer !!}
                 </div>
+
+                {{-- Supporting References --}}
+                @if($question->muftiAnswer->supportingReferences->count())
+                <div class="mt-4 p-3 bg-light rounded border">
+                    <h6 class="fw-bold small text-muted text-uppercase mb-3"><i class="bi bi-journal-text me-1"></i>Supporting References</h6>
+                    @foreach($question->muftiAnswer->supportingReferences as $ref)
+                        <div class="mb-4 last-child-mb-0">
+                            <div class="arabic-text mb-2 text-dark {{ $ref->language == 'Urdu' ? 'gulzar-font' : 'alyamama-font' }}" style="font-size: 1.15rem; line-height: 1.6;">
+                                {{ $ref->arabic_text }}
+                            </div>
+                            <div class="small text-muted d-flex align-items-center">
+                                <i class="bi bi-book me-2"></i>
+                                <span class="fw-semibold">{{ $ref->book_name }}</span>
+                                <span class="mx-2 opacity-50">|</span>
+                                <span>{{ $ref->language }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @endif
                 @if(in_array($question->status, ['answered', 'for_review']))
                 <div class="mt-3">
                     <a href="{{ route('admin.questions.verify', $question) }}" class="btn btn-warning btn-sm">
@@ -153,11 +174,54 @@
         @endif
 
         {{-- Question detail info --}}
-        <div class="card border-0 shadow-sm">
+        {{-- Question detail info --}}
+        <div class="card border-0 shadow-sm mb-3">
             <div class="card-body small">
                 <p class="mb-1"><strong>Language:</strong> {{ $question->language ?? 'Not set' }}</p>
                 <p class="mb-1"><strong>Category:</strong> {{ $question->category?->name ?? '—' }}</p>
                 <p class="mb-0"><strong>Accepted:</strong> {{ $question->accepted_at?->format('d M Y') ?? '—' }}</p>
+            </div>
+        </div>
+
+        {{-- Fatwa Log History --}}
+        <div class="card border-0 shadow-sm overflow-hidden">
+            <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Fatwa Log History</h6>
+                <span class="badge bg-light text-primary rounded-pill">{{ $question->activityLogs->count() }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="timeline-container p-3" style="max-height: 500px; overflow-y: auto;">
+                    <ul class="list-unstyled mb-0">
+                        @forelse($question->activityLogs as $log)
+                        <li class="position-relative pb-4 ps-4">
+                            @if(!$loop->last)
+                            <div class="position-absolute h-100 border-start border-2 border-light" style="left: 0.45rem; top: 1rem;"></div>
+                            @endif
+                            <div class="position-absolute rounded-circle bg-{{ $log->color }} d-flex align-items-center justify-content-center shadow-sm"
+                                 style="left: 0; width: 1rem; height: 1rem; top: 0.15rem; z-index: 2;">
+                                <i class="bi {{ $log->icon }} text-white" style="font-size: 0.5rem;"></i>
+                            </div>
+                            <div class="small">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold">{{ $log->event_label }}</span>
+                                    <span class="text-muted x-small ms-2">{{ $log->event_at?->format('M d, H:i') }}</span>
+                                </div>
+                                <p class="text-muted mb-1 x-small line-height-sm mt-1">
+                                    {{ $log->notes ? Str::limit($log->notes, 120) : 'Process event recorded.' }}
+                                </p>
+                                <div class="x-small text-secondary opacity-75">
+                                    <i class="bi bi-person me-1"></i>{{ $log->actor->name ?? 'System' }}
+                                </div>
+                            </div>
+                        </li>
+                        @empty
+                        <div class="text-center py-4 text-muted small">
+                            <i class="bi bi-journal-x d-block fs-3 mb-2 opacity-25"></i>
+                            No activity logs found.
+                        </div>
+                        @endforelse
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

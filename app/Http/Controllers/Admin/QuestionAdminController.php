@@ -47,7 +47,11 @@ class QuestionAdminController extends Controller
     /** Show a single question detail */
     public function show(Question $question)
     {
-        $question->load('user', 'category', 'files', 'assignedMufti', 'muftiAnswer.supportingReferences');
+        $question->load([
+            'user', 'category', 'files', 'assignedMufti', 
+            'muftiAnswer.supportingReferences',
+            'activityLogs' => fn($q) => $q->with('actor')->orderBy('event_at', 'desc')
+        ]);
         $muftis         = User::role('mufti')->get();
         $mainCategories = Category::whereNull('parent_id')->get();
         $subCategories  = Category::whereNotNull('parent_id')->get();
