@@ -121,44 +121,37 @@
 </section>
 
 {{-- Team Section --}}
-<section class="faculty-section py-5">
-    <div class="container">
+<section class="faculty-section-v2 py-5">
+    <div class="split-bg">
+        <div class="bg-top"></div>
+        <div class="bg-bottom"></div>
+    </div>
+    
+    <div class="container position-relative" style="z-index: 2;">
         <div class="text-center mb-5">
             <span class="faculty-eyebrow">Meet the Scholars</span>
-            <h2 class="faculty-heading">Our Faculty <span class="text-green">&</span> Administration</h2>
-            <p class="faculty-subheading">Guiding the institution with wisdom and authentic knowledge.</p>
+            <h2 class="faculty-heading">Our Faculty <span class="text-brand-gold">&</span> Administration</h2>
+            <p class="faculty-subheading mb-4">Guiding the institution with wisdom and authentic knowledge.</p>
         </div>
 
         <div class="row g-4 justify-content-center">
             @foreach([
-                ['name' => 'Muhammad Ibrahim',  'role' => 'Administration',      'title' => 'Principal — KAUZARIYYA', 'color' => '#1a7a4a', 'icon' => 'bi-mortarboard-fill'],
-                ['name' => 'Mufti Rajeeb Qasimi','role' => 'Head of Department',  'title' => 'HOD — Darul Ifta',       'color' => '#2c5f8a', 'icon' => 'bi-book-half'],
-                ['name' => 'Mufti Abid Ibrahim', 'role' => 'Admin Online Fatwa',  'title' => 'Professor Kauzariyya',   'color' => '#7c3e99', 'icon' => 'bi-pen-fill'],
-                ['name' => 'Ansaf',              'role' => 'Coordinator',         'title' => 'Master — Kauzariyya',    'color' => '#c9a84c', 'icon' => 'bi-people-fill'],
+                ['name' => 'Muhammad Ibrahim',  'role' => 'Principal — KAUZARIYYA', 'img' => 'https://new.daruliftakauzariyya.com/assets/img/team/principal.png'],
+                ['name' => 'Mufti Rajeeb Qasimi','role' => 'HOD — Darul Ifta',      'img' => 'https://new.daruliftakauzariyya.com/assets/img/team/hod.png'],
+                ['name' => 'Mufti Abid Ibrahim', 'role' => 'Professor Kauzariyya',  'img' => 'https://new.daruliftakauzariyya.com/assets/img/team/professor.png'],
+                ['name' => 'Ansaf',              'role' => 'Master — Kauzariyya',   'img' => 'https://new.daruliftakauzariyya.com/assets/img/team/master.png'],
             ] as $member)
             <div class="col-6 col-md-3">
-                <div class="faculty-card">
-                    <div class="faculty-card-top" style="--member-color: {{ $member['color'] }};">
-                        <div class="faculty-shape">
-                            <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" class="shape-svg">
-                                <path d="M0,0 L200,0 L200,80 Q100,130 0,80 Z" fill="{{ $member['color'] }}"/>
-                            </svg>
-                            <div class="faculty-icon-badge" style="background:{{ $member['color'] }};">
-                                <i class="bi {{ $member['icon'] }}"></i>
-                            </div>
-                        </div>
-                        <div class="faculty-avatar-ring" style="border-color:{{ $member['color'] }};">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($member['name']) }}&background={{ ltrim($member['color'],'#') }}&color=fff&size=200&bold=true&format=png"
-                                 alt="{{ $member['name'] }}"
-                                 class="faculty-avatar">
-                        </div>
+                <div class="faculty-card-modern">
+                    <div class="faculty-photo-wrapper">
+                        <img src="{{ $member['img'] }}" 
+                             alt="{{ $member['name'] }}" 
+                             class="faculty-photo"
+                             onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($member['name']) }}&background=E5E7EB&color=295A75&size=300&bold=true'">
                     </div>
-                    <div class="faculty-card-body">
-                        <h5 class="faculty-name">{{ $member['name'] }}</h5>
-                        <div class="faculty-role-badge" style="--member-color: {{ $member['color'] }};">
-                            {{ $member['role'] }}
-                        </div>
-                        <p class="faculty-title">{{ $member['title'] }}</p>
+                    <div class="faculty-content text-center">
+                        <h5 class="m-0 fw-bold">{{ $member['name'] }}</h5>
+                        <p class="small opacity-75 mb-0 mt-1">{{ $member['role'] }}</p>
                     </div>
                 </div>
             </div>
@@ -262,137 +255,90 @@
     .hover-shadow:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important; }
 
     /* ============================================
-       Faculty Section — Premium Card Design
+       Faculty Section — Modernized Profile Cards
        ============================================ */
-    .faculty-section {
-        background: linear-gradient(160deg, #f8fafc 0%, #f0f4f0 100%);
-        padding: 80px 0;
+    .faculty-section-v2 {
+        position: relative;
+        padding: 100px 0;
+        overflow: hidden;
     }
+    .split-bg {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .bg-top { flex: 1; background: #ffffff; }
+    .bg-bottom { flex: 1; background: #222222; }
+
     .faculty-eyebrow {
         display: inline-block;
-        background: rgba(26,122,74,0.08);
-        color: #1a7a4a;
-        font-size: 0.78rem;
+        background: rgba(41, 90, 117, 0.08);
+        color: var(--brand-blue);
+        font-size: 0.75rem;
         font-weight: 800;
-        letter-spacing: 2.5px;
+        letter-spacing: 2px;
         text-transform: uppercase;
-        padding: 6px 18px;
+        padding: 5px 15px;
         border-radius: 50px;
-        margin-bottom: 12px;
+        margin-bottom: 15px;
     }
     .faculty-heading {
-        font-size: 2.2rem;
+        font-size: 2.5rem;
         font-weight: 800;
         color: #1a202c;
-        margin-bottom: 10px;
-        line-height: 1.2;
     }
-    .faculty-subheading {
-        color: #718096;
-        font-size: 1rem;
-        max-width: 480px;
-        margin: 0 auto;
+    .text-brand-gold { color: var(--brand-gold); }
+    .faculty-subheading { color: #718096; max-width: 600px; margin: 0 auto; }
+
+    .faculty-card-modern {
+        background: var(--brand-blue);
+        border-radius: 20px;
+        padding: 25px;
+        color: #fff;
+        height: 100%;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 1px solid rgba(255,255,255,0.1);
     }
-    /* Card Shell */
-    .faculty-card {
+    .faculty-card-modern:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    }
+    .faculty-photo-wrapper {
+        width: 100%;
+        aspect-ratio: 1/1;
         background: #fff;
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 4px 25px rgba(0,0,0,0.07);
-        border: 1px solid rgba(0,0,0,0.05);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        position: relative;
+        margin-bottom: 25px;
+        padding: 15px;
+        box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
     }
-    .faculty-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 50px rgba(0,0,0,0.12);
-    }
-    /* Card Top (shaped gradient area) */
-    .faculty-card-top {
-        position: relative;
-        height: 130px;
-        display: flex;
-        justify-content: center;
-    }
-    .faculty-shape {
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 100%;
-    }
-    .shape-svg {
+    .faculty-photo {
         width: 100%;
         height: 100%;
-    }
-    .faculty-icon-badge {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgba(255,255,255,0.85);
-        font-size: 0.95rem;
-        border: 2px solid rgba(255,255,255,0.3);
-    }
-    /* Avatar Ring */
-    .faculty-avatar-ring {
-        position: absolute;
-        bottom: -35px;
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        border: 4px solid #1a7a4a; /* overridden inline */
-        background: #fff;
-        padding: 3px;
-        z-index: 2;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    }
-    .faculty-avatar {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
         object-fit: cover;
+        border-radius: 12px;
     }
-    /* Card Body */
-    .faculty-card-body {
-        padding: 48px 18px 22px;
-        text-align: center;
+    .faculty-content h5 {
+        font-size: 1.15rem;
+        letter-spacing: 0.5px;
     }
-    .faculty-name {
-        font-size: 1rem;
-        font-weight: 800;
-        color: #1a202c;
-        margin-bottom: 8px;
-        line-height: 1.3;
+    .faculty-content p {
+        font-size: 0.85rem;
+        font-weight: 500;
     }
-    .faculty-role-badge {
-        display: inline-block;
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        color: var(--member-color, #1a7a4a);
-        background: rgba(0,0,0,0.04);
-        padding: 4px 12px;
-        border-radius: 50px;
-        border: 1px solid currentColor;
-        margin-bottom: 8px;
-    }
-    .faculty-title {
-        font-size: 0.8rem;
-        color: #718096;
-        margin: 0;
-        line-height: 1.4;
-    }
-    @media(max-width: 575px) {
-        .faculty-heading { font-size: 1.6rem; }
-        .faculty-card-top { height: 110px; }
-        .faculty-avatar-ring { width: 76px; height: 76px; bottom: -30px; }
-        .faculty-card-body { padding: 42px 12px 18px; }
-        .faculty-name { font-size: 0.9rem; }
+
+    @media(max-width: 768px) {
+        .faculty-heading { font-size: 1.8rem; }
+        .faculty-card-modern { padding: 15px; }
+        .faculty-photo-wrapper { margin-bottom: 15px; padding: 10px; }
+        .faculty-section-v2 { padding: 60px 0; }
     }
     .x-small { font-size: 0.75rem; }
 
