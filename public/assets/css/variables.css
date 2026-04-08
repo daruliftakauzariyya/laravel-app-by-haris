@@ -1,0 +1,33 @@
+:root {
+    /* Primary Brand Palette */
+    --brand-blue: #295A75;
+    --brand-blue-dark: #1D4054;
+    --brand-red: #701F18;
+    --brand-gold: #c9a84c;
+    --brand-gold-dark: #a8883a;
+
+    /* Semantic Colors */
+    --primary-color: var(--brand-blue);
+    --secondary-color: var(--brand-gold);
+    --accent-color: var(--brand-red);
+
+    /* Backgrounds & Surfaces */
+    --bg-light: #F8F4F2;
+    --bg-white: #ffffff;
+    --surface-light: #ffffff;
+    
+    /* Text Colors */
+    --text-main: #1a1a1a;
+    --text-muted: #6b7280;
+    --text-on-brand: #ffffff;
+
+    /* Layout Properties */
+    --header-height: 90px;
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.08);
+    
+    /* Transitions */
+    --transition-base: all 0.3s ease;
+}

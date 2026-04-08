@@ -8,17 +8,23 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/app-fonts.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/variables.css') }}">
+    
+    {{-- Favicon --}}
+    <link rel="icon" type="image/png" href="{{ asset('assets/logo/fevi.png') }}">
+
     <style>
-        :root { --green:#1a7a4a; --green-dark:#145e38; --gold:#c9a84c; --sidebar-w:220px; }
-        body { font-family:'Inter',sans-serif; background:#f4f6f9; }
-        .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--green-dark); position:fixed; top:0; left:0; z-index:200; }
-        .sidebar-brand { padding:1.25rem 1rem; background:rgba(0,0,0,.2); }
+        :root { --sidebar-w:220px; }
+        body { font-family:'Inter',sans-serif; background:#f4f6f9; color: var(--text-main); }
+        .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--brand-blue-dark); position:fixed; top:0; left:0; z-index:200; border-right: 1px solid rgba(255,255,255,0.05); }
+        .sidebar-brand { padding:1.25rem 1rem; background:rgba(0,0,0,.15); border-bottom: 5px solid var(--brand-gold); }
         .sidebar-brand h6 { color:#fff; font-weight:700; margin:0; }
         .sidebar-brand small { color:rgba(255,255,255,.5); font-size:.75rem; }
-        .sidebar-nav .nav-link { color:rgba(255,255,255,.75); padding:.65rem 1rem; display:flex; align-items:center; gap:.6rem; font-size:.9rem; border-left:3px solid transparent; }
-        .sidebar-nav .nav-link:hover, .sidebar-nav .nav-link.active { color:#fff; background:rgba(255,255,255,.08); border-left-color:var(--gold); }
+        .sidebar-nav .nav-link { color:rgba(255,255,255,.7); padding:.7rem 1.25rem; display:flex; align-items:center; gap:.6rem; font-size:.88rem; border-left:4px solid transparent; transition: var(--transition-base); }
+        .sidebar-nav .nav-link:hover, .sidebar-nav .nav-link.active { color:#fff; background:rgba(255,255,255,.05); border-left-color:var(--brand-gold); }
         .main-content { margin-left:var(--sidebar-w); }
-        .topbar { background:#fff; border-bottom:1px solid #e5e7eb; padding:.75rem 1.5rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+        .topbar { background:#fff; border-bottom:1px solid #e5e7eb; padding:.75rem 1.5rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow: var(--shadow-sm); }
         .page-content { padding:1.5rem; }
         .arabic-text { font-family:'Amiri',serif; font-size:1.2rem; direction:rtl; text-align:right; }
     </style>
