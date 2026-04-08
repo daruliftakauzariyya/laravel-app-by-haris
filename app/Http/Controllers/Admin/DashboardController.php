@@ -10,6 +10,10 @@ use App\Models\Category;
 use App\Models\PortalVisitorLog;
 use Illuminate\Support\Facades\DB;
 
+use App\Models\SiteSetting;
+use App\Helpers\HijriHelper;
+use Illuminate\Http\Request;
+
 class DashboardController extends Controller
 {
     public function index()
@@ -78,10 +82,27 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $hijriAdjustment = SiteSetting::get('hijri_adjustment', 0);
+        $currentHijri = HijriHelper::now('j F Y');
+
         return view('admin.dashboard', compact(
             'stats', 'recentQuestions',
             'topCategory', 'topCountries', 'topStates',
-            'monthlyLabels', 'monthlyCounts'
+            'monthlyLabels', 'monthlyCounts',
+            'hijriAdjustment', 'currentHijri'
         ));
+    }
+
+    public function updateSettings(Request $request)
+    {
+        if ($request->has('hijri_adjustment')) {
+            SiteSetting::set('hijri_adjustment', $request->hijri_adjustment, 'integer');
+        }
+
+        if ($request->has('show_hijri_public')) {
+            SiteSetting::set('show_hijri_public', $request->show_hijri_public, 'boolean');
+        }
+
+        return back()->with('success', 'Site settings updated successfully.');
     }
 }

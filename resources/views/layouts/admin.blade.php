@@ -95,7 +95,23 @@
 <div class="main-content">
     {{-- Topbar --}}
     <div class="topbar">
-        <h6 class="mb-0 fw-bold text-muted">@yield('topbar-title', 'Dashboard')</h6>
+        <div class="d-flex align-items-center gap-3">
+            <h6 class="mb-0 fw-bold text-muted">@yield('topbar-title', 'Dashboard')</h6>
+            
+            {{-- Digital Clock & Hijri --}}
+            <div class="d-none d-md-flex align-items-center gap-2 ms-3 border-start ps-3">
+                <div class="admin-clock-box">
+                    <span id="admin-live-clock" class="fw-bold text-dark" style="font-family: 'Inter', monospace; font-size: 0.95rem;">00:00:00</span>
+                    <span class="text-muted small ms-1" style="font-size: 0.7rem;">IST</span>
+                </div>
+                <div class="admin-hijri-box ms-2">
+                    <span class="badge bg-light text-green border border-success-subtle fw-bold" style="font-size: 0.75rem;">
+                        <i class="bi bi-moon-stars me-1"></i>{{ \App\Helpers\HijriHelper::now('j F Y') }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
         <div class="d-flex align-items-center gap-2">
             <small class="text-muted">{{ Auth::user()->name }}</small>
             <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode(Auth::user()->name).'&background=1a7a4a&color=fff&size=40' }}"
@@ -133,6 +149,24 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script>
+    // Digital Clock Engine
+    function updateAdminClock() {
+        const clockElement = document.getElementById('admin-live-clock');
+        if (!clockElement) return;
+        
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { 
+            hour12: true, 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit' 
+        });
+        clockElement.innerHTML = timeString;
+    }
+    setInterval(updateAdminClock, 1000);
+    updateAdminClock();
+</script>
 @stack('scripts')
 </body>
 </html>

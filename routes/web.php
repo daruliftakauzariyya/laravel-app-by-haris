@@ -13,6 +13,20 @@ use App\Http\Controllers\Mufti\MuftiController;
 use App\Http\Controllers\QuestionController;
 use Illuminate\Support\Facades\Route;
 
+// Temporary migration route to fix "site_settings" table missing
+Route::get('/run-migrations-live', function () {
+    try {
+        // Run only the specific migration for site_settings to avoid "table already exists" errors
+        \Illuminate\Support\Facades\Artisan::call('migrate', [
+            '--path' => '/database/migrations/2026_04_08_000002_create_site_settings_table.php',
+            '--force' => true
+        ]);
+        return "✅ Targeted migration successful:<br><pre>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+    } catch (\Exception $e) {
+        return "❌ Migration failed: " . $e->getMessage();
+    }
+});
+
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -112,6 +126,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Questioner Management
     Route::get('/questioners', [\App\Http\Controllers\Admin\QuestionerController::class, 'index'])->name('questioners.index');
     Route::get('/questioners/{user}', [\App\Http\Controllers\Admin\QuestionerController::class, 'show'])->name('questioners.show');
+
+    // Site Settings
+    Route::post('/settings/update', [DashboardController::class, 'updateSettings'])->name('settings.update');
 });
 
 /*

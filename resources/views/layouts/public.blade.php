@@ -69,6 +69,15 @@
         <a class="navbar-brand" href="{{ route('home') }}">
             <i class="bi bi-book-half me-1"></i>Darul <span>Ifta</span>
         </a>
+
+        {{-- Hijri Date Display (Public) --}}
+        @if(\App\Models\SiteSetting::get('show_hijri_public', true))
+            <div class="d-none d-md-flex ms-2 border-start ps-3 align-items-center">
+                <span class="badge bg-green-dark border border-light-subtle rounded-pill font-Inter" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                    <i class="bi bi-moon-stars me-1 text-gold"></i>{{ \App\Helpers\HijriHelper::now('j F Y') }}
+                </span>
+            </div>
+        @endif
         <button class="navbar-toggler border-light" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
             <span class="navbar-toggler-icon"></span>
         </button>
