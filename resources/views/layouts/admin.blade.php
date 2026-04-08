@@ -42,7 +42,15 @@
         .badge-status-published  { background:var(--brand-blue); color:#fff; }
         .badge-status-rejected   { background:#dc3545; color:#fff; }
         
-        .admin-clock-box { background: #f8fafc; padding: 4px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .admin-header-box { 
+            background: #f8fafc; 
+            padding: 5px 15px; 
+            border-radius: 8px; 
+            border: 1px solid #eef2f7; 
+            display: flex; 
+            align-items: center;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+        }
 
         @media print {
             .sidebar, .topbar, .btn, .no-print, .modal, .alert { display: none !important; }
@@ -61,11 +69,13 @@
 
 {{-- Sidebar --}}
 <div class="sidebar">
-    <div class="sidebar-brand">
-        <h6><i class="bi bi-book-half me-2"></i>Darul <span>Ifta</span></h6>
-        <small style="color:rgba(255,255,255,.5); font-size:.75rem;">Admin Panel</small>
+    <div class="sidebar-brand text-center">
+        <a href="{{ route('home') }}">
+            <img src="{{ asset('assets/logo/logoblueNew.svg') }}" class="mb-2" style="max-height: 45px; filter: brightness(0) invert(1);">
+        </a>
+        <h6 class="mb-0 text-white opacity-75 small">Admin Console</h6>
     </div>
-    <nav class="sidebar-nav mt-2">
+    <nav class="sidebar-nav mt-3">
         <div class="sidebar-section">Main</div>
         <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
             <i class="bi bi-speedometer2"></i> Dashboard
@@ -93,10 +103,10 @@
         <a href="{{ route('admin.questioners.index') }}" class="nav-link {{ request()->routeIs('admin.questioners*') ? 'active' : '' }}">
             <i class="bi bi-people"></i> Questioners
         </a>
-        <div class="mt-3 px-2">
+        <div class="mt-4 px-3">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button class="btn btn-sm btn-outline-light w-100"><i class="bi bi-box-arrow-right me-1"></i>Logout</button>
+                <button class="btn btn-sm btn-outline-light w-100 py-2 border-opacity-25 hover-gold"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
             </form>
         </div>
     </nav>
@@ -107,18 +117,30 @@
     {{-- Topbar --}}
     <div class="topbar">
         <div class="d-flex align-items-center gap-3">
-            <h6 class="mb-0 fw-bold text-muted">@yield('topbar-title', 'Dashboard')</h6>
+            <h6 class="mb-0 fw-bold d-none d-lg-block" style="color: var(--brand-blue);">@yield('topbar-title', 'Dashboard')</h6>
             
-            {{-- Digital Clock & Hijri --}}
-            <div class="d-none d-md-flex align-items-center gap-2 ms-3 border-start ps-3">
-                <div class="admin-clock-box">
-                    <span id="admin-live-clock" class="fw-bold text-dark" style="font-family: 'Inter', monospace; font-size: 0.95rem;">00:00:00</span>
+            {{-- Digital Clock & Enhanced Date Display --}}
+            <div class="d-none d-md-flex align-items-center gap-2 ms-lg-3 border-start ps-lg-3">
+                {{-- Clock Box --}}
+                <div class="admin-header-box">
+                    <i class="bi bi-clock text-brand-dark me-2 small"></i>
+                    <span id="admin-live-clock" class="fw-bold text-dark" style="font-family: 'Inter', monospace; font-size: 0.9rem;">00:00:00</span>
                     <span class="text-muted small ms-1" style="font-size: 0.7rem;">IST</span>
                 </div>
-                <div class="admin-hijri-box ms-2">
-                    <span class="badge bg-light text-green border border-success-subtle fw-bold" style="font-size: 0.75rem;">
-                        <i class="bi bi-moon-stars me-1"></i>{{ \App\Helpers\HijriHelper::now('j F Y') }}
-                    </span>
+
+                {{-- Date Box (Gregorian + Hijri) --}}
+                <div class="admin-header-box px-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-calendar3 text-brand-dark me-2 small"></i>
+                            <span class="fw-semibold text-dark small">{{ date('d M, Y') }}</span>
+                        </div>
+                        <div class="vr mx-1" style="height: 15px; opacity: 0.2;"></div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-moon-stars text-gold me-2 small"></i>
+                            <span class="fw-semibold text-brand small">{{ \App\Helpers\HijriHelper::now('j F Y') }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

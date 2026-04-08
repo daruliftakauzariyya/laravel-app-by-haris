@@ -22,7 +22,7 @@ class HijriHelper
             9 => "Ramadan", 10 => "Shawwal", 11 => "Dhu al-Qi'dah", 12 => "Dhu al-Hijjah"
         ];
 
-        $jd = self::gregorianToJd($date->year, $date->month, $date->day);
+        $jd = (int) self::gregorianToJd($date->year, $date->month, $date->day);
         $l = $jd - 1948440 + 10632;
         $n = (int)(($l - 1) / 10631);
         $l = $l - 10631 * $n + 354;
