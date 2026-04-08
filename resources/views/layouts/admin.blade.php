@@ -103,6 +103,10 @@
         <a href="{{ route('admin.questioners.index') }}" class="nav-link {{ request()->routeIs('admin.questioners*') ? 'active' : '' }}">
             <i class="bi bi-people"></i> Questioners
         </a>
+        <div class="sidebar-section">System Control</div>
+        <a href="{{ route('admin.mail-management.index') }}" class="nav-link {{ request()->routeIs('admin.mail-management*') ? 'active' : '' }}">
+            <i class="bi bi-envelope-check"></i> Mailing Management
+        </a>
         <div class="mt-4 px-3">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf

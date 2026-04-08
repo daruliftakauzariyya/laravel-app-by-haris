@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\MailManagementController;
 use App\Http\Controllers\Admin\QuestionAdminController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\LoginController;
@@ -116,6 +117,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Site Settings
     Route::post('/settings/update', [DashboardController::class, 'updateSettings'])->name('settings.update');
+
+    // Mailing Management (Sprite)
+    Route::get('/mail-management', [MailManagementController::class, 'index'])->name('mail-management.index');
+    Route::get('/mail-management/{mufti}', [MailManagementController::class, 'show'])->name('mail-management.show');
+    Route::post('/mail-management/{mufti}/send', [MailManagementController::class, 'sendNow'])->name('mail-management.send');
 });
 
 /*
