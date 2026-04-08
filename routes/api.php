@@ -25,6 +25,15 @@ Route::get('/fatwas', function (Request $request) {
     ]);
 });
 
+// Public: Get categories tree
+Route::get('/categories', function () {
+    $categories = \App\Models\Category::with('children')
+                ->whereNull('parent_id')
+                ->orderBy('sort_order')
+                ->get();
+    return response()->json(['status' => 'success', 'data' => $categories]);
+});
+
 // Public: Get single fatwa
 Route::get('/fatwas/{fatwa}', function (\App\Models\Fatwa $fatwa) {
     $fatwa->load(['question', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences', 'publisher']);
