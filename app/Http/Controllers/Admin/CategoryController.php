@@ -11,7 +11,12 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::with('parent')->orderBy('parent_id')->orderBy('sort_order')->get();
+        // Fetch only root categories and eager-load their nested children
+        $categories = Category::with('children')
+            ->whereNull('parent_id')
+            ->orderBy('sort_order')
+            ->get();
+
         return view('admin.categories.index', compact('categories'));
     }
 
