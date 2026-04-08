@@ -69,4 +69,9 @@ class Question extends Model
     {
         return $this->hasOne(Fatwa::class);
     }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(FatwaActivityLog::class);
+    }
 }

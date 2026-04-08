@@ -67,6 +67,10 @@ Route::middleware(['auth'])->group(function () {
     // AJAX File Uploading
     Route::post('/question-files/upload', [\App\Http\Controllers\QuestionFileController::class, 'upload'])->name('question.files.upload');
     Route::post('/question-files/delete', [\App\Http\Controllers\QuestionFileController::class, 'delete'])->name('question.files.delete');
+
+    // Global File Downloads (Access restricted to authenticated users)
+    Route::get('/files/{file}/download', [\App\Http\Controllers\Admin\QuestionAdminController::class, 'downloadFile'])->name('files.download');
+    Route::get('/files/{file}/view', [\App\Http\Controllers\Admin\QuestionAdminController::class, 'viewFile'])->name('files.view');
 });
 
 
@@ -97,8 +101,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/questions/{question}/correction', [QuestionAdminController::class, 'requestCorrection'])->name('questions.correction');
     Route::get('/questions/{question}/history', [QuestionAdminController::class, 'history'])->name('questions.history');
 
-    // File download
-    Route::get('/files/{file}/download', [QuestionAdminController::class, 'downloadFile'])->name('files.download');
     Route::post('/questions/{question}/history/comment', [QuestionAdminController::class, 'addHistoryComment'])->name('history.comment');
 
     // Categories

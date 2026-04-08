@@ -362,6 +362,27 @@ class QuestionAdminController extends Controller
         return response()->download($physicalPath, $file->original_name);
     }
 
+    /** View file inline (for images/PDFs) */
+    public function viewFile(\App\Models\QuestionFile $file)
+    {
+        if (str_starts_with($file->file_path, 'public/')) {
+            $physicalPath = storage_path('app/' . $file->file_path);
+        } elseif (str_starts_with($file->file_path, 'uploads/')) {
+            $physicalPath = public_path($file->file_path);
+        } else {
+            $physicalPath = storage_path('app/' . $file->file_path);
+        }
+
+        if (!file_exists($physicalPath)) {
+            abort(404, 'File not found.');
+        }
+
+        // Return file contents inline
+        return response()->file($physicalPath, [
+            'Content-Disposition' => 'inline; filename="' . $file->original_name . '"'
+        ]);
+    }
+
     /** Add private scholarly comment to history */
     public function addHistoryComment(Request $request, Question $question)
     {

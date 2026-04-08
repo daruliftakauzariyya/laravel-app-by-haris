@@ -85,7 +85,10 @@ class MuftiController extends Controller
     public function showQuestion(Question $question)
     {
         abort_unless($question->assigned_mufti_id === Auth::id(), 403);
-        $question->load('user', 'files', 'muftiAnswer.supportingReferences');
+        $question->load([
+            'user', 'files', 'muftiAnswer.supportingReferences',
+            'activityLogs' => fn($q) => $q->orderBy('event_at', 'desc')
+        ]);
         return view('mufti.questions.answer', compact('question'));
     }
 

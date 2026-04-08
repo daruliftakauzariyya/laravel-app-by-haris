@@ -226,18 +226,39 @@
                         <h6 class="fw-bold mb-3 small text-muted text-uppercase tracking-wider">
                             <i class="bi bi-paperclip me-1"></i>Your Attachments
                         </h6>
-                        <div class="row g-2">
+                        <div class="row g-3">
                             @foreach($question->files as $file)
-                            <div class="col-md-6">
-                                <a href="{{ route('files.download', $file) }}" class="d-flex align-items-center p-2 bg-light rounded border text-decoration-none text-dark hover-shadow-sm transition-all">
-                                    <div class="bg-white p-2 rounded me-3 shadow-sm">
-                                        <i class="bi bi-file-earmark-arrow-down text-brand fs-5"></i>
+                            <div class="col-md-4 col-sm-6 col-6">
+                                <div class="card h-100 border shadow-none overflow-hidden" style="border-radius: 12px; background: #fff;">
+                                    @if(str_starts_with($file->file_type, 'image/'))
+                                        <a href="{{ route('files.view', $file) }}" target="_blank" class="d-block">
+                                            <div style="height: 100px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                <img src="{{ route('files.view', $file) }}" class="img-fluid w-100 h-100" style="object-fit: cover;" alt="Attachment">
+                                            </div>
+                                        </a>
+                                    @elseif($file->file_type == 'application/pdf')
+                                        <a href="{{ route('files.view', $file) }}" target="_blank" class="d-block text-decoration-none">
+                                            <div style="height: 100px; background: #fff1f1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                                <i class="bi bi-file-earmark-pdf text-danger fs-2"></i>
+                                                <span class="x-small text-danger fw-bold mt-1">VIEW PDF</span>
+                                            </div>
+                                        </a>
+                                    @else
+                                        <div style="height: 100px; background: #fdfdfd; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                            <i class="bi bi-file-earmark-text text-secondary fs-2"></i>
+                                            <span class="x-small text-muted mt-1 uppercase">{{ explode('/', $file->file_type)[1] ?? 'FILE' }}</span>
+                                        </div>
+                                    @endif
+                                    
+                                    <div class="card-footer p-2 bg-white d-flex justify-content-between align-items-center border-top-0">
+                                        <div class="overflow-hidden pe-1">
+                                            <div style="font-size: 0.65rem;" class="fw-bold text-truncate" title="{{ $file->original_name }}">{{ $file->original_name }}</div>
+                                        </div>
+                                        <a href="{{ route('files.download', $file) }}" class="btn btn-link btn-sm p-0 text-brand" title="Download">
+                                            <i class="bi bi-download" style="font-size: 0.8rem;"></i>
+                                        </a>
                                     </div>
-                                    <div class="overflow-hidden">
-                                        <div class="small fw-bold text-truncate">{{ $file->original_name }}</div>
-                                        <div class="x-small text-muted">{{ number_format($file->file_size / 1024, 1) }} KB</div>
-                                    </div>
-                                </a>
+                                </div>
                             </div>
                             @endforeach
                         </div>
