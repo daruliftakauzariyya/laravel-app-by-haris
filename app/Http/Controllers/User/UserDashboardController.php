@@ -10,11 +10,48 @@ class UserDashboardController extends Controller
 {
     public function index()
     {
-        $questions = \App\Models\Question::where('user_id', Auth::id())
+        $userId = Auth::id();
+        $questions = \App\Models\Question::where('user_id', $userId)
                         ->orderBy('created_at', 'desc')
-                        ->paginate(10);
+                        ->paginate(9);
+
+        $stats = [
+            'total'    => \App\Models\Question::where('user_id', $userId)->count(),
+            'answered' => \App\Models\Question::where('user_id', $userId)->whereIn('status', ['answered', 'published'])->count(),
+            'pending'  => \App\Models\Question::where('user_id', $userId)->where('status', 'pending')->count(),
+        ];
                         
-        return view('user.dashboard', compact('questions'));
+        return view('user.dashboard', compact('questions', 'stats'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        $validated = $request->validate([
+            'name'            => 'required|string|max:255',
+            'mobile'          => 'nullable|string|max:20',
+            'country'         => 'nullable|string|max:100',
+            'madhab'          => 'nullable|string|max:50',
+            'mother_language' => 'nullable|string|max:50',
+        ]);
+
+        $user->update($validated);
+
+        return back()->with('success', 'Profile updated successfully.');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|current_password',
+            'password'         => 'required|string|min:8|confirmed',
+        ]);
+
+        Auth::user()->update([
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+        ]);
+
+        return back()->with('success', 'Password updated successfully.');
     }
 
     public function show(\App\Models\Question $question)

@@ -254,8 +254,7 @@
     .hero-slider-wrapper {
         position: relative;
         width: 100%;
-        height: calc(100vh - var(--header-height));
-        min-height: 550px;
+        height: 500px;
         overflow: hidden;
     }
     .slider-image {
@@ -269,7 +268,7 @@
         transform: scale(1.1);
     }
     .carousel-caption {
-        bottom: 45%;
+        bottom: 40%;
         z-index: 5;
         text-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
@@ -286,7 +285,7 @@
         bottom: 0;
         left: 0;
         width: 100%;
-        padding-bottom: 60px;
+        padding-bottom: 40px;
         z-index: 10;
     }
     .search-glass-card {

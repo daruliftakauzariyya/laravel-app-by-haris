@@ -188,10 +188,6 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body d-flex flex-column h-100">
-        <div class="p-3 text-center border-bottom bg-white">
-            <img src="{{ asset('assets/logo/logoblueNew.svg') }}" style="max-height: 50px;">
-        </div>
-        
         <div class="mobile-nav-list">
             <a href="{{ route('home') }}" class="mobile-nav-link {{ request()->routeIs('home') ? 'active' : '' }}">
                 <i class="bi bi-house-door"></i> Home
@@ -239,7 +235,7 @@
     </div>
 </div>
 
-{{-- Flash messages --}}
+@if(session('success') || session('error'))
 <div class="container mt-3">
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -254,6 +250,7 @@
         </div>
     @endif
 </div>
+@endif
 
 {{-- Main content --}}
 @yield('content')

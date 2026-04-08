@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
 
 // Fatwa Archive
 Route::get('/fatwa-archive', [FatwaController::class, 'index'])->name('fatwa.archive');
@@ -57,6 +58,8 @@ Route::post('/login/otp/send', [\App\Http\Controllers\Auth\LoginController::clas
 */
 Route::middleware(['auth'])->group(function () {
     Route::get('/user/dashboard', [\App\Http\Controllers\User\UserDashboardController::class, 'index'])->name('user.dashboard');
+    Route::put('/user/profile', [\App\Http\Controllers\User\UserDashboardController::class, 'updateProfile'])->name('user.profile.update');
+    Route::put('/user/password', [\App\Http\Controllers\User\UserDashboardController::class, 'updatePassword'])->name('user.password.update');
     Route::get('/user/questions/{question}', [\App\Http\Controllers\User\UserDashboardController::class, 'show'])->name('user.question.show');
     Route::get('/ask-question', [\App\Http\Controllers\QuestionController::class, 'create'])->name('question.create');
     Route::post('/ask-question', [\App\Http\Controllers\QuestionController::class, 'store'])->name('question.store');
