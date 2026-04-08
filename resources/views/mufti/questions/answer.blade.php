@@ -171,7 +171,7 @@
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Age:</span>
-                    <span class="badge bg-warning text-dark px-2">{{ $question->created_at->diffInDays(now()) }} Days Ago</span>
+                    <span class="badge bg-warning text-dark px-2">{{ floor($question->created_at->diffInDays(now())) }} Days Ago</span>
                 </div>
                 <div class="d-flex justify-content-between">
                     <span class="text-muted">Language:</span>

@@ -7,6 +7,7 @@ use App\Mail\AnswerSubmittedMail;
 use App\Models\MuftiAnswer;
 use App\Models\Question;
 use App\Models\SupportingReference;
+use App\Models\FatwaActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -133,6 +134,14 @@ class MuftiController extends Controller
         }
 
         $question->update(['status' => 'answered']);
+
+        // Log the activity
+        FatwaActivityLog::log(
+            $question->id, 'answer_submitted', 'Answer Submitted for Review',
+            'bi-pencil-square', 'info',
+            'Draft completed and submitted to administration by scholar.',
+            Auth::id()
+        );
 
         // Notify admin
         $admin = User::role('admin')->first();
