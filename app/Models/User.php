@@ -46,6 +46,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'profile_completed' => 'boolean',
             'is_active' => 'boolean',
+            'madhab' => 'array',
         ];
     }
 

@@ -75,6 +75,9 @@
             body.sidebar-open .sidebar-overlay { display: block; }
             .topbar { padding: 0.75rem 1rem; }
         }
+
+        .sidebar-nav .bg-white { background: rgba(255,255,255,0.05) !important; }
+        .sidebar-nav .nav-link-sub { font-size: 0.8rem; padding-left: 3.25rem; }
     </style>
     @stack('styles')
 </head>
@@ -96,8 +99,26 @@
         <a href="{{ route('mufti.dashboard') }}" class="nav-link {{ request()->routeIs('mufti.dashboard') ? 'active' : '' }}">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
-        <a href="{{ route('mufti.questions') }}" class="nav-link {{ request()->routeIs('mufti.questions*') ? 'active' : '' }}">
-            <i class="bi bi-question-circle"></i> My Questions
+        <div class="nav-item">
+            <a href="{{ route('mufti.questions') }}" class="nav-link {{ request()->routeIs('mufti.questions*') && !request()->has('tab') ? 'active' : '' }}" data-bs-toggle="collapse" data-bs-target="#questionsSub">
+                <i class="bi bi-question-circle"></i> My Questions <i class="bi bi-chevron-down ms-auto small"></i>
+            </a>
+            <div class="collapse {{ request()->routeIs('mufti.questions*') ? 'show' : '' }}" id="questionsSub">
+                <a href="{{ route('mufti.questions', ['tab' => 'assigned']) }}" class="nav-link nav-link-sub {{ request()->get('tab') == 'assigned' ? 'active' : '' }}">
+                    <i class="bi bi-journal-text small"></i> Assigned
+                </a>
+                <a href="{{ route('mufti.questions', ['tab' => 'verified']) }}" class="nav-link nav-link-sub {{ request()->get('tab') == 'verified' ? 'active' : '' }}">
+                    <i class="bi bi-shield-check small"></i> Verified by Me
+                </a>
+                @if(Auth::user()->can_check_approve)
+                <a href="{{ route('mufti.questions', ['tab' => 'approved']) }}" class="nav-link nav-link-sub {{ request()->get('tab') == 'approved' ? 'active' : '' }}">
+                    <i class="bi bi-patch-check small"></i> Approved by Me
+                </a>
+                @endif
+            </div>
+        </div>
+        <a href="{{ route('mufti.questions.pending') }}" class="nav-link {{ request()->routeIs('mufti.questions.pending') ? 'active' : '' }}">
+            <i class="bi bi-clock-history"></i> Pending Tasks
         </a>
         <a href="{{ route('mufti.profile') }}" class="nav-link {{ request()->routeIs('mufti.profile') ? 'active' : '' }}">
             <i class="bi bi-person-gear"></i> Profile
@@ -118,6 +139,23 @@
             </button>
             <h6 class="mb-0 fw-bold text-muted">@yield('topbar-title', 'Mufti Panel')</h6>
         </div>
+        
+        <div class="d-none d-md-flex align-items-center gap-4">
+            <div class="text-end line-height-1">
+                <div class="fw-bold text-primary small"><i class="bi bi-calendar3 me-1"></i>{{ \App\Helpers\HijriHelper::now() }}</div>
+                <div class="text-muted x-small">{{ now()->format('l, d F Y') }}</div>
+            </div>
+            <div class="border-start ps-4 text-end line-height-1">
+                <div class="fw-bold text-dark small"><i class="bi bi-clock me-1"></i><span id="liveClock">{{ now()->format('h:i:s A') }}</span></div>
+                @php
+                    $totalSecs = \App\Models\PortalVisitorLog::getTotalSpentTime(Auth::id());
+                    $h = floor($totalSecs / 3600);
+                    $m = floor(($totalSecs / 60) % 60);
+                    $spent = ($h > 0 ? $h.'h ' : '') . $m.'m';
+                @endphp
+                <div class="text-muted x-small">Spent: <span class="fw-semibold text-success">{{ $spent }}</span></div>
+            </div>
+        </div>
     </div>
     <div class="px-3 pt-3">
         @if(session('success'))
@@ -134,6 +172,15 @@
     function toggleSidebar() {
         document.body.classList.toggle('sidebar-open');
     }
+    
+    // Live Clock
+    function updateClock() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        const clockEl = document.getElementById('liveClock');
+        if (clockEl) clockEl.innerText = timeStr;
+    }
+    setInterval(updateClock, 1000);
 </script>
 @stack('scripts')
 </body>

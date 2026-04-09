@@ -63,7 +63,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/user/questions/{question}', [\App\Http\Controllers\User\UserDashboardController::class, 'show'])->name('user.question.show');
     Route::get('/ask-question', [\App\Http\Controllers\QuestionController::class, 'create'])->name('question.create');
     Route::post('/ask-question', [\App\Http\Controllers\QuestionController::class, 'store'])->name('question.store');
-    
+
     // AJAX File Uploading
     Route::post('/question-files/upload', [\App\Http\Controllers\QuestionFileController::class, 'upload'])->name('question.files.upload');
     Route::post('/question-files/delete', [\App\Http\Controllers\QuestionFileController::class, 'delete'])->name('question.files.delete');
@@ -72,8 +72,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/files/{file}/download', [\App\Http\Controllers\Admin\QuestionAdminController::class, 'downloadFile'])->name('files.download');
     Route::get('/files/{file}/view', [\App\Http\Controllers\Admin\QuestionAdminController::class, 'viewFile'])->name('files.view');
 });
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -140,6 +138,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:mufti'])->prefix('mufti')->name('mufti.')->group(function () {
     Route::get('/dashboard', [MuftiController::class, 'dashboard'])->name('dashboard');
     Route::get('/questions', [MuftiController::class, 'questions'])->name('questions');
+    Route::get('/questions/pending', [MuftiController::class, 'pendingQuestions'])->name('questions.pending');
     Route::get('/questions/{question}', [MuftiController::class, 'showQuestion'])->name('questions.show');
     Route::post('/questions/{question}/answer', [MuftiController::class, 'submitAnswer'])->name('questions.answer');
     Route::get('/profile', [MuftiController::class, 'profile'])->name('profile');

@@ -97,4 +97,32 @@ class PortalVisitorLog extends Model
 
         return ['device' => $device, 'os' => $os, 'browser' => $browser];
     }
+    /**
+     * Calculate total spent time in portal by summing intervals between logs.
+     * Intervals > 15 minutes are ignored (assumed session break).
+     */
+    public static function getTotalSpentTime($userId)
+    {
+        $logs = self::where('user_id', $userId)
+            ->orderBy('created_at', 'asc')
+            ->get(['created_at']);
+
+        if ($logs->count() < 2) return 0;
+
+        $totalSeconds = 0;
+        $prevTime = $logs->first()->created_at;
+
+        foreach ($logs as $log) {
+            $currentTime = $log->created_at;
+            $diff = $currentTime->diffInSeconds($prevTime);
+
+            // If diff is less than 15 minutes (900 seconds), assume continuous activity
+            if ($diff > 0 && $diff < 900) {
+                $totalSeconds += $diff;
+            }
+            $prevTime = $currentTime;
+        }
+
+        return $totalSeconds;
+    }
 }

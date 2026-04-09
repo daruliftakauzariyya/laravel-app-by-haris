@@ -45,14 +45,37 @@
                         <div class="form-text mt-1 small">Leave blank to keep the current password.</div>
                     </div>
 
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted small">Scholar's Country</label>
+                                <input type="text" name="country" class="form-control" value="{{ old('country', $user->country) }}" placeholder="e.g. South Africa">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted small">Select Madhhab(s)</label>
+                                <div class="d-flex flex-wrap gap-3 mt-1">
+                                    @php $madhabs = ['Hanafi', 'Shafii', 'Maliki', 'Hanbali']; @endphp
+                                    @foreach($madhabs as $m)
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="madhab[]" value="{{ $m }}" id="madhab_{{ $m }}" {{ in_array($m, (array)old('madhab', $user->madhab ?? [])) ? 'checked' : '' }}>
+                                            <label class="form-check-label small" for="madhab_{{ $m }}">{{ $m }}</label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="bg-info bg-opacity-10 border border-info border-opacity-10 p-3 rounded-3 mb-4">
                         <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {{ $user->is_active ? 'checked' : '' }}>
+                            <input class="form-check-input" type="checkbox" name="is_active" id="isActive" value="1" {{ $user->is_active ? 'checked' : '' }}>
                             <label class="form-check-label fw-semibold" for="isActive">Account Status Active</label>
                         </div>
                         <hr class="my-2 border-info border-opacity-25 opacity-25">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="can_check_approve" id="canApprove" {{ $user->can_check_approve ? 'checked' : '' }}>
+                            <input class="form-check-input" type="checkbox" name="can_check_approve" id="canApprove" value="1" {{ $user->can_check_approve ? 'checked' : '' }}>
                             <label class="form-check-label fw-semibold" for="canApprove">Can Verify & Approve Fatwas</label>
                             <div class="form-text small opacity-75">Senior status for checking other muftis' work.</div>
                         </div>

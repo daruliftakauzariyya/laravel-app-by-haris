@@ -49,13 +49,17 @@ class MuftiManagementController extends Controller
         $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+            'country'  => ['nullable', 'string', 'max:100'],
+            'madhab'   => ['nullable', 'array'],
         ]);
 
         $user = User::create([
             'name'              => $request->name,
             'email'             => $request->email,
             'password'          => Hash::make($request->password),
+            'country'           => $request->country,
+            'madhab'            => $request->madhab,
             'is_active'         => $request->has('is_active'),
             'can_check_approve' => $request->has('can_check_approve'),
             'profile_completed' => true,
@@ -85,14 +89,18 @@ class MuftiManagementController extends Controller
         }
 
         $request->validate([
-            'name'  => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'password' => ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+            'country'  => ['nullable', 'string', 'max:100'],
+            'madhab'   => ['nullable', 'array'],
         ]);
 
         $data = [
             'name'              => $request->name,
             'email'             => $request->email,
+            'country'           => $request->country,
+            'madhab'            => $request->madhab, // Array cast handled by model
             'is_active'         => $request->has('is_active'),
             'can_check_approve' => $request->has('can_check_approve'),
         ];

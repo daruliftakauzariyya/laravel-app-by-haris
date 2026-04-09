@@ -54,6 +54,7 @@
             <span class="tab-count">{{ $counts['verified'] }}</span>
         </a>
     </li>
+    @if(Auth::user()->can_check_approve)
     <li class="nav-item">
         <a class="nav-link {{ $tab == 'approved' ? 'active' : '' }}"
            href="{{ route('mufti.questions', ['tab' => 'approved']) }}">
@@ -61,6 +62,7 @@
             <span class="tab-count">{{ $counts['approved'] }}</span>
         </a>
     </li>
+    @endif
 </ul>
 
 {{-- Desktop Table --}}

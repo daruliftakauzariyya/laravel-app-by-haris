@@ -19,7 +19,7 @@ class MuftiController extends Controller
     {
         $user = Auth::user();
         $assigned = Question::where('assigned_mufti_id', $user->id)
-                            ->whereIn('status', ['assigned', 'under_review'])
+                            ->where('status', 'assigned')
                             ->count();
         $answered = MuftiAnswer::where('mufti_id', $user->id)->count();
         $recent   = Question::where('assigned_mufti_id', $user->id)->latest()->take(5)->get();
@@ -63,7 +63,7 @@ class MuftiController extends Controller
 
         // Tab counts for the badge pills
         $counts = [
-            'assigned' => Question::where('assigned_mufti_id', $user->id)->count(),
+            'assigned' => Question::where('assigned_mufti_id', $user->id)->where('status', 'assigned')->count(),
             'verified' => Question::whereHas('fatwa', fn($f) => $f->where('verified_by', $user->id))->count(),
             'approved' => Question::whereHas('fatwa', fn($f) => $f->where('checked_approved_by', $user->id))->count(),
         ];
@@ -81,6 +81,18 @@ class MuftiController extends Controller
         $questions = $query->paginate(20)->withQueryString();
 
         return view('mufti.questions.index', compact('questions', 'tab', 'counts'));
+    }
+
+    public function pendingQuestions()
+    {
+        $user = Auth::user();
+        $questions = Question::with('user', 'category')
+            ->where('assigned_mufti_id', $user->id)
+            ->where('status', 'assigned')
+            ->latest()
+            ->paginate(20);
+
+        return view('mufti.questions.pending', compact('questions'));
     }
 
     public function showQuestion(Question $question)
@@ -159,18 +171,30 @@ class MuftiController extends Controller
 
     public function updateProfile(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
         $request->validate([
-            'name'              => ['required', 'string', 'max:255'],
-            'mobile'            => ['nullable', 'string', 'max:20'],
-            'country'           => ['nullable', 'string', 'max:100'],
-            'mother_language'   => ['nullable', 'string', 'max:50'],
-            'can_check_approve' => ['nullable', 'boolean'],
+            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'mobile'   => ['nullable', 'string', 'max:20'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'avatar'   => ['nullable', 'image', 'max:2048'], // Max 2MB
         ]);
 
-        $data = $request->only('name', 'mobile', 'country', 'mother_language');
-        $data['can_check_approve'] = $request->boolean('can_check_approve');
+        $user->email = $request->email;
+        $user->mobile = $request->mobile;
 
-        Auth::user()->update($data);
-        return redirect()->route('mufti.profile')->with('success', 'Profile updated.');
+        if ($request->filled('password')) {
+            $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+        }
+
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = $path;
+        }
+
+        $user->save();
+
+        return redirect()->route('mufti.profile')->with('success', 'Profile updated successfully.');
     }
 }

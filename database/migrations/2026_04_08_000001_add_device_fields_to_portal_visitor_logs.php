@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('portal_visitor_logs', function (Blueprint $table) {
-            $table->foreignId('user_id')->nullable()->after('fatwa_id')->constrained()->onDelete('set null');
-            $table->string('device_type')->nullable()->after('user_agent');       // Web, Tab, Mobile
-            $table->string('operating_system')->nullable()->after('device_type'); // Windows, Android, iOS, Ubuntu, Linux
-            $table->string('browser')->nullable()->after('operating_system');    // Chrome, Safari, etc
-            
-            $table->index('user_id');
-        });
+        if (!Schema::hasColumn('portal_visitor_logs', 'device_type')) {
+            Schema::table('portal_visitor_logs', function (Blueprint $table) {
+                $table->foreignId('user_id')->nullable()->after('fatwa_id')->constrained()->onDelete('set null');
+                $table->string('device_type')->nullable()->after('user_agent');       // Web, Tab, Mobile
+                $table->string('operating_system')->nullable()->after('device_type'); // Windows, Android, iOS, Ubuntu, Linux
+                $table->string('browser')->nullable()->after('operating_system');    // Chrome, Safari, etc
+                
+                $table->index('user_id');
+            });
+        }
     }
 
     /**
