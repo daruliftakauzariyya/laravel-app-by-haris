@@ -13,6 +13,12 @@
     <div class="mb-4">
         <h2 class="fw-bold text-green"><i class="bi bi-pencil-square me-2"></i>Ask a Question</h2>
         <p class="text-muted">Submit your Islamic question and receive a verified Fatwa from a qualified Mufti.</p>
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
     </div>
     <div class="card border-0 shadow p-4">
         <form method="POST" action="{{ route('question.store') }}" enctype="multipart/form-data" id="askForm">
@@ -189,6 +195,12 @@
             alert('Please enter your question.');
             return false;
         }
+        
+        // Disable button to prevent double-click
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Posting Question...`;
+        
         return true;
     };
 </script>

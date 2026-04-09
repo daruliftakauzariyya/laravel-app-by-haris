@@ -13,6 +13,18 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
+    public function checkAccount(Request $request)
+    {
+        $request->validate([
+            'login_id' => ['required', 'string'],
+        ]);
+
+        $login_type = filter_var($request->login_id, FILTER_VALIDATE_EMAIL) ? 'email' : 'mobile';
+        $exists = \App\Models\User::where($login_type, $request->login_id)->exists();
+
+        return response()->json(['exists' => $exists]);
+    }
+
     public function login(Request $request)
     {
         $request->validate([
@@ -31,7 +43,7 @@ class LoginController extends Controller
                 return redirect()->route('profile.complete');
             }
 
-            return $this->redirectBasedOnRole($user);
+            return redirect()->intended($this->redirectBasedOnRoleUrl($user));
         }
 
         return back()->withErrors([
@@ -76,14 +88,14 @@ class LoginController extends Controller
         return redirect('/');
     }
 
-    protected function redirectBasedOnRole($user)
+    protected function redirectBasedOnRoleUrl($user)
     {
         if ($user->hasRole('admin')) {
-            return redirect()->route('admin.dashboard');
+            return route('admin.dashboard');
         }
         if ($user->hasRole('mufti')) {
-            return redirect()->route('mufti.dashboard');
+            return route('mufti.dashboard');
         }
-        return redirect()->route('user.dashboard');
+        return route('user.dashboard');
     }
 }

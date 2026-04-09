@@ -40,14 +40,14 @@ class OtpVerificationController extends Controller
 
             Auth::login($user);
 
-            // Redirect based on role
+            // Redirect based on role, respecting intended URLs
             if ($user->hasRole('admin')) {
-                return redirect()->route('admin.dashboard')->with('success', 'Account verified successfully!');
+                return redirect()->intended(route('admin.dashboard'))->with('success', 'Account verified successfully!');
             }
             if ($user->hasRole('mufti')) {
-                return redirect()->route('mufti.dashboard')->with('success', 'Account verified successfully!');
+                return redirect()->intended(route('mufti.dashboard'))->with('success', 'Account verified successfully!');
             }
-            return redirect()->route('user.dashboard')->with('success', 'Account verified successfully!');
+            return redirect()->intended(route('user.dashboard'))->with('success', 'Account verified successfully!');
         }
 
         return back()->withErrors(['otp' => 'Invalid or expired OTP. Please try again.']);

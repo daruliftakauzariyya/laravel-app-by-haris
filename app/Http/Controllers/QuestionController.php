@@ -22,6 +22,16 @@ class QuestionController extends Controller
 
     public function store(Request $request)
     {
+        // Check for 5-minute patience (Throttling)
+        $lastQuestion = Question::where('user_id', Auth::id())
+            ->latest()
+            ->first();
+
+        if ($lastQuestion && $lastQuestion->created_at->addMinutes(5)->isFuture()) {
+            $diff = $lastQuestion->created_at->addMinutes(5)->diffForHumans();
+            return redirect()->back()->withInput()->with('error', "Please wait. You can submit another question in {$diff}. A 5-minute patience is required between submissions.");
+        }
+
         $request->validate([
             'body'        => ['required', 'string', 'min:20'],
             'madhab'      => ['required', 'in:Hanafi,Shafii,Maliki,Hanbali,Other'],

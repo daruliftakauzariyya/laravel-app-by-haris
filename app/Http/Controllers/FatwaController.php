@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Fatwa;
 use App\Models\FatwaActivityLog;
+use App\Models\FatwaLike;
 use App\Models\FatwaUserView;
 use App\Models\FatwaViewSnapshot;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class FatwaController extends Controller
@@ -132,7 +134,66 @@ class FatwaController extends Controller
                 );
             }
         }
+        $hasLiked = FatwaLike::where('fatwa_id', $fatwa->id)
+            ->where('ip_address', request()->ip())
+            ->exists();
 
-        return view('fatwa-show', compact('fatwa', 'relatedFatwas', 'recentFatwas', 'allCategories'));
+        return view('fatwa-show', compact('fatwa', 'relatedFatwas', 'recentFatwas', 'allCategories', 'hasLiked'));
+    }
+
+    public function muftiArchive(User $user)
+    {
+        $user->loadCount(['muftiAnswers', 'publishedFatwas']);
+        
+        // Stats calculation
+        $fatwasQuery = Fatwa::whereHas('muftiAnswer', fn($q) => $q->where('mufti_id', $user->id))
+            ->with(['question.category', 'muftiAnswer.mufti']);
+
+        $totalLikes = (clone $fatwasQuery)->sum('likes');
+        $totalViews = (clone $fatwasQuery)->sum('views');
+        $totalTopics = \App\Models\Question::whereHas('muftiAnswer', fn($q) => $q->where('mufti_id', $user->id))
+            ->distinct('category_id')
+            ->count('category_id');
+        $totalAnswers = $user->mufti_answers_count;
+
+        $fatwas = $fatwasQuery->latest('published_at')->paginate(12);
+
+        $allCategories = \App\Models\Category::whereNull('parent_id')
+            ->withCount(['questions' => fn($q) => $q->where('status', 'published')])
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('mufti-archive', compact(
+            'user', 'fatwas', 'totalLikes', 'totalViews', 'totalTopics', 'totalAnswers', 'allCategories'
+        ));
+    }
+
+    public function like(Request $request, Fatwa $fatwa)
+    {
+        $ip = $request->ip();
+
+        // Check if this IP has already liked this fatwa
+        $alreadyLiked = FatwaLike::where('fatwa_id', $fatwa->id)
+            ->where('ip_address', $ip)
+            ->exists();
+
+        if ($alreadyLiked) {
+            return response()->json([
+                'success' => false,
+                'already_liked' => true,
+                'likes' => $fatwa->likes,
+                'message' => 'You have already liked this fatwa.'
+            ]);
+        }
+
+        // Record the like and increment counter
+        FatwaLike::create(['fatwa_id' => $fatwa->id, 'ip_address' => $ip]);
+        $fatwa->increment('likes');
+
+        return response()->json([
+            'success' => true,
+            'already_liked' => false,
+            'likes' => $fatwa->fresh()->likes,
+        ]);
     }
 }

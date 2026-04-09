@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\FatwaUserView;
+use App\Models\FatwaLike;
 
 class Fatwa extends Model
 {
@@ -27,6 +28,11 @@ class Fatwa extends Model
         'published_at' => 'datetime',
         'is_featured'  => 'boolean',
     ];
+
+    public function fatwaLikes()
+    {
+        return $this->hasMany(FatwaLike::class);
+    }
 
     public function question()
     {

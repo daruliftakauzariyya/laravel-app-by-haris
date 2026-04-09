@@ -11,9 +11,15 @@ use Illuminate\Validation\Rules\Password;
 
 class RegisterController extends Controller
 {
-    public function showRegistrationForm()
+    public function showRegistrationForm(Request $request)
     {
-        return view('auth.register');
+        // Force the destination to ask-question if not already set, to fulfill the "auto redirect" requirement
+        if (!session()->has('url.intended')) {
+            session(['url.intended' => route('question.create')]);
+        }
+
+        $loginId = $request->query('login_id', '');
+        return view('auth.register', compact('loginId'));
     }
 
     public function register(Request $request)

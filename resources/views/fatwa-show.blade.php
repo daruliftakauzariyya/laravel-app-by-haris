@@ -193,12 +193,19 @@
 
                 {{-- 2. Editorial Info --}}
                 <div class="editorial-meta">
-                    By <b>{{ $fatwa->muftiAnswer->mufti->name }}</b> in <b>{{ $fatwa->question->category->name }}</b>
+                    By <b><a href="{{ route('fatwa.mufti.archive', $fatwa->muftiAnswer->mufti) }}" class="text-decoration-none text-dark hover-green">{{ $fatwa->muftiAnswer->mufti->name }}</a></b> in <b>{{ $fatwa->question->category->name }}</b>
                 </div>
 
                 {{-- 3. Header Section --}}
                 <div class="header-section">
-                    <h1 class="{{ $langClass }}">{{ $fatwa->question->title ?: 'Islamic Query Detail' }}</h1>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h1 class="{{ $langClass }} mb-0">{{ $fatwa->question->title ?: 'Islamic Query Detail' }}</h1>
+                        <div class="text-warning h5 mb-0">
+                            @for($i=0; $i<($fatwa->question->category->stars ?? 5); $i++)
+                                <i class="bi bi-star-fill"></i>
+                            @endfor
+                        </div>
+                    </div>
                     
                     <div class="meta-row">
                         <div class="meta-unit">
@@ -246,6 +253,16 @@
 
                         <div class="arabic-quote" style="text-align: right; border-top: 1px solid #f1f5f9; padding-top: 15px; margin-top: 30px;">
                             والله أعلم بالصواب
+                        </div>
+
+                        <div class="mt-4 no-print text-center">
+                            <button id="likeBtn"
+                                class="btn {{ $hasLiked ? 'btn-danger' : 'btn-outline-danger' }} px-4 rounded-pill"
+                                onclick="handleLike({{ $fatwa->id }})"
+                                {{ $hasLiked ? 'disabled' : '' }}
+                                title="{{ $hasLiked ? 'You already liked this!' : 'Like this Fatwa' }}">
+                                <i class="bi bi-heart-fill me-2"></i>{{ $hasLiked ? 'Liked' : 'Like' }} <span id="likeCount" class="badge bg-danger ms-2">{{ $fatwa->likes }}</span>
+                            </button>
                         </div>
                     </div>
 
@@ -367,4 +384,37 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+    function handleLike(fatwaId) {
+        const btn = document.getElementById('likeBtn');
+        const countSpan = document.getElementById('likeCount');
+        
+        if (btn.disabled) return;
+        btn.disabled = true;
+        
+        fetch(`/fatwa-archive/${fatwaId}/like`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            countSpan.innerText = data.likes;
+            if (data.already_liked || data.success) {
+                btn.classList.remove('btn-outline-danger');
+                btn.classList.add('btn-danger');
+                btn.innerHTML = '<i class="bi bi-heart-fill me-2"></i>Liked <span class="badge bg-danger ms-2">' + data.likes + '</span>';
+                btn.disabled = true;
+                btn.title = 'You already liked this!';
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+        });
+    }
+</script>
+@endpush
 @endsection

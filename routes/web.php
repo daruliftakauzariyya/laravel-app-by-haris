@@ -27,6 +27,8 @@ Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact
 // Fatwa Archive
 Route::get('/fatwa-archive', [FatwaController::class, 'index'])->name('fatwa.archive');
 Route::get('/fatwa-archive/{fatwa}', [FatwaController::class, 'show'])->name('fatwa.show');
+Route::get('/mufti-archive/{user}', [FatwaController::class, 'muftiArchive'])->name('fatwa.mufti.archive');
+Route::post('/fatwa-archive/{fatwa}/like', [FatwaController::class, 'like'])->name('fatwa.like');
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +38,7 @@ Route::get('/fatwa-archive/{fatwa}', [FatwaController::class, 'show'])->name('fa
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/login/check-account', [LoginController::class, 'checkAccount'])->name('login.check');
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
 });

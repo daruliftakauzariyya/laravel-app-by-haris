@@ -62,6 +62,11 @@
                             <div class="fatwa-body">
                                 <div class="fatwa-meta">
                                     <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category->name ?? 'General' }}</span>
+                                    <span class="text-warning">
+                                        @for($i=0; $i<($fatwa->question->category->stars ?? 5); $i++)
+                                            <i class="bi bi-star-fill x-small"></i>
+                                        @endfor
+                                    </span>
                                     <span>{{ $fatwa->published_at?->format('d M Y') }}</span>
                                 </div>
 
@@ -74,10 +79,16 @@
                                 </p>
 
                                 <div class="fatwa-footer">
-                                    <span class="fatwa-author">
-                                        <i class="bi bi-person-circle me-1"></i>{{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
+                                    <span class="fatwa-author text-truncate" style="min-width:0; flex:1;">
+                                        <i class="bi bi-person-circle me-1 flex-shrink-0"></i>
+                                        <a href="{{ route('fatwa.mufti.archive', $fatwa->muftiAnswer->mufti) }}" class="text-decoration-none text-dark hover-green">
+                                            {{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
+                                        </a>
                                     </span>
-                                    <span class="read-more-btn">Read More <i class="bi bi-arrow-right"></i></span>
+                                    <span class="like-count flex-shrink-0 text-danger small fw-semibold ms-2">
+                                        <i class="bi bi-heart-fill me-1"></i>{{ number_format($fatwa->likes) }}
+                                    </span>
+                                    <span class="read-more-btn flex-shrink-0 ms-2">Read More <i class="bi bi-arrow-right"></i></span>
                                 </div>
                             </div>
                         </div>
@@ -224,13 +235,29 @@
 
     .fatwa-footer {
         display: flex;
-        justify-content: space-between;
         align-items: center;
         border-top: 1px solid #f1f5f9;
         padding-top: 12px;
         margin-top: auto;
+        gap: 4px;
+        overflow: hidden; /* Ensure nothing wraps */
     }
-    .fatwa-author { font-size: 0.8rem; color: #4a5568; font-weight: 600; }
+    .fatwa-author {
+        font-size: 0.8rem;
+        color: #4a5568;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        min-width: 0;     /* Crucial for text-truncate to work on flex child */
+        flex: 1;
+        overflow: hidden;
+    }
+    .fatwa-author a {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
     .read-more-btn {
         font-size: 0.8rem;
         font-weight: 700;

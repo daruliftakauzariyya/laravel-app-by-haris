@@ -183,6 +183,42 @@
             </div>
         </div>
 
+        {{-- Likes & Engagement Info --}}
+        @if($question->fatwa)
+        <div class="card border-0 shadow-sm mb-3" style="border-left: 4px solid #dc3545 !important; border-left-style: solid !important;">
+            <div class="card-header bg-white border-0 py-2">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-heart-fill text-danger me-2"></i>Likes & Engagement</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-center flex-fill">
+                        <div class="h4 fw-bold text-danger mb-0">{{ number_format($question->fatwa->likes) }}</div>
+                        <div class="x-small text-muted text-uppercase fw-bold">Total Likes</div>
+                    </div>
+                    <div class="vr"></div>
+                    <div class="text-center flex-fill">
+                        <div class="h4 fw-bold text-primary mb-0">{{ number_format($question->fatwa->views) }}</div>
+                        <div class="x-small text-muted text-uppercase fw-bold">Total Views</div>
+                    </div>
+                </div>
+                <div class="border-top pt-2">
+                    <div class="x-small text-muted mb-1 fw-bold">Recent Likes by IP:</div>
+                    @php
+                        $recentLikes = $question->fatwa->fatwaLikes()->latest()->take(5)->get();
+                    @endphp
+                    @forelse($recentLikes as $like)
+                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                        <span class="x-small text-monospace"><i class="bi bi-globe2 me-1 text-muted"></i>{{ $like->ip_address }}</span>
+                        <span class="x-small text-muted">{{ $like->created_at->diffForHumans() }}</span>
+                    </div>
+                    @empty
+                    <p class="x-small text-muted mb-0">No likes recorded yet.</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+        @endif
+
         {{-- Fatwa Log History --}}
         <div class="card border-0 shadow-sm overflow-hidden">
             <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
