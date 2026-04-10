@@ -53,8 +53,8 @@ class HomeController extends Controller
         $muftis = User::role('mufti')
             ->where('is_active', true)
             ->withCount(['muftiAnswers', 'publishedFatwas'])
-            ->get()
-            ->sortByDesc('published_fatwas_count');
+            ->orderByDesc('published_fatwas_count')
+            ->paginate(8);
 
         return view('team', compact('muftis'));
     }

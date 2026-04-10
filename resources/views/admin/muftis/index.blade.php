@@ -13,9 +13,9 @@
     </a>
 </div>
 
-<div class="row g-4">
+<div class="row g-3">
     @forelse($muftis as $mufti)
-    <div class="col-sm-6 col-lg-4 col-xl-3">
+    <div class="col-6 col-md-4 col-lg-3 col-xl-5th">
         <div class="scholar-full-card">
             {{-- Background/Main Image --}}
             <div class="scholar-image-container">
@@ -93,16 +93,37 @@
     @endforelse
 </div>
 
+<div class="mt-4 d-flex justify-content-center">
+    {{ $muftis->links() }}
+</div>
+
 @push('styles')
 <style>
+    .col-xl-5th {
+        flex: 0 0 20%;
+        max-width: 20%;
+    }
+    @media (max-width: 1200px) {
+        .col-xl-5th {
+            flex: 0 0 25%;
+            max-width: 25%;
+        }
+    }
+    @media (max-width: 992px) {
+        .col-xl-5th {
+            flex: 0 0 33.333%;
+            max-width: 33.333%;
+        }
+    }
+
     .scholar-full-card {
-        aspect-ratio: 95 / 155;
+        aspect-ratio: 95 / 150;
         background: #fff;
-        border-radius: 3rem;
+        border-radius: 2.25rem;
         position: relative;
         overflow: hidden;
-        border: 4px solid #fff;
-        box-shadow: 0 15px 45px rgba(0,0,0,0.06);
+        border: 3px solid #fff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
         display: flex;
         flex-direction: column;
@@ -160,63 +181,64 @@
         bottom: 0;
         left: 0;
         width: 100%;
-        padding: 3rem 1.75rem 2rem;
+        padding: 2.5rem 1.25rem 1.5rem;
         background: linear-gradient(to top, 
-            rgba(0,0,0,0.95) 0%, 
-            rgba(0,0,0,0.75) 40%, 
-            rgba(0,0,0,0.4) 70%, 
+            rgba(0,0,0,1) 0%, 
+            rgba(0,0,0,0.85) 45%, 
+            rgba(0,0,0,0.4) 75%, 
             rgba(0,0,0,0) 100%);
         z-index: 3;
     }
     .scholar-name {
         font-weight: 900;
-        font-size: 1.4rem;
+        font-size: 1.15rem;
         color: #ffffff;
-        letter-spacing: -0.8px;
-        line-height: 1.1;
+        letter-spacing: -0.5px;
+        line-height: 1.15;
     }
     .verified-badge-icon {
         color: #10b981;
-        font-size: 1.3rem;
+        font-size: 1.1rem;
         filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.4));
     }
     .scholar-description {
-        font-weight: 500;
-        color: rgba(255,255,255,0.8) !important;
-        margin-top: 4px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.7) !important;
+        margin-top: 3px;
+        font-size: 0.72rem;
     }
 
     .scholar-footer {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-top: 1.25rem;
+        margin-top: 1rem;
     }
     .mini-metrics {
         display: flex;
-        gap: 0.6rem;
+        gap: 0.4rem;
     }
     .metric-pill {
-        font-size: 0.7rem;
+        font-size: 0.62rem;
         font-weight: 800;
-        background: rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.2);
         backdrop-filter: blur(5px);
         color: #ffffff;
-        padding: 0.4rem 0.6rem;
-        border-radius: 0.75rem;
+        padding: 0.35rem 0.5rem;
+        border-radius: 0.6rem;
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
         border: 1px solid rgba(255,255,255,0.1);
     }
     .btn-scholar-view {
         background: #ffffff;
         border-radius: 100px;
-        font-size: 0.8rem;
-        font-weight: 700;
+        font-size: 0.72rem;
+        font-weight: 800;
         color: #1a202c;
         text-decoration: none;
-        padding: 0.6rem 1.2rem;
+        padding: 0.5rem 1rem;
         border: 1px solid rgba(0,0,0,0.08);
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }

@@ -25,8 +25,9 @@ class MuftiManagementController extends Controller
                 'muftiAnswers as total_answers',
             ])
             ->latest()
-            ->get()
-            ->each(function ($mufti) {
+            ->paginate(10);
+
+        $muftis->getCollection()->each(function ($mufti) {
                 // Avg days from assigned_at to answer submitted_at
                 $mufti->avg_days = \App\Models\MuftiAnswer::where('mufti_id', $mufti->id)
                     ->whereNotNull('submitted_at')
