@@ -37,6 +37,13 @@
     {{-- Favicon --}}
     <link rel="icon" type="image/png" href="{{ asset('assets/logo/fevi.png') }}">
 
+    {{-- PWA Meta --}}
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a7a4a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="{{ asset('assets/logo/fevi.png') }}">
+
     <style>
         :root { --sidebar-w:220px; }
         body { font-family:'Inter',sans-serif; background:#f4f6f9; color: var(--text-main); }
@@ -124,7 +131,13 @@
             <i class="bi bi-person-gear"></i> Profile
         </a>
         <a href="{{ route('home') }}" class="nav-link"><i class="bi bi-globe"></i> Public Site</a>
+        
         <div class="px-2 mt-3">
+            {{-- PWA Install Button (Scholar) --}}
+            <button id="pwa-install-btn" class="btn btn-sm btn-gold w-100 py-2 mb-2 shadow-sm d-none" style="border-radius: 8px; font-weight: 700;">
+                <i class="bi bi-download me-2"></i>Install App
+            </button>
+
             <form method="POST" action="{{ route('logout') }}">@csrf
                 <button class="btn btn-sm btn-outline-light w-100"><i class="bi bi-box-arrow-right me-1"></i>Logout</button>
             </form>
@@ -168,20 +181,53 @@
     <div class="page-content">@yield('content')</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function toggleSidebar() {
-        document.body.classList.toggle('sidebar-open');
-    }
+    <script>
+        // PWA Service Worker Registration & Install Logic
+        let deferredPrompt;
+        const installBtn = document.getElementById('pwa-install-btn');
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW Registered', reg))
+                    .catch(err => console.log('SW Failed', err));
+            });
+        }
+
+        // Capture install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if(installBtn) installBtn.classList.remove('d-none');
+        });
+
+        if(installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installBtn.classList.add('d-none');
+                    }
+                    deferredPrompt = null;
+                }
+            });
+        }
+
+        function toggleSidebar() {
+            document.body.classList.toggle('sidebar-open');
+        }
     
-    // Live Clock
-    function updateClock() {
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-        const clockEl = document.getElementById('liveClock');
-        if (clockEl) clockEl.innerText = timeStr;
-    }
-    setInterval(updateClock, 1000);
-</script>
+        // Live Clock
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            const clockEl = document.getElementById('liveClock');
+            if (clockEl) clockEl.innerText = timeStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
 @stack('scripts')
 </body>
 </html>

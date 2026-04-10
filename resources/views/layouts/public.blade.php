@@ -5,27 +5,30 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-SZG3N3VKYE"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-      gtag('config', 'G-SZG3N3VKYE');
+        gtag('config', 'G-SZG3N3VKYE');
     </script>
     <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-NBPW3VHH');</script>
+    <script>(function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                    new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-NBPW3VHH');</script>
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script type="text/javascript">
-        (function(c,l,a,r,i,t,y){
-            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        (function (c, l, a, r, i, t, y) {
+            c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
+            t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
+            y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
         })(window, document, "clarity", "script", "w8gk6uy65v");
     </script>
     <title>@yield('title', 'Darul Ifta Portal') — Kauzariyya</title>
@@ -41,6 +44,13 @@
 
     {{-- Favicon --}}
     <link rel="icon" type="image/png" href="{{ asset('assets/logo/fevi.png') }}">
+
+    {{-- PWA Meta --}}
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#073a69ff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="{{ asset('assets/logo/fevi.png') }}">
 
     <style>
         body {
@@ -282,8 +292,8 @@
 
 <body>
     <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBPW3VHH"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBPW3VHH" height="0" width="0"
+            style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
 
     {{-- Navbar --}}
@@ -390,14 +400,21 @@
                     class="mobile-nav-link {{ request()->routeIs('question.*') ? 'active' : '' }}">
                     <i class="bi bi-pencil-square"></i> Ask a Question
                 </a>
-                <a href="{{ route('team') }}"
-                    class="mobile-nav-link {{ request()->routeIs('team') ? 'active' : '' }}">
+                <a href="{{ route('team') }}" class="mobile-nav-link {{ request()->routeIs('team') ? 'active' : '' }}">
                     <i class="bi bi-people"></i> Meet the Muftis
                 </a>
                 <a href="{{ route('contact') }}"
                     class="mobile-nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">
                     <i class="bi bi-envelope"></i> Contact Us
                 </a>
+
+                {{-- PWA Install Option --}}
+                <div class="px-3 mt-4" id="pwa-install-container-mobile" style="display: none;">
+                    <button id="pwa-install-btn-mobile" class="btn btn-gold w-100 py-3 rounded-4 shadow-sm" style="font-weight: 800; letter-spacing: 0.5px;">
+                        <i class="bi bi-download me-2"></i>Install Darul Ifta App
+                    </button>
+                    <p class="text-center x-small text-muted mt-2 mb-0">Faster access & offline support</p>
+                </div>
             </div>
 
             <div class="mobile-auth-section mt-auto">
@@ -522,6 +539,13 @@
                         <i class="bi bi-headset text-gold me-3"></i>
                         <p class="small mb-0"><a href="tel:+919495666777">+91 9495 666 777</a></p>
                     </div>
+
+                    {{-- PWA Footer Button --}}
+                    <div class="mt-4" id="pwa-install-container-desktop" style="display: none;">
+                        <button id="pwa-install-btn-desktop" class="btn btn-outline-gold btn-sm w-100 py-2 border-opacity-50">
+                            <i class="bi bi-download me-2"></i>Install App
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -539,6 +563,45 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // PWA Service Worker Registration & Install Logic
+        let deferredPrompt;
+        const installBtnMobile = document.getElementById('pwa-install-btn-mobile');
+        const installBtnDesktop = document.getElementById('pwa-install-btn-desktop');
+        const containerMobile = document.getElementById('pwa-install-container-mobile');
+        const containerDesktop = document.getElementById('pwa-install-container-desktop');
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW Registered', reg))
+                    .catch(err => console.log('SW Failed', err));
+            });
+        }
+
+        // Capture install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if(containerMobile) containerMobile.style.display = 'block';
+            if(containerDesktop) containerDesktop.style.display = 'block';
+        });
+
+        const handleInstall = async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    if(containerMobile) containerMobile.style.display = 'none';
+                    if(containerDesktop) containerDesktop.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        };
+
+        if(installBtnMobile) installBtnMobile.addEventListener('click', handleInstall);
+        if(installBtnDesktop) installBtnDesktop.addEventListener('click', handleInstall);
+    </script>
     @stack('scripts')
 </body>
 
