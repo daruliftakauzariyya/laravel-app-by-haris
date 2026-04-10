@@ -132,7 +132,7 @@
                 @if($hasPending)
                     <div class="bg-warning bg-opacity-10 p-3 rounded-3 mb-3 border border-warning border-opacity-25">
                         <p class="x-small fw-bold text-warning-emphasis mb-2"><i class="bi bi-info-circle me-1"></i>A new photo is awaiting approval:</p>
-                        <img src="{{ asset('storage/avatars/pending_'.$user->id.'.jpg') }}" class="rounded-2 mb-3 shadow-sm" style="width: 70px; height: 90px; object-fit: cover;">
+                        <img src="{{ asset('/storage/avatars/pending_'.$user->id.'.jpg') }}" class="rounded-2 mb-3 shadow-sm" style="width: 70px; height: 90px; object-fit: cover;">
                         <div class="d-flex gap-2">
                             <button type="button" onclick="event.preventDefault(); document.getElementById('approveAvatarForm').submit();" class="btn btn-success btn-sm flex-grow-1">Approve</button>
                             <button type="button" onclick="event.preventDefault(); document.getElementById('rejectAvatarForm').submit();" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
@@ -222,10 +222,10 @@
     document.getElementById('btn-crop').addEventListener('click', function() {
         if (cropper) {
             const canvas = cropper.getCroppedCanvas({
-                width: 95,
-                height: 120,
+                width: 400,
+                height: 505,
             });
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
             document.getElementById('current-avatar').src = dataUrl;
             document.getElementById('avatar_data').value = dataUrl;
             cropperModal.hide();

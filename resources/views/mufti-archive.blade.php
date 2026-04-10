@@ -7,7 +7,7 @@
             <div class="row g-0">
                 <div class="col-md-3 bg-primary bg-opacity-10 d-flex flex-column align-items-center justify-content-center p-4 py-5 text-center">
                     @if($user->avatar)
-                        <img src="{{ asset('storage/' . $user->avatar) }}" class="rounded-circle border border-4 border-white shadow-sm mb-3" style="width:140px; height:140px; object-fit:cover;">
+                        <img src="{{ asset($user->avatar) }}" class="rounded-circle border border-4 border-white shadow-sm mb-3" style="width:140px; height:140px; object-fit:cover;">
                     @else
                         <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center border border-4 border-white shadow-sm mb-3" style="width:140px; height:140px;">
                             <i class="bi bi-person-fill h1 mb-0 opacity-50"></i>

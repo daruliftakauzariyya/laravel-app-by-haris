@@ -14,7 +14,7 @@
                     <div class="d-md-flex align-items-center p-4 p-lg-5 position-relative z-index-1">
                         <div class="profile-avatar-wrapper me-md-5 mb-4 mb-md-0">
                             <div class="avatar-ring"></div>
-                            <img src="{{ $user->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background=1a7a4a&color=fff&size=120' }}" 
+                            <img src="{{ $user->avatar ? asset($user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background=1a7a4a&color=fff&size=120' }}" 
                                  class="rounded-circle shadow-lg main-avatar" width="120" height="120">
                             <div class="status-pulse bg-success"></div>
                         </div>

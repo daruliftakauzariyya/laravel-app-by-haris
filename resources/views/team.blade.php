@@ -15,34 +15,38 @@
     <div class="row g-4 justify-content-center">
         @forelse($muftis as $mufti)
             <div class="col-xl-3 col-lg-4 col-md-6">
-                <div class="mufti-card h-100 shadow-sm border-0 bg-white">
-                    <div class="p-4 text-center">
-                        <div class="mufti-avatar-frame mx-auto mb-3">
-                            <img src="{{ $mufti->avatar ? asset($mufti->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($mufti->name).'&background=1a7a4a&color=fff' }}" 
-                                 class="mufti-img" alt="{{ $mufti->name }}">
-                            <div class="verified-badge">
-                                <i class="bi bi-patch-check-fill"></i>
-                            </div>
+                <div class="scholar-premium-card">
+                    {{-- Image Container --}}
+                    <div class="scholar-visual">
+                        <img src="{{ $mufti->avatar ? asset($mufti->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($mufti->name).'&background=1a7a4a&color=fff&size=512' }}" 
+                             class="scholar-image" alt="{{ $mufti->name }}">
+                        <div class="verified-ribbon">
+                            <i class="bi bi-patch-check-fill"></i>
                         </div>
-                        
-                        <h5 class="fw-bold mb-1 text-dark">{{ $mufti->name }}</h5>
-                        <p class="text-muted small mb-3">
-                            <i class="bi bi-geo-alt me-1"></i>{{ $mufti->country ?? 'Scholar' }}
-                        </p>
+                    </div>
 
-                        <div class="stats-mini-grid mb-4">
-                            <div class="stat-mini">
-                                <span class="stat-val">{{ number_format($mufti->published_fatwas_count) }}</span>
-                                <span class="stat-lbl text-uppercase">Fatwas</span>
-                            </div>
-                            <div class="stat-mini border-start">
-                                <span class="stat-val">{{ number_format($mufti->mufti_answers_count) }}</span>
-                                <span class="stat-lbl text-uppercase">Impact</span>
-                            </div>
+                    {{-- Content Area --}}
+                    <div class="scholar-details">
+                        <div class="details-top">
+                            <h5 class="scholar-name-heading">{{ $mufti->name }}</h5>
+                            <p class="scholar-tagline small text-muted">
+                                <i class="bi bi-geo-alt me-1"></i>{{ $mufti->country ?? 'Scholar Faculty' }}
+                            </p>
                         </div>
 
-                        <a href="{{ route('fatwa.mufti.archive', $mufti) }}" class="btn btn-outline-brand btn-sm w-100 rounded-pill py-2 fw-bold">
-                            View Portfolio
+                        <div class="scholar-impact-grid">
+                            <div class="impact-node">
+                                <span class="node-val">{{ number_format($mufti->published_fatwas_count) }}</span>
+                                <span class="node-lbl">Fatwas</span>
+                            </div>
+                            <div class="impact-node border-start">
+                                <span class="node-val">{{ number_format($mufti->mufti_answers_count) }}</span>
+                                <span class="node-lbl">Impact</span>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('fatwa.mufti.archive', $mufti) }}" class="btn-premium-portfolio">
+                            View Portfolio <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -60,79 +64,135 @@
 
 <style>
     .fw-black { font-weight: 900; }
-    .mufti-card { 
-        border-radius: 20px; 
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border: 1px solid rgba(0,0,0,0.05) !important;
+    
+    .scholar-premium-card {
+        aspect-ratio: 95 / 155;
+        background: #fff;
+        border-radius: 3rem;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        display: flex;
+        flex-direction: column;
     }
-    .mufti-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    .scholar-premium-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 25px 60px rgba(0,0,0,0.1);
     }
 
-    .mufti-avatar-frame {
-        width: 110px;
-        height: 140px;
-        position: relative;
-        padding: 5px;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    .scholar-visual {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
     }
-    .mufti-img {
+    .scholar-image {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: 8px;
+        transition: transform 0.6s ease;
     }
-    .verified-badge {
+    .scholar-premium-card:hover .scholar-image {
+        transform: scale(1.05);
+    }
+
+    .verified-ribbon {
         position: absolute;
-        top: -8px;
-        right: -8px;
+        bottom: 45%;
+        right: 1.75rem;
         background: #fff;
-        color: #1a7a4a;
-        width: 24px;
-        height: 24px;
+        color: #10b981;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        font-size: 1.4rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        z-index: 5;
     }
 
-    .stats-mini-grid {
+    .scholar-details {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 3rem 1.75rem 1.75rem;
+        background: linear-gradient(to top, 
+            rgba(0,0,0,0.95) 0%, 
+            rgba(0,0,0,0.75) 40%, 
+            rgba(0,0,0,0.4) 70%, 
+            rgba(0,0,0,0) 100%);
+        z-index: 3;
+    }
+
+    .scholar-name-heading {
+        font-weight: 900;
+        font-size: 1.4rem;
+        color: #ffffff;
+        margin-bottom: 2px;
+        letter-spacing: -0.8px;
+        line-height: 1.1;
+    }
+    .scholar-tagline {
+        font-weight: 600;
+        color: rgba(255,255,255,0.85);
+    }
+
+    .scholar-impact-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 10px 0;
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(5px);
+        border-radius: 1.25rem;
+        padding: 0.75rem 0;
+        margin: 1.25rem 0;
+        border: 1px solid rgba(255,255,255,0.05);
     }
-    .stat-mini {
+    .impact-node {
         display: flex;
         flex-direction: column;
         align-items: center;
     }
-    .stat-val {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: var(--brand-blue);
+    .node-val {
+        font-size: 1.2rem;
+        font-weight: 900;
+        color: #ffffff;
         line-height: 1;
-        margin-bottom: 2px;
     }
-    .stat-lbl {
-        font-size: 0.6rem;
+    .node-lbl {
+        font-size: 0.65rem;
         font-weight: 700;
-        color: #8898aa;
+        color: rgba(255,255,255,0.6);
+        text-transform: uppercase;
         letter-spacing: 0.5px;
+        margin-top: 3px;
     }
-    .btn-outline-brand {
-        border-color: var(--brand-blue);
-        color: var(--brand-blue);
-    }
-    .btn-outline-brand:hover {
-        background-color: var(--brand-blue);
+
+    .btn-premium-portfolio {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        background: #1a202c;
         color: #fff;
+        text-decoration: none;
+        padding: 0.8rem;
+        border-radius: 100px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-premium-portfolio:hover {
+        background: #1a7a4a;
+        color: #fff;
+        transform: scale(1.03);
     }
 </style>
 @endsection

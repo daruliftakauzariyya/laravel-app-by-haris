@@ -184,10 +184,10 @@
     document.getElementById('btn-crop').addEventListener('click', function() {
         if (cropper) {
             const canvas = cropper.getCroppedCanvas({
-                width: 95,
-                height: 120,
+                width: 400,
+                height: 505,
             });
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
             document.getElementById('current-avatar-display').src = dataUrl;
             document.getElementById('avatar_data').value = dataUrl;
             cropperModal.hide();

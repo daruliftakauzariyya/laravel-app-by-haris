@@ -16,67 +16,35 @@
 <div class="row g-4">
     @forelse($muftis as $mufti)
     <div class="col-sm-6 col-lg-4 col-xl-3">
-        <div class="mufti-profile-card">
-            {{-- Profile Header: Image & Verified Status --}}
-            <div class="mufti-card-image-wrapper">
-                <img src="{{ $mufti->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($mufti->name).'&background=f8fafc&color=1a7a4a&size=300&bold=true' }}" 
+        <div class="scholar-full-card">
+            {{-- Background/Main Image --}}
+            <div class="scholar-image-container">
+                <img src="{{ $mufti->avatar ? asset($mufti->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($mufti->name).'&background=f1f5f9&color=1a7a4a&size=512' }}" 
                      alt="{{ $mufti->name }}"
-                     class="mufti-card-image shadow-sm">
-            </div>
-
-            <div class="mufti-card-body">
-                <div class="d-flex align-items-center gap-1 mb-1">
-                    <h6 class="mufti-card-name">{{ $mufti->name }}</h6>
-                    <i class="bi bi-patch-check-fill text-success verified-badge"></i>
-                </div>
-                <p class="mufti-card-email text-muted small mb-3">{{ $mufti->email }}</p>
-
-                {{-- Performance Stats --}}
-                <div class="mufti-card-stats mb-4">
-                    <div class="stat-item" title="Total Assigned">
-                        <i class="bi bi-journal-text me-1 text-muted"></i>
-                        <span>{{ number_format($mufti->total_assigned ?? 0) }}</span>
-                    </div>
-                    <div class="stat-item" title="Published Fatwas">
-                        <i class="bi bi-patch-check me-1 text-muted"></i>
-                        <span>{{ number_format($mufti->published_count ?? 0) }}</span>
-                    </div>
-                    @if($mufti->avg_days)
-                    <div class="stat-item" title="Avg Days to Answer">
-                        <i class="bi bi-lightning-charge-fill me-1 text-warning"></i>
-                        <span>{{ $mufti->avg_days }}d</span>
-                    </div>
-                    @endif
-                </div>
-
-                {{-- Action Gateway --}}
-                <div class="d-flex align-items-center justify-content-between">
-                    <a href="{{ route('admin.muftis.activity', $mufti) }}" class="btn btn-stats shadow-sm px-3 py-2">
-                        View Stats <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                    
+                     class="scholar-main-img">
+                
+                {{-- Quick Actions Overlay --}}
+                <div class="scholar-overlay-actions">
                     <div class="dropdown">
-                        <button class="btn btn-action-trigger shadow-sm" data-bs-toggle="dropdown">
+                        <button class="btn-glass-action" data-bs-toggle="dropdown">
                             <i class="bi bi-three-dots"></i>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 sm-small p-2">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2">
+                            <li><a class="dropdown-item rounded-2" href="{{ route('admin.muftis.edit', $mufti) }}"><i class="bi bi-pencil-fill me-2"></i>Edit Profile</a></li>
                             <li>
                                 <form method="POST" action="{{ route('admin.muftis.toggle-status', $mufti) }}">
-                                    @csrf
-                                    @method('PATCH')
+                                    @csrf @method('PATCH')
                                     <button type="submit" class="dropdown-item rounded-2 {{ $mufti->is_active ? 'text-danger' : 'text-success' }}">
-                                        <i class="bi bi-power me-2"></i>{{ $mufti->is_active ? 'Deactivate' : 'Activate' }} Profile
+                                        <i class="bi bi-power me-2"></i>{{ $mufti->is_active ? 'Deactivate' : 'Activate' }} 
                                     </button>
                                 </form>
                             </li>
-                            <li><hr class="dropdown-divider opacity-50"></li>
-                            <li><a class="dropdown-item rounded-2" href="{{ route('admin.muftis.edit', $mufti) }}"><i class="bi bi-pencil me-2"></i>Edit Profile</a></li>
                             @if(!$mufti->muftiAnswers()->exists() && !$mufti->assignedQuestions()->exists())
+                            <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form method="POST" action="{{ route('admin.muftis.destroy', $mufti) }}" onsubmit="return confirm('Delete Mufti profile?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="dropdown-item rounded-2 text-danger"><i class="bi bi-trash me-2"></i>Delete Scholar</button>
+                                <form method="POST" action="{{ route('admin.muftis.destroy', $mufti) }}" onsubmit="return confirm('Delete Scholar?');">
+                                    @csrf @method('DELETE')
+                                    <button class="dropdown-item rounded-2 text-danger"><i class="bi bi-trash-fill me-2"></i>Delete Scholar</button>
                                 </form>
                             </li>
                             @endif
@@ -85,8 +53,35 @@
                 </div>
             </div>
 
-            {{-- Status Strip --}}
-            <div class="mufti-status-strip {{ $mufti->is_active ? 'bg-success' : 'bg-danger' }}"></div>
+            {{-- Info Content --}}
+            <div class="scholar-info-overlay">
+                <div class="info-content">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h5 class="scholar-name mb-0">{{ $mufti->name }}</h5>
+                        <i class="bi bi-patch-check-fill verified-badge-icon"></i>
+                    </div>
+                    <p class="scholar-description text-muted small mb-3">
+                        Scholar at Darul Ifta • {{ $mufti->country ?? 'Mufti' }}
+                    </p>
+
+                    <div class="scholar-footer">
+                        <div class="mini-metrics">
+                            <div class="metric-pill" title="Assigned">
+                                <i class="bi bi-people"></i> {{ number_format($mufti->total_assigned ?? 0) }}
+                            </div>
+                            <div class="metric-pill" title="Published">
+                                <i class="bi bi-journal-check"></i> {{ number_format($mufti->published_count ?? 0) }}
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.muftis.activity', $mufti) }}" class="btn-scholar-view shadow-sm">
+                            Stats <i class="bi bi-chevron-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Subtle Status Indicator --}}
+            <div class="status-indicator-dot {{ $mufti->is_active ? 'active' : 'inactive' }}"></div>
         </div>
     </div>
     @empty
@@ -100,108 +95,150 @@
 
 @push('styles')
 <style>
-    .mufti-profile-card {
+    .scholar-full-card {
+        aspect-ratio: 95 / 155;
         background: #fff;
-        border-radius: 2rem;
-        padding: 1.5rem;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.04);
-        border: 1px solid rgba(0,0,0,0.025);
+        border-radius: 3rem;
         position: relative;
         overflow: hidden;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        height: 100%;
+        border: 4px solid #fff;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.06);
+        transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
         display: flex;
         flex-direction: column;
-        align-items: center;
     }
-    .mufti-profile-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 50px rgba(0,0,0,0.08);
+    .scholar-full-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 25px 60px rgba(0,0,0,0.12);
     }
-    .mufti-card-image-wrapper {
-        margin-bottom: 1.25rem;
-        display: flex;
-        justify-content: center;
+
+    .scholar-image-container {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
+        height: 100%;
+        z-index: 1;
     }
-    .mufti-card-image {
-        width: 95px;
-        height: 120px;
+    .scholar-main-img {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        border-radius: 1.25rem;
-        border: 4px solid #fff;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        transition: transform 0.5s ease;
     }
-    .mufti-card-body {
-        text-align: center;
-        width: 100%;
+    .scholar-full-card:hover .scholar-main-img {
+        transform: scale(1.04);
     }
-    .mufti-card-name {
-        font-weight: 700;
-        font-size: 1.15rem;
-        margin: 0;
-        color: #1a202c;
+
+    .scholar-overlay-actions {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 5;
     }
-    .verified-badge {
-        font-size: 1rem;
-    }
-    .mufti-card-email {
-        font-size: 0.8rem;
-        font-weight: 500;
-        opacity: 0.7;
-    }
-    .mufti-card-stats {
-        display: flex;
-        justify-content: center;
-        gap: 1.25rem;
-        padding: 0.75rem 0;
-        border-top: 1px solid rgba(0,0,0,0.03);
-        border-bottom: 1px solid rgba(0,0,0,0.03);
-    }
-    .stat-item {
-        display: flex;
-        align-items: center;
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: #4a5568;
-    }
-    .btn-stats {
-        background: #f8fafc;
-        border-radius: 1.25rem;
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: #1a7a4a;
-        border: 1px solid rgba(0,0,0,0.05);
-        transition: all 0.2s;
-    }
-    .btn-stats:hover {
-        background: #1a7a4a;
-        color: #fff;
-        border-color: #1a7a4a;
-    }
-    .btn-action-trigger {
-        background: #f8fafc;
-        width: 40px;
-        height: 40px;
+    .btn-glass-action {
+        width: 38px;
+        height: 38px;
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(10px);
+        border: none;
         border-radius: 1rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid rgba(0,0,0,0.05);
-        color: #4a5568;
+        color: #1a202c;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.2s;
     }
-    .btn-action-trigger:hover {
-        background: #eef2f7;
+    .btn-glass-action:hover {
+        background: #fff;
+        transform: scale(1.05);
     }
-    .mufti-status-strip {
+
+    .scholar-info-overlay {
         position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 4px;
-        opacity: 0.6;
+        padding: 3rem 1.75rem 2rem;
+        background: linear-gradient(to top, 
+            rgba(0,0,0,0.95) 0%, 
+            rgba(0,0,0,0.75) 40%, 
+            rgba(0,0,0,0.4) 70%, 
+            rgba(0,0,0,0) 100%);
+        z-index: 3;
     }
-    .sm-small { font-size: 0.85rem; }
+    .scholar-name {
+        font-weight: 900;
+        font-size: 1.4rem;
+        color: #ffffff;
+        letter-spacing: -0.8px;
+        line-height: 1.1;
+    }
+    .verified-badge-icon {
+        color: #10b981;
+        font-size: 1.3rem;
+        filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.4));
+    }
+    .scholar-description {
+        font-weight: 500;
+        color: rgba(255,255,255,0.8) !important;
+        margin-top: 4px;
+    }
+
+    .scholar-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 1.25rem;
+    }
+    .mini-metrics {
+        display: flex;
+        gap: 0.6rem;
+    }
+    .metric-pill {
+        font-size: 0.7rem;
+        font-weight: 800;
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(5px);
+        color: #ffffff;
+        padding: 0.4rem 0.6rem;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-scholar-view {
+        background: #ffffff;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #1a202c;
+        text-decoration: none;
+        padding: 0.6rem 1.2rem;
+        border: 1px solid rgba(0,0,0,0.08);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-scholar-view:hover {
+        background: #1a202c;
+        color: #fff;
+        transform: scale(1.05);
+        border-color: #1a202c;
+    }
+
+    .status-indicator-dot {
+        position: absolute;
+        top: 1.5rem;
+        left: 1.5rem;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        z-index: 5;
+        border: 2px solid #fff;
+    }
+    .status-indicator-dot.active { background-color: #10b981; box-shadow: 0 0 10px #10b981; }
+    .status-indicator-dot.inactive { background-color: #ef4444; }
 </style>
 @endpush
 

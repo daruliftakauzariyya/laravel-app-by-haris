@@ -32,14 +32,22 @@ trait HandleAvatars
 
             imagedestroy($img);
 
-            // Store in public disk
-            $finalPath = "avatars/{$filename}";
-            Storage::disk('public')->put($finalPath, file_get_contents($tempPath));
+            // Store in public disk directly to avoid symlink issues
+            $finalPath = "storage/avatars/{$filename}";
+            $fullPath = public_path($finalPath);
+            
+            // Ensure directory exists
+            if (!file_exists(dirname($fullPath))) {
+                mkdir(dirname($fullPath), 0755, true);
+            }
+
+            file_put_contents($fullPath, file_get_contents($tempPath));
+            
             if (file_exists($tempPath)) {
                 unlink($tempPath);
             }
 
-            return "storage/" . $finalPath;
+            return "/" . $finalPath;
         } catch (\Exception $e) {
             \Log::error("Avatar processing failed: " . $e->getMessage());
             return null;

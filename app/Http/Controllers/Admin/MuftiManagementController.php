@@ -223,8 +223,14 @@ class MuftiManagementController extends Controller
         $finalFile = "avatars/{$user->id}.jpg";
 
         if (Storage::disk('public')->exists($pendingFile)) {
+            // Also copy to public folder directly for immediate visibility
+            if (!file_exists(public_path('storage/avatars'))) {
+                mkdir(public_path('storage/avatars'), 0755, true);
+            }
             Storage::disk('public')->move($pendingFile, $finalFile);
-            $user->update(['avatar' => "storage/{$finalFile}"]);
+            @copy(storage_path("app/public/{$finalFile}"), public_path("storage/{$finalFile}"));
+            
+            $user->update(['avatar' => "/storage/{$finalFile}"]);
             return back()->with('success', 'Profile photo approved successfully.');
         }
 
