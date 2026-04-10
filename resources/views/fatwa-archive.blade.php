@@ -79,16 +79,15 @@
                                 </p>
 
                                 <div class="fatwa-footer">
-                                    <span class="fatwa-author text-truncate" style="min-width:0; flex:1;">
-                                        <i class="bi bi-person-circle me-1 flex-shrink-0"></i>
-                                        <a href="{{ route('fatwa.mufti.archive', $fatwa->muftiAnswer->mufti) }}" class="text-decoration-none text-dark hover-green">
-                                            {{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
-                                        </a>
-                                    </span>
-                                    <span class="like-count flex-shrink-0 text-danger small fw-semibold ms-2">
+                                    <i class="bi bi-person-circle text-muted flex-shrink-0"></i>
+                                    <a href="{{ route('fatwa.mufti.archive', $fatwa->muftiAnswer->mufti) }}"
+                                       class="fatwa-author text-decoration-none text-dark hover-green">
+                                        {{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
+                                    </a>
+                                    <span class="like-count flex-shrink-0 text-danger small fw-semibold">
                                         <i class="bi bi-heart-fill me-1"></i>{{ number_format($fatwa->likes) }}
                                     </span>
-                                    <span class="read-more-btn flex-shrink-0 ms-2">Read More <i class="bi bi-arrow-right"></i></span>
+                                    <span class="read-more-btn flex-shrink-0">Read More <i class="bi bi-arrow-right"></i></span>
                                 </div>
                             </div>
                         </div>
@@ -239,25 +238,22 @@
         border-top: 1px solid #f1f5f9;
         padding-top: 12px;
         margin-top: auto;
-        gap: 4px;
-        overflow: hidden; /* Ensure nothing wraps */
+        gap: 6px;
+        flex-wrap: nowrap;  /* Never wrap */
+        overflow: hidden;
     }
     .fatwa-author {
         font-size: 0.8rem;
-        color: #4a5568;
         font-weight: 600;
-        display: flex;
-        align-items: center;
-        min-width: 0;     /* Crucial for text-truncate to work on flex child */
-        flex: 1;
+        color: #4a5568;
+        flex: 1 1 0;         /* Grow to fill, but shrink when needed */
+        min-width: 0;        /* Key: allow flex child to shrink below content size */
+        white-space: nowrap; /* Force single line */
         overflow: hidden;
-    }
-    .fatwa-author a {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        text-overflow: ellipsis; /* Show ... when name is clipped */
         display: block;
     }
+    .fatwa-author:hover { color: #1a7a4a; }
     .read-more-btn {
         font-size: 0.8rem;
         font-weight: 700;

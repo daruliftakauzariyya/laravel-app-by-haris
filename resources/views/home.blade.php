@@ -203,10 +203,14 @@
                             </p>
 
                             <div class="fatwa-footer">
+                                <i class="bi bi-person-circle text-muted flex-shrink-0"></i>
                                 <span class="fatwa-author">
-                                    <i class="bi bi-person-circle me-1"></i>{{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
+                                    {{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
                                 </span>
-                                <span class="read-more-btn">Read More <i class="bi bi-arrow-right"></i></span>
+                                <span class="like-count flex-shrink-0 text-danger small fw-semibold">
+                                    <i class="bi bi-heart-fill me-1"></i>{{ number_format($fatwa->likes) }}
+                                </span>
+                                <span class="read-more-btn flex-shrink-0">Read More <i class="bi bi-arrow-right"></i></span>
                             </div>
                         </div>
                     </div>
@@ -515,13 +519,25 @@
     /* Footer row */
     .fatwa-footer {
         display: flex;
-        justify-content: space-between;
         align-items: center;
         border-top: 1px solid #f1f5f9;
         padding-top: 12px;
         margin-top: auto;
+        gap: 6px;
+        flex-wrap: nowrap;
+        overflow: hidden;
     }
-    .fatwa-author { font-size: 0.8rem; color: #4a5568; font-weight: 600; }
+    .fatwa-author {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #4a5568;
+        flex: 1 1 0;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
     .read-more-btn {
         font-size: 0.8rem;
         font-weight: 700;

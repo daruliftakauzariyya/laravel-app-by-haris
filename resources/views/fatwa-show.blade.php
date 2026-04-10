@@ -238,11 +238,10 @@
 
                     <hr class="my-5" style="opacity: 0.1;">
 
-                    {{-- Answer --}}
-                    <div class="content-block">
+                    {{-- Answer --}}\n                    <div class="content-block">
                         <span class="block-h">Answer:</span>
                         
-                        <div class="arabic-quote">
+                        <div class="arabic-quote" style="text-align: right; direction: rtl;">
                             بسم الله الرحمن الرحيم <br>
                             الجواب وبالله التوفيق والنجاح
                         </div>
@@ -251,35 +250,39 @@
                             {!! $fatwa->muftiAnswer->full_answer !!}
                         </div>
 
-                        <div class="arabic-quote" style="text-align: right; border-top: 1px solid #f1f5f9; padding-top: 15px; margin-top: 30px;">
+                        {{-- Supporting References — BEFORE closing phrase --}}
+                        @if($fatwa->muftiAnswer->supportingReferences->count())
+                        <div class="mt-4">
+                            <span class="block-h">References:</span>
+                            @foreach($fatwa->muftiAnswer->supportingReferences as $ref)
+                                <div class="ref-card">
+                                    <div class="arabic-text mb-2 {{ $ref->language == 'Urdu' ? 'gulzar-font' : 'alyamama-font' }}" style="font-size: 1.25rem; line-height: 1.8; color: #000;">
+                                        {{ $ref->arabic_text }}
+                                    </div>
+                                    <div class="small text-muted fw-bold"><i class="bi bi-book me-1"></i>{{ $ref->book_name }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        <div class="arabic-quote" style="text-align: right; direction: rtl; border-top: 1px solid #f1f5f9; padding-top: 15px; margin-top: 25px;">
                             والله أعلم بالصواب
                         </div>
 
-                        <div class="mt-4 no-print text-center">
+                        <div class="mt-3 no-print d-flex align-items-center gap-2">
                             <button id="likeBtn"
-                                class="btn {{ $hasLiked ? 'btn-danger' : 'btn-outline-danger' }} px-4 rounded-pill"
+                                class="btn {{ $hasLiked ? 'btn-danger' : 'btn-outline-danger' }} px-3 rounded-pill"
                                 onclick="handleLike({{ $fatwa->id }})"
                                 {{ $hasLiked ? 'disabled' : '' }}
                                 title="{{ $hasLiked ? 'You already liked this!' : 'Like this Fatwa' }}">
-                                <i class="bi bi-heart-fill me-2"></i>{{ $hasLiked ? 'Liked' : 'Like' }} <span id="likeCount" class="badge bg-danger ms-2">{{ $fatwa->likes }}</span>
+                                <i class="bi bi-heart-fill me-1"></i>{{ $hasLiked ? 'Liked' : 'Like' }} <span id="likeCount" class="badge bg-danger ms-1">{{ $fatwa->likes }}</span>
+                            </button>
+                            <button class="btn btn-outline-secondary px-3 rounded-pill" id="shareBtn" onclick="shareFatwa()">
+                                <i class="bi bi-share me-1"></i>Share
                             </button>
                         </div>
                     </div>
 
-                    {{-- Supporting References --}}
-                    @if($fatwa->muftiAnswer->supportingReferences->count())
-                    <div class="content-block mt-5">
-                        <span class="block-h">References:</span>
-                        @foreach($fatwa->muftiAnswer->supportingReferences as $ref)
-                            <div class="ref-card">
-                                <div class="arabic-text mb-2 {{ $ref->language == 'Urdu' ? 'gulzar-font' : 'alyamama-font' }}" style="font-size: 1.25rem; line-height: 1.8; color: #000;">
-                                    {{ $ref->arabic_text }}
-                                </div>
-                                <div class="small text-muted fw-bold"><i class="bi bi-book me-1"></i>{{ $ref->book_name }}</div>
-                            </div>
-                        @endforeach
-                    </div>
-                    @endif
 
                     {{-- Signatures --}}
                     <div class="signature-box">
@@ -406,7 +409,7 @@
             if (data.already_liked || data.success) {
                 btn.classList.remove('btn-outline-danger');
                 btn.classList.add('btn-danger');
-                btn.innerHTML = '<i class="bi bi-heart-fill me-2"></i>Liked <span class="badge bg-danger ms-2">' + data.likes + '</span>';
+                btn.innerHTML = '<i class="bi bi-heart-fill me-1"></i>Liked <span class="badge bg-danger ms-1">' + data.likes + '</span>';
                 btn.disabled = true;
                 btn.title = 'You already liked this!';
             }
@@ -415,6 +418,32 @@
             btn.disabled = false;
         });
     }
+
+    function shareFatwa() {
+        const shareData = {
+            title: document.title,
+            text: 'Read this Fatwa from Darul Ifta Kauzariyya',
+            url: window.location.href
+        };
+        if (navigator.share) {
+            navigator.share(shareData).catch(() => {});
+        } else {
+            // Clipboard fallback
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                const btn = document.getElementById('shareBtn');
+                const original = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Copied!';
+                btn.classList.add('btn-success');
+                btn.classList.remove('btn-outline-secondary');
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-secondary');
+                }, 2000);
+            });
+        }
+    }
+
 </script>
 @endpush
 @endsection
