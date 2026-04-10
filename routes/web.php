@@ -118,6 +118,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/muftis/{user}', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'update'])->name('muftis.update');
     Route::delete('/muftis/{user}', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'destroy'])->name('muftis.destroy');
     Route::patch('/muftis/{user}/toggle-status', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'toggleStatus'])->name('muftis.toggle-status');
+    Route::get('/muftis/{user}/activity', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'activity'])->name('muftis.activity');
 
     // Questioner Management
     Route::get('/questioners', [\App\Http\Controllers\Admin\QuestionerController::class, 'index'])->name('questioners.index');

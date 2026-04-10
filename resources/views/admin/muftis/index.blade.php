@@ -87,6 +87,7 @@
                                 <i class="bi bi-three-dots-vertical"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end border shadow-sm sm-small">
+                                <li><a class="dropdown-item" href="{{ route('admin.muftis.activity', $mufti) }}"><i class="bi bi-graph-up me-2"></i>Activity Stats</a></li>
                                 <li><a class="dropdown-item" href="{{ route('admin.muftis.edit', $mufti) }}"><i class="bi bi-pencil me-2"></i>Edit Profile</a></li>
                                 @if(!$mufti->muftiAnswers()->exists() && !$mufti->assignedQuestions()->exists())
                                 <li><hr class="dropdown-divider"></li>

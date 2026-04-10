@@ -142,4 +142,58 @@ class MuftiManagementController extends Controller
 
         return redirect()->back()->with('success', 'Mufti status updated.');
     }
+
+    /** Display Academic Impact & Contributions */
+    public function activity(User $user)
+    {
+        if (!$user->hasRole('mufti')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // 1. Questions Metrics
+        $stats = [
+            'assigned'   => $user->assignedQuestions()->count(),
+            'answered'   => $user->muftiAnswers()->whereIn('status', ['answered', 'published'])->count(),
+            'published'  => $user->muftiAnswers()->where('status', 'published')->count(),
+            'unassigned' => \App\Models\Question::whereNull('assigned_mufti_id')->where('status', 'pending')->count(), 
+        ];
+
+        // 2. Topics Covered (Categories)
+        $topics_count = \App\Models\Category::whereHas('questions', function($q) use ($user) {
+            $q->whereHas('muftiAnswer', function($qa) use ($user) {
+                $qa->where('mufti_id', $user->id);
+            });
+        })->count();
+
+        // 3. Appreciation/Likes & 4. Public Reads
+        $engagement = \App\Models\Fatwa::whereHas('muftiAnswer', function($q) use ($user) {
+            $q->where('mufti_id', $user->id);
+        })->selectRaw('SUM(likes) as total_likes, SUM(views) as total_views')->first();
+
+        $likes = $engagement->total_likes ?? 0;
+        $views = $engagement->total_views ?? 0;
+
+        // 5. Active Track (Currently assigned)
+        $active_track = $user->assignedQuestions()->where('status', 'assigned')->count();
+
+        // 6. Ifta Work Score (Efficiency, Speed & Volume Index)
+        // Formula: (Answered * 10) + (Published * 5) + (Likes * 2) - (Avg Days * 5)
+        $avg_days = \App\Models\MuftiAnswer::where('mufti_id', $user->id)
+            ->whereNotNull('submitted_at')
+            ->join('questions', 'mufti_answers.question_id', '=', 'questions.id')
+            ->whereNotNull('questions.assigned_at')
+            ->selectRaw('AVG(DATEDIFF(mufti_answers.submitted_at, questions.assigned_at)) as avg')
+            ->value('avg') ?: 0;
+        
+        $score = ($stats['answered'] * 10) + ($stats['published'] * 5) + ($likes * 2);
+        if ($avg_days > 0) {
+            // Penalize high avg days, but keep score positive
+            $score = max(0, $score - ($avg_days * 5));
+        }
+
+        // Normalize score to 100 base if very high, or just show as index
+        $work_score = round($score);
+
+        return view('admin.muftis.activity', compact('user', 'stats', 'topics_count', 'likes', 'views', 'active_track', 'work_score', 'avg_days'));
+    }
 }

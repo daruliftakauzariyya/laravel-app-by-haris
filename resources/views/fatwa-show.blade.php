@@ -309,11 +309,6 @@
                     <div class="header-section">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h1 class="{{ $langClass }} mb-0">{{ $fatwa->question->title ?: 'Islamic Query Detail' }}</h1>
-                            <div class="text-warning h5 mb-0">
-                                @for($i = 0; $i < ($fatwa->question->category->stars ?? 5); $i++)
-                                    <i class="bi bi-star-fill"></i>
-                                @endfor
-                            </div>
                         </div>
 
                         <div class="meta-row">
@@ -348,7 +343,8 @@
 
                         <hr class="my-5" style="opacity: 0.1;">
 
-                        {{-- Answer --}}\n <div class="content-block">
+                        {{-- Answer --}}
+                        <div class="content-block">
                             <span class="block-h">Answer:</span>
 
                             <div class="arabic-quote" style="text-align: right; direction: rtl;">
