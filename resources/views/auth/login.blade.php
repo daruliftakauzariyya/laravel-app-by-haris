@@ -34,6 +34,9 @@
                         <input type="checkbox" class="form-check-input" name="remember" id="remember">
                         <label class="form-check-label small" for="remember">Remember me</label>
                     </div>
+                    <div>
+                        <a href="{{ route('password.request') }}" class="small text-green fw-semibold text-decoration-none">Forgot Password?</a>
+                    </div>
                 </div>
                 <div class="d-flex flex-column gap-2">
                     <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Sign In with Password</button>

@@ -55,6 +55,12 @@ Route::post('/verify-otp', [\App\Http\Controllers\Auth\OtpVerificationController
 // OTP Login
 Route::post('/login/otp/send', [\App\Http\Controllers\Auth\LoginController::class, 'sendLoginOtp'])->name('login.otp.send');
 
+// Password Recovery (Forgot Password)
+Route::get('/forgot-password', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/forgot-password', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetOtp'])->name('password.email');
+Route::get('/reset-password/{email}', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'reset'])->name('password.update');
+
 /*
 |--------------------------------------------------------------------------
 | Questioner Routes (auth)
