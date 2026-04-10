@@ -15,18 +15,67 @@
         ['Questioners', $stats['questioners'], 'bi-people', 'linear-gradient(135deg,#20c997,#12b886)'],
     ] as [$label, $val, $icon, $bg])
     <div class="col-6 col-xl">
-        <div class="stat-card shadow-sm" style="background:{{ $bg }};">
+        <div class="stat-card shadow-sm h-100" style="background:{{ $bg }};">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <div class="opacity-75 small mb-1">{{ $label }}</div>
-                    <div class="fs-3 fw-bold">{{ number_format($val) }}</div>
+                    <div class="fs-4 fw-bold">{{ number_format($val) }}</div>
                 </div>
                 <i class="bi {{ $icon }}" style="font-size:2rem; opacity:.4;"></i>
             </div>
         </div>
     </div>
     @endforeach
+
+    <div class="col-6 col-xl">
+        <div class="stat-card shadow-sm position-relative overflow-hidden h-100" 
+             style="background: linear-gradient(135deg, #4f46e5, #3730a3); border: 1px solid rgba(255,255,255,0.1);">
+            <div class="pulse-ring"></div>
+            <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
+                <div>
+                    <div class="opacity-75 small mb-1">
+                        <span class="pulse-dot me-1"></span> Live Users
+                    </div>
+                    <div class="fs-4 fw-bold" id="live-users-count">{{ number_format($stats['live_by_ip']) }}</div>
+                </div>
+                <i class="bi bi-broadcast text-white" style="font-size:2rem; opacity:.4;"></i>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+.pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    box-shadow: 0 0 0 rgba(74, 222, 128, 0.4);
+    animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+    0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+.stat-card .pulse-ring {
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: 1;
+    animation: pulse-ring 4s infinite linear;
+}
+@keyframes pulse-ring {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { opacity: 0.5; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+</style>
 
 {{-- Analytics Row --}}
 <div class="row g-4 mb-4">
@@ -122,6 +171,23 @@ new Chart(ctx, {
         scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
     }
 });
+
+// REST API Polling for Live Users
+async function fetchLiveUsers() {
+    try {
+        const response = await fetch('{{ route("admin.live-stats.api") }}');
+        const data = await response.json();
+        
+        if (data) {
+            document.getElementById('live-users-count').innerText = data.byIp;
+        }
+    } catch (error) {
+        console.error('Failed to fetch live stats:', error);
+    }
+}
+
+// Set interval for every 10 seconds
+setInterval(fetchLiveUsers, 10000);
 </script>
 @endpush
 

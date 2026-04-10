@@ -318,6 +318,8 @@
                             href="{{ route('fatwa.archive') }}">Fatwa Archive</a></li>
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('question.*') ? 'active' : '' }}"
                             href="{{ route('question.create') }}">Ask a Question</a></li>
+                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('team') ? 'active' : '' }}"
+                            href="{{ route('team') }}">Meet the Muftis</a></li>
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}"
                             href="{{ route('contact') }}">Contact</a></li>
                 </ul>
@@ -387,6 +389,10 @@
                 <a href="{{ route('question.create') }}"
                     class="mobile-nav-link {{ request()->routeIs('question.*') ? 'active' : '' }}">
                     <i class="bi bi-pencil-square"></i> Ask a Question
+                </a>
+                <a href="{{ route('team') }}"
+                    class="mobile-nav-link {{ request()->routeIs('team') ? 'active' : '' }}">
+                    <i class="bi bi-people"></i> Meet the Muftis
                 </a>
                 <a href="{{ route('contact') }}"
                     class="mobile-nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">

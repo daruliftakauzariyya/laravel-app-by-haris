@@ -72,8 +72,11 @@
                     <a href="{{ route('fatwa.archive', ['search' => 'marriage']) }}" class="search-tag-v2">Marriage</a>
                 </div>
 
-                <div class="d-flex justify-content-center gap-2 mt-4">
-                    <a href="{{ route('question.create') }}" class="btn btn-warning fw-bold px-4">
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <a href="{{ route('fatwa.archive') }}" class="btn btn-brand fw-bold px-4 rounded-pill">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Explore Portal Now
+                    </a>
+                    <a href="{{ route('question.create') }}" class="btn btn-outline-light fw-bold px-4 rounded-pill">
                         <i class="bi bi-pencil-square me-2"></i>Ask a Question
                     </a>
                 </div>

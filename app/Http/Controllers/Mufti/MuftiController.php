@@ -9,12 +9,16 @@ use App\Models\Question;
 use App\Models\SupportingReference;
 use App\Models\FatwaActivityLog;
 use App\Models\User;
+use App\Traits\HandleAvatars;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class MuftiController extends Controller
 {
+    use HandleAvatars;
     public function dashboard()
     {
         $user = Auth::user();
@@ -175,26 +179,31 @@ class MuftiController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'mobile'   => ['nullable', 'string', 'max:20'],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'avatar'   => ['nullable', 'image', 'max:2048'], // Max 2MB
+            'email'       => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'mobile'      => ['nullable', 'string', 'max:20'],
+            'password'    => ['nullable', 'string', 'min:8', 'confirmed'],
+            'avatar_data' => ['nullable', 'string'], // Base64 from Cropper
         ]);
 
         $user->email = $request->email;
         $user->mobile = $request->mobile;
 
         if ($request->filled('password')) {
-            $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+            $user->password = Hash::make($request->password);
         }
 
-        if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = $path;
+        $msg = 'Profile updated successfully.';
+
+        if ($request->filled('avatar_data')) {
+            // Store as PENDING for admin review
+            $path = $this->processAndStoreAvatar($request->avatar_data, $user->id, true);
+            if ($path) {
+                $msg = 'Profile updated. Your new photo has been submitted for admin review.';
+            }
         }
 
         $user->save();
 
-        return redirect()->route('mufti.profile')->with('success', 'Profile updated successfully.');
+        return redirect()->route('mufti.profile')->with('success', $msg);
     }
 }

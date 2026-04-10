@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
+Route::get('/team', [HomeController::class, 'team'])->name('team');
 
 // Fatwa Archive
 Route::get('/fatwa-archive', [FatwaController::class, 'index'])->name('fatwa.archive');
@@ -119,6 +120,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/muftis/{user}', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'destroy'])->name('muftis.destroy');
     Route::patch('/muftis/{user}/toggle-status', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'toggleStatus'])->name('muftis.toggle-status');
     Route::get('/muftis/{user}/activity', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'activity'])->name('muftis.activity');
+    Route::post('/muftis/{user}/approve-avatar', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'approveAvatar'])->name('muftis.approve-avatar');
+    Route::post('/muftis/{user}/reject-avatar', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'rejectAvatar'])->name('muftis.reject-avatar');
 
     // Questioner Management
     Route::get('/questioners', [\App\Http\Controllers\Admin\QuestionerController::class, 'index'])->name('questioners.index');
@@ -132,6 +135,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/mail-management', [MailManagementController::class, 'index'])->name('mail-management.index');
     Route::get('/mail-management/{mufti}', [MailManagementController::class, 'show'])->name('mail-management.show');
     Route::post('/mail-management/{mufti}/send', [MailManagementController::class, 'sendNow'])->name('mail-management.send');
+
+    // Real-time API
+    Route::get('/api/live-stats', [DashboardController::class, 'liveUsersApi'])->name('live-stats.api');
 });
 
 /*

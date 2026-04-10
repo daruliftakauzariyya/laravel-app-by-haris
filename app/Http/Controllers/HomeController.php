@@ -7,6 +7,7 @@ use App\Models\Question;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactFormMail;
+use App\Models\User;
 
 class HomeController extends Controller
 {
@@ -45,5 +46,16 @@ class HomeController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to send message: ' . $e->getMessage())->withInput();
         }
+    }
+
+    public function team()
+    {
+        $muftis = User::role('mufti')
+            ->where('is_active', true)
+            ->withCount(['muftiAnswers', 'publishedFatwas'])
+            ->get()
+            ->sortByDesc('published_fatwas_count');
+
+        return view('team', compact('muftis'));
     }
 }

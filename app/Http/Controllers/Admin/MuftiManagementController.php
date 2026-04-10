@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Traits\HandleAvatars;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules;
 
 class MuftiManagementController extends Controller
 {
+    use HandleAvatars;
     /** List all scholars with the 'mufti' role */
     public function index()
     {
@@ -109,6 +112,16 @@ class MuftiManagementController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
+        // Handle Admin Direct Upload
+        if ($request->filled('avatar_data')) {
+            $path = $this->processAndStoreAvatar($request->avatar_data, $user->id);
+            if ($path) {
+                $data['avatar'] = $path;
+                // Clear any pending avatar if admin uploads directly
+                Storage::disk('public')->delete("avatars/pending_{$user->id}.jpg");
+            }
+        }
+
         $user->update($data);
 
         return redirect()->route('admin.muftis.index')->with('success', 'Mufti profile updated successfully.');
@@ -194,6 +207,36 @@ class MuftiManagementController extends Controller
         // Normalize score to 100 base if very high, or just show as index
         $work_score = round($score);
 
-        return view('admin.muftis.activity', compact('user', 'stats', 'topics_count', 'likes', 'views', 'active_track', 'work_score', 'avg_days'));
+        $pendingAvatar = Storage::disk('public')->exists("avatars/pending_{$user->id}.jpg") 
+            ? asset("storage/avatars/pending_{$user->id}.jpg") 
+            : null;
+
+        return view('admin.muftis.activity', compact('user', 'stats', 'topics_count', 'likes', 'views', 'active_track', 'work_score', 'avg_days', 'pendingAvatar'));
+    }
+
+    /**
+     * Approve a pending avatar submitted by a Mufti
+     */
+    public function approveAvatar(User $user)
+    {
+        $pendingFile = "avatars/pending_{$user->id}.jpg";
+        $finalFile = "avatars/{$user->id}.jpg";
+
+        if (Storage::disk('public')->exists($pendingFile)) {
+            Storage::disk('public')->move($pendingFile, $finalFile);
+            $user->update(['avatar' => "storage/{$finalFile}"]);
+            return back()->with('success', 'Profile photo approved successfully.');
+        }
+
+        return back()->with('error', 'No pending photo found.');
+    }
+
+    /**
+     * Reject/Delete a pending avatar
+     */
+    public function rejectAvatar(User $user)
+    {
+        Storage::disk('public')->delete("avatars/pending_{$user->id}.jpg");
+        return back()->with('success', 'Pending photo removed.');
     }
 }

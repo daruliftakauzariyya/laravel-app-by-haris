@@ -27,6 +27,8 @@ class DashboardController extends Controller
             'published' => Fatwa::count(),
             'total_reads' => (int) Fatwa::sum('views'),
             'questioners' => User::whereHas('questions')->count(),
+            'live_by_ip'  => PortalVisitorLog::getLiveUsersCountByIp(),
+            'live_by_identity' => PortalVisitorLog::getLiveUsersCountByIdentity(),
         ];
 
         // Most popular category (by published fatwas)
@@ -153,5 +155,16 @@ class DashboardController extends Controller
         }
 
         return back()->with('success', 'Site settings updated successfully.');
+    }
+
+    /**
+     * REST API for real-time live users polling
+     */
+    public function liveUsersApi()
+    {
+        return response()->json([
+            'byIp' => PortalVisitorLog::getLiveUsersCountByIp(),
+            'byIdentity' => PortalVisitorLog::getLiveUsersCountByIdentity(),
+        ]);
     }
 }

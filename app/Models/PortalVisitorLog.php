@@ -21,13 +21,10 @@ class PortalVisitorLog extends Model
      */
     public static function logVisit($ip, $url, $userId = null)
     {
-        // Don't log localhost/testing IPs
-        if (in_array($ip, ['127.0.0.1', '::1'])) {
-            return;
-        }
+        // Log all visits, but skip geo-lookup for local/testing IPs
+        $isLocal = in_array($ip, ['127.0.0.1', '::1']);
 
-        // Cache the IP lookup for 24 hours to avoid rate limits
-        $geoData = Cache::remember("ip_geo_{$ip}", 86400, function () use ($ip) {
+        $geoData = $isLocal ? null : Cache::remember("ip_geo_{$ip}", 86400, function () use ($ip) {
             try {
                 // Free API, rate limited but usually sufficient for general tracking
                 $response = Http::timeout(2)->get("http://ip-api.com/json/{$ip}");
@@ -124,5 +121,29 @@ class PortalVisitorLog extends Model
         }
 
         return $totalSeconds;
+    }
+
+    /**
+     * Method 1: Count unique IP addresses in the last 15 minutes.
+     */
+    public static function getLiveUsersCountByIp()
+    {
+        return self::where('created_at', '>=', now()->subMinutes(15))
+            ->distinct('ip_address')
+            ->count('ip_address');
+    }
+
+    /**
+     * Method 2: Count unique identities (User ID if logged in, otherwise IP).
+     */
+    public static function getLiveUsersCountByIdentity()
+    {
+        $logs = self::where('created_at', '>=', now()->subMinutes(15))
+            ->select('ip_address', 'user_id')
+            ->get();
+
+        return $logs->groupBy(function ($log) {
+            return $log->user_id ?? $log->ip_address;
+        })->count();
     }
 }
