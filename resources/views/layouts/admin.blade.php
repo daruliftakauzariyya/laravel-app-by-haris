@@ -351,6 +351,10 @@
                 class="nav-link {{ request()->routeIs('admin.questioners*') ? 'active' : '' }}">
                 <i class="bi bi-people"></i> Questioners
             </a>
+            <a href="{{ route('admin.featured-rules.index') }}"
+                class="nav-link {{ request()->routeIs('admin.featured-rules*') ? 'active' : '' }}">
+                <i class="bi bi-stars"></i> Featured Fatwas
+            </a>
             <div class="sidebar-section">System Control</div>
             <a href="{{ route('admin.visitor.insights') }}"
                 class="nav-link {{ request()->routeIs('admin.visitor.insights') ? 'active' : '' }}">

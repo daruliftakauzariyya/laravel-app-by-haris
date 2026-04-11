@@ -150,6 +150,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Real-time API
     Route::get('/api/live-stats', [DashboardController::class, 'liveUsersApi'])->name('live-stats.api');
+
+    // Featured Fatwas Rules
+    Route::get('/featured-rules', [\App\Http\Controllers\Admin\FeaturedRuleController::class, 'index'])->name('featured-rules.index');
+    Route::get('/featured-rules/create', [\App\Http\Controllers\Admin\FeaturedRuleController::class, 'create'])->name('featured-rules.create');
+    Route::post('/featured-rules', [\App\Http\Controllers\Admin\FeaturedRuleController::class, 'store'])->name('featured-rules.store');
+    Route::get('/featured-rules/{featuredRule}/edit', [\App\Http\Controllers\Admin\FeaturedRuleController::class, 'edit'])->name('featured-rules.edit');
+    Route::put('/featured-rules/{featuredRule}', [\App\Http\Controllers\Admin\FeaturedRuleController::class, 'update'])->name('featured-rules.update');
+    Route::delete('/featured-rules/{featuredRule}', [\App\Http\Controllers\Admin\FeaturedRuleController::class, 'destroy'])->name('featured-rules.destroy');
+    Route::patch('/featured-rules/{featuredRule}/toggle', [\App\Http\Controllers\Admin\FeaturedRuleController::class, 'toggleActive'])->name('featured-rules.toggle');
 });
 
 /*
@@ -170,6 +179,3 @@ Route::middleware(['auth', 'role:mufti'])->prefix('mufti')->name('mufti.')->grou
     Route::get('/questions/{question}/history', [QuestionAdminController::class, 'history'])->name('questions.history');
     Route::post('/questions/{question}/history/comment', [QuestionAdminController::class, 'addHistoryComment'])->name('questions.history.comment');
 });
-
-
-

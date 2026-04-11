@@ -87,6 +87,113 @@
  </div>
 </section>
 
+{{-- Latest Fatwas --}}
+@if($latestFatwas->count())
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="fw-bold mb-1 text-green"><i class="bi bi-journal-bookmark me-2"></i>Recent Public Fatwas</h2>
+                <p class="text-muted mb-0 small">Browse the latest Islamic rulings from our scholars</p>
+            </div>
+            <a href="{{ route('fatwa.archive') }}" class="btn btn-outline-success btn-sm px-4 d-none d-md-inline-flex">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            @foreach($latestFatwas as $fatwa)
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ route('fatwa.show', $fatwa) }}" class="text-decoration-none">
+                    <div class="fatwa-card h-100">
+                        <div class="fatwa-thumb">
+                            <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}"
+                                 alt="Fatwa"
+                                 onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
+                            <span class="madhab-badge">{{ $fatwa->question->madhab?->name ?? 'General' }}</span>
+                        </div>
+                        <div class="fatwa-body">
+                            <div class="fatwa-meta">
+                                <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category->name ?? 'General' }}</span>
+                                <span>{{ $fatwa->published_at?->format('d M Y') }}</span>
+                            </div>
+                            <h6 class="fatwa-title">{{ Str::limit(strip_tags($fatwa->question->title ?: $fatwa->question->body), 75) }}</h6>
+                            <p class="fatwa-excerpt">{{ Str::limit(strip_tags($fatwa->muftiAnswer->summary ?: $fatwa->muftiAnswer->full_answer), 95) }}</p>
+                            <div class="fatwa-footer">
+                                <i class="bi bi-person-circle text-muted flex-shrink-0"></i>
+                                <span class="fatwa-author">{{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}</span>
+                                <span class="like-count flex-shrink-0 text-danger small fw-semibold"><i class="bi bi-heart-fill me-1"></i>{{ number_format($fatwa->likes) }}</span>
+                                <span class="read-more-btn flex-shrink-0">Read More <i class="bi bi-arrow-right"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            @endforeach
+        </div>
+        <div class="text-center mt-5 d-md-none">
+            <a href="{{ route('fatwa.archive') }}" class="btn btn-outline-success px-5">View Full Archive</a>
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- ══════════════════════════════════════════════
+     Most Useful & Readable Fatwas (Smart Featured)
+     ══════════════════════════════════════════════ --}}
+@if($featuredData['fatwas']->isNotEmpty())
+<section class="py-5" style="background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <span class="featured-eyebrow">✦ Curated for You</span>
+                <h2 class="fw-bold mb-1" style="color: #1e293b;">
+                    <i class="bi bi-stars me-2" style="color:#c9a84c;"></i>{{ $featuredData['label'] }}
+                </h2>
+                <p class="text-muted mb-0 small">{{ $featuredData['sub'] }}</p>
+            </div>
+            <a href="{{ route('fatwa.archive') }}" class="btn btn-outline-brand btn-sm px-4 d-none d-md-inline-flex rounded-pill">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            @foreach($featuredData['fatwas'] as $fatwa)
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ route('fatwa.show', $fatwa) }}" class="text-decoration-none">
+                    <div class="fatwa-card fatwa-card-featured h-100">
+                        <div class="fatwa-thumb">
+                            <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}"
+                                 alt="Fatwa"
+                                 onerror="this.src='https://placehold.co/400x180/295a75/fff?text=Fatwa'">
+                            <span class="madhab-badge" style="background:#295a75;">{{ $fatwa->question->madhab?->name ?? 'General' }}</span>
+                            @if($fatwa->views > 50)
+                            <span class="featured-hot-badge"><i class="bi bi-fire me-1"></i>Popular</span>
+                            @endif
+                        </div>
+                        <div class="fatwa-body">
+                            <div class="fatwa-meta">
+                                <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category->name ?? 'General' }}</span>
+                                <span><i class="bi bi-eye me-1"></i>{{ number_format($fatwa->views) }}</span>
+                            </div>
+                            <h6 class="fatwa-title">{{ Str::limit(strip_tags($fatwa->question->title ?: $fatwa->question->body), 75) }}</h6>
+                            <p class="fatwa-excerpt">{{ Str::limit(strip_tags($fatwa->muftiAnswer->summary ?: $fatwa->muftiAnswer->full_answer), 95) }}</p>
+                            <div class="fatwa-footer">
+                                <i class="bi bi-person-circle text-muted flex-shrink-0"></i>
+                                <span class="fatwa-author">{{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}</span>
+                                <span class="like-count flex-shrink-0 text-danger small fw-semibold"><i class="bi bi-heart-fill me-1"></i>{{ number_format($fatwa->likes) }}</span>
+                                <span class="read-more-btn flex-shrink-0">Read More <i class="bi bi-arrow-right"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
 {{-- Stats Section --}}
 <section class="py-5">
     <div class="container">
@@ -129,14 +236,12 @@
         <div class="bg-top"></div>
         <div class="bg-bottom"></div>
     </div>
-    
     <div class="container position-relative" style="z-index: 2;">
         <div class="text-center mb-5">
             <span class="faculty-eyebrow">Meet the Scholars</span>
             <h2 class="faculty-heading">Our Faculty <span class="text-brand-gold">&</span> Administration</h2>
             <p class="faculty-subheading mb-4">Guiding the institution with wisdom and authentic knowledge.</p>
         </div>
-
         <div class="row g-4 justify-content-center">
             @foreach([
                 ['name' => 'Muhammad Ibrahim',  'role' => 'Principal — KAUZARIYYA', 'img' => 'https://new.daruliftakauzariyya.com/assets/img/team/principal.png'],
@@ -147,9 +252,7 @@
             <div class="col-6 col-md-3">
                 <div class="faculty-card-modern">
                     <div class="faculty-photo-wrapper">
-                        <img src="{{ $member['img'] }}" 
-                             alt="{{ $member['name'] }}" 
-                             class="faculty-photo"
+                        <img src="{{ $member['img'] }}" alt="{{ $member['name'] }}" class="faculty-photo"
                              onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($member['name']) }}&background=E5E7EB&color=295A75&size=300&bold=true'">
                     </div>
                     <div class="faculty-content text-center">
@@ -162,72 +265,6 @@
         </div>
     </div>
 </section>
-
-{{-- Latest Fatwas --}}
-@if($latestFatwas->count())
-<section class="py-5">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-5">
-            <div>
-                <h2 class="fw-bold mb-1 text-green"><i class="bi bi-journal-bookmark me-2"></i>Recent Public Fatwas</h2>
-                <p class="text-muted mb-0 small">Browse the latest Islamic rulings from our scholars</p>
-            </div>
-            <a href="{{ route('fatwa.archive') }}" class="btn btn-outline-success btn-sm px-4 d-none d-md-inline-flex">
-                View All <i class="bi bi-arrow-right ms-1"></i>
-            </a>
-        </div>
-
-        <div class="row g-4">
-            @foreach($latestFatwas as $fatwa)
-            <div class="col-md-6 col-lg-4">
-                <a href="{{ route('fatwa.show', $fatwa) }}" class="text-decoration-none">
-                    <div class="fatwa-card h-100">
-                        {{-- Thumbnail --}}
-                        <div class="fatwa-thumb">
-                            <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}"
-                                 alt="Fatwa"
-                                 onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
-                            <span class="madhab-badge">{{ $fatwa->question->madhab }}</span>
-                        </div>
-
-                        {{-- Card Body --}}
-                        <div class="fatwa-body">
-                            <div class="fatwa-meta">
-                                <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category->name ?? 'General' }}</span>
-                                <span>{{ $fatwa->published_at?->format('d M Y') }}</span>
-                            </div>
-
-                            <h6 class="fatwa-title">
-                                {{ Str::limit(strip_tags($fatwa->question->title ?: $fatwa->question->body), 75) }}
-                            </h6>
-
-                            <p class="fatwa-excerpt">
-                                {{ Str::limit(strip_tags($fatwa->muftiAnswer->summary ?: $fatwa->muftiAnswer->full_answer), 95) }}
-                            </p>
-
-                            <div class="fatwa-footer">
-                                <i class="bi bi-person-circle text-muted flex-shrink-0"></i>
-                                <span class="fatwa-author">
-                                    {{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
-                                </span>
-                                <span class="like-count flex-shrink-0 text-danger small fw-semibold">
-                                    <i class="bi bi-heart-fill me-1"></i>{{ number_format($fatwa->likes) }}
-                                </span>
-                                <span class="read-more-btn flex-shrink-0">Read More <i class="bi bi-arrow-right"></i></span>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            @endforeach
-        </div>
-
-        <div class="text-center mt-5 d-md-none">
-            <a href="{{ route('fatwa.archive') }}" class="btn btn-outline-success px-5">View Full Archive</a>
-        </div>
-    </div>
-</section>
-@endif
 
 {{-- How It Works --}}
 <section class="py-5 bg-white">
@@ -259,6 +296,20 @@
 @push('styles')
 <style>
     .transition-all { transition: all 0.3s ease; }
+
+    /* Featured Section */
+    .featured-eyebrow {
+        display: inline-block; font-size: 0.72rem; font-weight: 800;
+        letter-spacing: 2px; text-transform: uppercase; color: #c9a84c;
+        margin-bottom: 8px;
+    }
+    .fatwa-card-featured:hover { border-color: #bfdbfe !important; box-shadow: 0 12px 30px rgba(41,90,117,0.12); }
+    .featured-hot-badge {
+        position: absolute; top: 12px; right: 12px;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #fff; font-size: 0.68rem; font-weight: 700;
+        padding: 3px 9px; border-radius: 20px; letter-spacing: 0.4px;
+    }
     .hover-shadow:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important; }
 
     /* ============================================

@@ -4,6 +4,7 @@ const ASSETS_TO_CACHE = [
   '/assets/css/variables.css',
   '/assets/css/app-fonts.css',
   '/assets/logo/fevi.png',
+  '/assets/logo/Darul-Ifta-Logo.png',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css'
 ];
@@ -54,10 +55,10 @@ self.addEventListener('fetch', (event) => {
       return response || fetch(event.request).then((fetchResponse) => {
         // Cache new assets on the fly
         if (event.request.url.includes('/assets/') || event.request.url.includes('cdn')) {
-           return caches.open(CACHE_NAME).then((cache) => {
-             cache.put(event.request, fetchResponse.clone());
-             return fetchResponse;
-           });
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, fetchResponse.clone());
+            return fetchResponse;
+          });
         }
         return fetchResponse;
       });

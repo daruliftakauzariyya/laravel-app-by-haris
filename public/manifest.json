@@ -14,7 +14,7 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/assets/logo/fevi.png",
+      "src": "/assets/logo/Darul-Ifta-Logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -22,7 +22,7 @@
   ],
   "screenshots": [
     {
-      "src": "/assets/logo/fevi.png",
+      "src": "/assets/logo/Darul-Ifta-Logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }

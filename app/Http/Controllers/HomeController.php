@@ -8,22 +8,47 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactFormMail;
 use App\Models\User;
+use App\Models\PortalVisitorLog;
+use App\Services\FeaturedFatwaService;
+use App\Helpers\HijriHelper;
 
 class HomeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $stats = [
             'total'     => Question::count(),
             'published' => Fatwa::count(),
             'muftis'    => \App\Models\User::role('mufti')->count(),
-            'visitors'  => Fatwa::sum('views') + 1250, // Added base seed for realism
+            'visitors'  => Fatwa::sum('views') + 1250,
         ];
-        $latestFatwas = Fatwa::with(['question', 'muftiAnswer.mufti'])
+
+        $latestFatwas = Fatwa::with(['question.madhab', 'question.category', 'muftiAnswer.mufti'])
                              ->latest('published_at')
                              ->take(6)
                              ->get();
-        return view('home', compact('stats', 'latestFatwas'));
+
+        // Detect visitor country from IP via PortalVisitorLog
+        $visitorIp      = $request->ip();
+        $visitorCountry = PortalVisitorLog::where('ip_address', $visitorIp)
+            ->whereNotNull('country_code')
+            ->latest()
+            ->value('country_code') ?? '';
+
+        // Get current Hijri date
+        $hijriParts = explode('-', HijriHelper::now('n-j')); // month-day
+        $hijriMonth = (int) ($hijriParts[0] ?? 0);
+        $hijriDay   = (int) ($hijriParts[1] ?? 0);
+
+        // Resolve featured fatwas using smart rules (graceful fallback on DB error)
+        try {
+            $featuredData = (new FeaturedFatwaService())->resolve($visitorCountry, $hijriMonth, $hijriDay);
+        } catch (\Exception $e) {
+            // Table may not exist yet — hide the section
+            $featuredData = ['label' => '', 'sub' => '', 'fatwas' => collect(), 'rule' => null];
+        }
+
+        return view('home', compact('stats', 'latestFatwas', 'featuredData'));
     }
 
     public function contact()
