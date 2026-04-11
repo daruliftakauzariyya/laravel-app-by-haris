@@ -92,7 +92,7 @@
                         <div class="fw-bold text-dark small">{{ Str::limit(strip_tags($q->title ?: $q->body), 55) }}</div>
                         <div class="x-small text-muted">{{ Str::limit(strip_tags($q->body), 80) }}</div>
                     </td>
-                    <td><small class="text-muted">{{ $q->madhab == 'Shafii' ? "Shafi'i" : $q->madhab }}</small></td>
+                    <td><small class="text-muted">{{ $q->madhab?->name ?? '—' }}</small></td>
                     <td><small class="text-muted">{{ $q->created_at->format('d M Y') }}</small></td>
                     <td>
                         <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2">

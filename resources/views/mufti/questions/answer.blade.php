@@ -11,7 +11,7 @@
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-0 py-2 d-flex justify-content-between">
                 <h6 class="mb-0 fw-bold"><i class="bi bi-question-circle me-2"></i>Question — {{ $question->question_id }}</h6>
-                <span class="badge" style="background:#1a7a4a;">{{ $question->madhab == 'Shafii' ? "Shafi'i" : $question->madhab }}</span>
+                <span class="badge" style="background:#1a7a4a;">{{ $question->madhab?->name ?? 'General' }}</span>
             </div>
             <div class="card-body">
                 @if($question->title)<h6 class="fw-bold mb-3">{{ strip_tags($question->title) }}</h6>@endif

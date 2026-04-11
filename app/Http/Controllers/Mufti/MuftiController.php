@@ -70,7 +70,7 @@ class MuftiController extends Controller
             'approved' => Question::whereHas('fatwa', fn($f) => $f->where('checked_approved_by', $user->id))->count(),
         ];
 
-        $query = Question::with('user', 'fatwa.verifiers', 'category')->latest();
+        $query = Question::with('user', 'fatwa.verifiers', 'category', 'madhab')->latest();
 
         if ($tab == 'verified') {
             $query->whereHas('fatwa.verifiers', fn($v) => $v->where('users.id', $user->id));
@@ -101,7 +101,7 @@ class MuftiController extends Controller
     {
         abort_unless($question->assigned_mufti_id === Auth::id(), 403);
         $question->load([
-            'user', 'files', 'muftiAnswer.supportingReferences',
+            'user', 'files', 'madhab', 'muftiAnswer.supportingReferences',
             'activityLogs' => fn($q) => $q->orderBy('event_at', 'desc')
         ]);
         return view('mufti.questions.answer', compact('question'));
