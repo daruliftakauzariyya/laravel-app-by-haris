@@ -94,4 +94,13 @@ Route::middleware('auth:sanctum')->group(function () {
         $questions = \App\Models\Question::where('user_id', $request->user()->id)->latest()->paginate(20);
         return response()->json(['status' => 'success', 'data' => $questions]);
     });
+
+    // Scholar (Mufti) Routes
+    Route::middleware('role:mufti')->prefix('mufti')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Api\MuftiApiController::class, 'dashboard']);
+        Route::get('/questions', [\App\Http\Controllers\Api\MuftiApiController::class, 'questions']);
+        Route::get('/questions/{question}', [\App\Http\Controllers\Api\MuftiApiController::class, 'showQuestion']);
+        Route::post('/questions/{question}/answer', [\App\Http\Controllers\Api\MuftiApiController::class, 'submitAnswer']);
+        Route::get('/profile', [\App\Http\Controllers\Api\MuftiApiController::class, 'profile']);
+    });
 });

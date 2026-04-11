@@ -143,6 +143,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/system-settings', [DashboardController::class, 'systemControl'])->name('settings.system');
     Route::post('/settings/update', [DashboardController::class, 'updateSettings'])->name('settings.update');
 
+    // Maintenance
+    Route::get('/maintenance/clear-cache', [DashboardController::class, 'clearCache'])->name('maintenance.clear-cache');
+
     // Mailing Management (Sprite)
     Route::get('/mail-management', [MailManagementController::class, 'index'])->name('mail-management.index');
     Route::get('/mail-management/{mufti}', [MailManagementController::class, 'show'])->name('mail-management.show');

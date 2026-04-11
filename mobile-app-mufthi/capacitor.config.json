@@ -1,0 +1,6 @@
+{
+  "appId": "com.darulifta.mufthiapp",
+  "appName": "Mufti Portal",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

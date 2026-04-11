@@ -14,7 +14,7 @@
         </div>
         <div class="carousel-inner h-100">
             <div class="carousel-item active h-100">
-                <div class="slider-image" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{{ asset('assets/img/slider/center.png') }}');"></div>
+                <div class="slider-image" fetchpriority="high" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{{ asset('assets/img/slider/center.png') }}');"></div>
                 <div class="carousel-caption">
                     <p class="slider-arabic">بسم الله الرحمن الرحيم</p>
                     <h1 class="display-3 fw-bold">Darul Ifta Kauzariyya</h1>
@@ -64,7 +64,7 @@
                         <button type="submit" class="btn btn-brand px-4 py-2 rounded-pill fw-bold">Search</button>
                     </div>
                 </form>
-                {{-- Quick Access Tags --}}
+                    {{-- Quick Access Tags --}}
                 <div class="search-tags mt-3 justify-content-center">
                     <span class="tag-label me-2">Quick:</span>
                     <a href="{{ route('fatwa.archive', ['search' => 'salah']) }}" class="search-tag-v2">Salah</a>
@@ -83,8 +83,6 @@
             </div>
         </div>
     </div>
-</section>
- </div>
 </section>
 
 {{-- Latest Fatwas --}}
@@ -108,7 +106,7 @@
                     <div class="fatwa-card h-100">
                         <div class="fatwa-thumb">
                             <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}"
-                                 alt="Fatwa"
+                                 alt="Fatwa" loading="lazy"
                                  onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
                             <span class="madhab-badge">{{ $fatwa->question->madhab?->name ?? 'General' }}</span>
                         </div>
@@ -164,7 +162,7 @@
                     <div class="fatwa-card fatwa-card-featured h-100">
                         <div class="fatwa-thumb">
                             <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}"
-                                 alt="Fatwa"
+                                 alt="Fatwa" loading="lazy"
                                  onerror="this.src='https://placehold.co/400x180/295a75/fff?text=Fatwa'">
                             <span class="madhab-badge" style="background:#295a75;">{{ $fatwa->question->madhab?->name ?? 'General' }}</span>
                             @if($fatwa->views > 50)
@@ -252,7 +250,7 @@
             <div class="col-6 col-md-3">
                 <div class="faculty-card-modern">
                     <div class="faculty-photo-wrapper">
-                        <img src="{{ $member['img'] }}" alt="{{ $member['name'] }}" class="faculty-photo"
+                        <img src="{{ $member['img'] }}" alt="{{ $member['name'] }}" class="faculty-photo" loading="lazy"
                              onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($member['name']) }}&background=E5E7EB&color=295A75&size=300&bold=true'">
                     </div>
                     <div class="faculty-content text-center">
@@ -288,6 +286,11 @@
                         <div class="process-number">{{ $step }}</div>
                         <i class="bi {{ $icon }}"></i>
                     </div>
+                    <h5 class="fw-bold mb-2">{{ $title }}</h5>
+                    <p class="small text-muted mb-0">{{ $desc }}</p>
+                </div>
+            </div>
+            @endforeach
         </div>
     </div>
 </section>

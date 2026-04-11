@@ -32,6 +32,12 @@
         })(window, document, "clarity", "script", "w8gk6uy65v");
     </script>
     <title>@yield('title', 'Darul Ifta Portal') — Kauzariyya</title>
+    
+    {{-- High-Priority Preloads --}}
+    @if(request()->routeIs('home'))
+        <link rel="preload" as="image" href="{{ asset('assets/img/slider/center.png') }}" fetchpriority="high">
+    @endif
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,8 +45,76 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Amiri:wght@400;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/css/app-fonts.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/variables.css') }}">
+    
+    {{-- Inline Critical CSS (Variables & Fonts) --}}
+    <style>
+        :root {
+            --brand-blue: #295A75;
+            --brand-blue-dark: #1D4054;
+            --brand-red: #701F18;
+            --brand-gold: #c9a84c;
+            --brand-gold-dark: #a8883a;
+            --primary-color: var(--brand-blue);
+            --secondary-color: var(--brand-gold);
+            --accent-color: var(--brand-red);
+            --bg-light: #F8F4F2;
+            --bg-white: #ffffff;
+            --surface-light: #ffffff;
+            --text-main: #1a1a1a;
+            --text-muted: #6b7280;
+            --text-on-brand: #ffffff;
+            --header-height: 90px;
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.08);
+            --transition-base: all 0.3s ease;
+        }
+
+        /* Font Registration */
+        @font-face {
+            font-family: 'Google Sans Eng';
+            src: url('{{ asset("assets/font/Google_Sans_eng/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.ttf") }}') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Noto Naskh Arabic';
+            src: url('{{ asset("assets/font/Noto_Naskh_Arabic/NotoNaskhArabic-VariableFont_wght.ttf") }}') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Noto Nastaliq Urdu';
+            src: url('{{ asset("assets/font/Noto_Nastaliq_Urdu/NotoNastaliqUrdu-VariableFont_wght.ttf") }}') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Noto Serif Malayalam';
+            src: url('{{ asset("assets/font/Noto_Serif_Malayalam/NotoSerifMalayalam-VariableFont_wght.ttf") }}') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        /* Typography Utilities */
+        .font-eng       { font-family: 'Google Sans Eng', 'Inter', sans-serif !important; }
+        .font-arabic    { font-family: 'Noto Naskh Arabic', serif !important; direction: rtl; text-align: right; }
+        .font-urdu      { font-family: 'Noto Nastaliq Urdu', serif !important; direction: rtl; text-align: right; }
+        .font-malayalam { font-family: 'Noto Serif Malayalam', serif !important; }
+        .ar-text        { font-family: 'Noto Naskh Arabic', serif !important; direction: rtl; text-align: right; }
+        .ur-text        { font-family: 'Noto Nastaliq Urdu', serif !important; direction: rtl; text-align: right; line-height: 2.2; }
+        .ml-text        { font-family: 'Noto Serif Malayalam', serif !important; }
+        .en-text        { font-family: 'Google Sans Eng', 'Inter', sans-serif !important; }
+        .inter-font     { font-family: 'Google Sans Eng', 'Inter', sans-serif !important; }
+        .noto-serif-malayalam-font { font-family: 'Noto Serif Malayalam', serif !important; }
+        .font-urdu p, .ur-text p  { line-height: 2.4 !important; }
+        .font-arabic p, .ar-text p { line-height: 2 !important; }
+    </style>
 
     {{-- Favicon --}}
     <link rel="icon" type="image/png" href="{{ asset('assets/logo/fevi.png') }}">

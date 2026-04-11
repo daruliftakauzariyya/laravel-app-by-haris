@@ -62,8 +62,12 @@
         @foreach([
             ['Total Questions', $stats['total'], 'bi-journals', 'linear-gradient(135deg, #1e293b, #0f172a)'],
             ['Critical Pending', $stats['pending'], 'bi-exclamation-octagon', 'linear-gradient(135deg, #ef4444, #b91c1c)'],
+            ['Assigned Tasks', $stats['assigned'], 'bi-person-gear', 'linear-gradient(135deg, #f59e0b, #d97706)'],
+            ['Completed Answers', $stats['answered'], 'bi-check2-all', 'linear-gradient(135deg, #3b82f6, #2563eb)'],
             ['Published Portals', $stats['published'], 'bi-patch-check-fill', 'linear-gradient(135deg, #059669, #065f46)'],
-            ['Global Reach', $stats['total_reads'], 'bi-activity', 'linear-gradient(135deg, #8b5cf6, #5b21b6)'],
+            ['Knowledge Views', $stats['total_reads'], 'bi-activity', 'linear-gradient(135deg, #8b5cf6, #5b21b6)'],
+            ['Active Users', $stats['questioners'], 'bi-people-fill', 'linear-gradient(135deg, #ec4899, #be185d)'],
+            ['Verified Signals', $stats['live_by_identity'], 'bi-fingerprint', 'linear-gradient(135deg, #64748b, #334155)'],
         ] as [$label, $val, $icon, $bg])
         <div class="col-6 col-xl-3">
             <div class="glow-stat shadow-sm h-100" style="background:{{ $bg }};">
@@ -253,5 +257,4 @@ async function fetchLiveUsers() {
 setInterval(fetchLiveUsers, 10000);
 </script>
 @endpush
-@endsection
 @endsection
