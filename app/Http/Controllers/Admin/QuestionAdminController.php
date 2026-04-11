@@ -24,7 +24,7 @@ class QuestionAdminController extends Controller
     /** List all questions with filters */
     public function index(Request $request)
     {
-        $query = Question::with('user', 'category', 'assignedMufti')->latest();
+        $query = Question::with('user', 'category', 'assignedMufti', 'madhab')->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);

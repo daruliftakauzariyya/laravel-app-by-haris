@@ -43,7 +43,15 @@ class LoginController extends Controller
                 return redirect()->route('profile.complete');
             }
 
-            return redirect()->intended($this->redirectBasedOnRoleUrl($user));
+            $defaultUrl = $this->redirectBasedOnRoleUrl($user);
+
+            // Prevent redirecting to API/JSON endpoints after login
+            $intendedUrl = session()->pull('url.intended', $defaultUrl);
+            if (str_contains($intendedUrl, '/api/') || str_contains($intendedUrl, '.json')) {
+                $intendedUrl = $defaultUrl;
+            }
+
+            return redirect($intendedUrl);
         }
 
         return back()->withErrors([
