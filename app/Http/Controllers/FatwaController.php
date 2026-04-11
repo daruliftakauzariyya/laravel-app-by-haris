@@ -72,7 +72,7 @@ class FatwaController extends Controller
             'muftiAnswer.mufti', 
             'muftiAnswer.supportingReferences', 
             'publisher',
-            'verifiedBy',
+            'verifiers',
             'checkedApprovedBy'
         ]);
 

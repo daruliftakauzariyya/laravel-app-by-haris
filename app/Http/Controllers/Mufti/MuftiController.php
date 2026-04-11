@@ -26,7 +26,7 @@ class MuftiController extends Controller
                             ->where('status', 'assigned')
                             ->count();
         $answered = MuftiAnswer::where('mufti_id', $user->id)->count();
-        $recent   = Question::where('assigned_mufti_id', $user->id)->latest()->take(5)->get();
+        $recent   = Question::with('madhab')->where('assigned_mufti_id', $user->id)->latest()->take(5)->get();
 
         // Performance Score Calculation
         $totalEver = Question::where('assigned_mufti_id', $user->id)->count();
@@ -36,12 +36,11 @@ class MuftiController extends Controller
             $completionRate = ($answered / $totalEver) * 70;
 
             // 2. Speed Factor (0-20 pts)
-            // Average days to answer
             $avgDays = MuftiAnswer::where('mufti_id', $user->id)
                 ->join('questions', 'mufti_answers.question_id', '=', 'questions.id')
                 ->whereNotNull('questions.assigned_at')
                 ->selectRaw('AVG(DATEDIFF(mufti_answers.submitted_at, questions.assigned_at)) as avg_days')
-                ->value('avg_days') ?: 5; // Default to 5 days if no data
+                ->value('avg_days') ?: 5;
             
             $speedPoints = 0;
             if ($avgDays <= 2) $speedPoints = 20;
@@ -50,7 +49,6 @@ class MuftiController extends Controller
             else $speedPoints = 5;
 
             // 3. Volume Bonus (0-10 pts)
-            // Rewards starting from 5 fatwas, max at 50
             $volumePoints = min(10, ($answered / 5));
 
             $score = round($completionRate + $speedPoints + $volumePoints);
@@ -68,14 +66,14 @@ class MuftiController extends Controller
         // Tab counts for the badge pills
         $counts = [
             'assigned' => Question::where('assigned_mufti_id', $user->id)->where('status', 'assigned')->count(),
-            'verified' => Question::whereHas('fatwa', fn($f) => $f->where('verified_by', $user->id))->count(),
+            'verified' => Question::whereHas('fatwa.verifiers', fn($v) => $v->where('users.id', $user->id))->count(),
             'approved' => Question::whereHas('fatwa', fn($f) => $f->where('checked_approved_by', $user->id))->count(),
         ];
 
-        $query = Question::with('user', 'fatwa', 'category')->latest();
+        $query = Question::with('user', 'fatwa.verifiers', 'category')->latest();
 
         if ($tab == 'verified') {
-            $query->whereHas('fatwa', fn($f) => $f->where('verified_by', $user->id));
+            $query->whereHas('fatwa.verifiers', fn($v) => $v->where('users.id', $user->id));
         } elseif ($tab == 'approved') {
             $query->whereHas('fatwa', fn($f) => $f->where('checked_approved_by', $user->id));
         } else {

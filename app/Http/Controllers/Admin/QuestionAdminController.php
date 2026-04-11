@@ -45,7 +45,8 @@ class QuestionAdminController extends Controller
         return view('admin.questions.index', compact('questions', 'muftis'));
     }
 
-    /** Show a single question detail */
+    public function show(Question $question)
+    {
         $question->load([
             'user', 'category', 'files', 'assignedMufti', 
             'muftiAnswer.supportingReferences',
@@ -69,7 +70,7 @@ class QuestionAdminController extends Controller
         $question->load([
             'user', 'category', 'assignedMufti',
             'muftiAnswer.mufti',
-            'fatwa.publisher', 'fatwa.verifiedBy', 'fatwa.checkedApprovedBy',
+            'fatwa.publisher', 'fatwa.verifiers', 'fatwa.checkedApprovedBy',
             'fatwa.userViews.user',
         ]);
 

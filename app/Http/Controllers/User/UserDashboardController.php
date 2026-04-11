@@ -96,7 +96,7 @@ class UserDashboardController extends Controller
             'muftiAnswer.reviewer',
             'muftiAnswer.supportingReferences',
             'fatwa.publisher',
-            'fatwa.verifiedBy',
+            'fatwa.verifiers',
             'fatwa.checkedApprovedBy',
         ]);
 

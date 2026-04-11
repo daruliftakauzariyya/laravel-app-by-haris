@@ -57,6 +57,13 @@
             font-family: 'Inter', sans-serif;
             background: var(--bg-light);
             color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        main {
+            flex: 1 0 auto;
         }
 
         /* Typography Utility Classes */
@@ -408,13 +415,6 @@
                     <i class="bi bi-envelope"></i> Contact Us
                 </a>
 
-                {{-- PWA Install Option --}}
-                <div class="px-3 mt-4" id="pwa-install-container-mobile" style="display: none;">
-                    <button id="pwa-install-btn-mobile" class="btn btn-gold w-100 py-3 rounded-4 shadow-sm" style="font-weight: 800; letter-spacing: 0.5px;">
-                        <i class="bi bi-download me-2"></i>Install Darul Ifta App
-                    </button>
-                    <p class="text-center x-small text-muted mt-2 mb-0">Faster access & offline support</p>
-                </div>
             </div>
 
             <div class="mobile-auth-section mt-auto">
@@ -471,7 +471,9 @@
     @endif
 
     {{-- Main content --}}
-    @yield('content')
+    <main>
+        @yield('content')
+    </main>
 
     {{-- Footer --}}
     <footer class="mt-5">
@@ -540,12 +542,6 @@
                         <p class="small mb-0"><a href="tel:+919495666777">+91 9495 666 777</a></p>
                     </div>
 
-                    {{-- PWA Footer Button --}}
-                    <div class="mt-4" id="pwa-install-container-desktop" style="display: none;">
-                        <button id="pwa-install-btn-desktop" class="btn btn-outline-gold btn-sm w-100 py-2 border-opacity-50">
-                            <i class="bi bi-download me-2"></i>Install App
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -563,45 +559,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // PWA Service Worker Registration & Install Logic
-        let deferredPrompt;
-        const installBtnMobile = document.getElementById('pwa-install-btn-mobile');
-        const installBtnDesktop = document.getElementById('pwa-install-btn-desktop');
-        const containerMobile = document.getElementById('pwa-install-container-mobile');
-        const containerDesktop = document.getElementById('pwa-install-container-desktop');
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('SW Registered', reg))
-                    .catch(err => console.log('SW Failed', err));
-            });
-        }
-
-        // Capture install prompt
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            if(containerMobile) containerMobile.style.display = 'block';
-            if(containerDesktop) containerDesktop.style.display = 'block';
-        });
-
-        const handleInstall = async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    if(containerMobile) containerMobile.style.display = 'none';
-                    if(containerDesktop) containerDesktop.style.display = 'none';
-                }
-                deferredPrompt = null;
-            }
-        };
-
-        if(installBtnMobile) installBtnMobile.addEventListener('click', handleInstall);
-        if(installBtnDesktop) installBtnDesktop.addEventListener('click', handleInstall);
-    </script>
     @stack('scripts')
 </body>
 

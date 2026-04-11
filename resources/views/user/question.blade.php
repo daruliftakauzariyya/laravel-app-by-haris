@@ -309,10 +309,10 @@
                     <span class="sig-value" style="color: #1a7a4a;">{{ $question->muftiAnswer->mufti->name }}</span>
                 </div>
 
-                @if($question->fatwa && $question->fatwa->verifiedBy)
+                @if($question->fatwa && $question->fatwa->verifiers->count() > 0)
                 <div class="signature-item">
                     <span class="sig-label text-dark">Verified by:</span>
-                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->fatwa->verifiedBy->name }}</span>
+                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->fatwa->verifiers->pluck('name')->implode(', ') }}</span>
                 </div>
                 @endif
 
