@@ -167,4 +167,19 @@ class DashboardController extends Controller
             'byIdentity' => PortalVisitorLog::getLiveUsersCountByIdentity(),
         ]);
     }
+
+    /**
+     * System Maintenance: Clear all caches
+     */
+    public function clearCache()
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
+            return back()->with('success', 'System cache cleared successfully. All views are now fresh.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Maintenance Error: ' . $e->getMessage());
+        }
+    }
 }

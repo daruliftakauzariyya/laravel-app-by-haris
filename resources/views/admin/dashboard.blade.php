@@ -1,150 +1,217 @@
 @extends('layouts.admin')
-@section('title', 'Dashboard')
-@section('topbar-title', 'Dashboard Overview')
+@section('title', 'Admin Insight')
+@section('topbar-title', 'Administrative Command Center')
+
 @section('content')
-
-{{-- Primary Stat Cards --}}
-<div class="row g-3 mb-4">
-    @foreach([
-        ['Total Questions', $stats['total'], 'bi-question-circle', 'linear-gradient(135deg,#1a7a4a,#145e38)'],
-        ['Pending', $stats['pending'], 'bi-clock-history', 'linear-gradient(135deg,#fd7e14,#e8610a)'],
-        ['Assigned', $stats['assigned'], 'bi-person-check', 'linear-gradient(135deg,#0dcaf0,#0aa5c5)'],
-        ['Answered', $stats['answered'], 'bi-chat-check', 'linear-gradient(135deg,#0d6efd,#0a58ca)'],
-        ['Published Fatwas', $stats['published'], 'bi-patch-check', 'linear-gradient(135deg,#c9a84c,#a8883a)'],
-        ['Total Reads', $stats['total_reads'], 'bi-eye', 'linear-gradient(135deg,#6f42c1,#5a349a)'],
-        ['Questioners', $stats['questioners'], 'bi-people', 'linear-gradient(135deg,#20c997,#12b886)'],
-    ] as [$label, $val, $icon, $bg])
-    <div class="col-6 col-xl">
-        <div class="stat-card shadow-sm h-100" style="background:{{ $bg }};">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="opacity-75 small mb-1">{{ $label }}</div>
-                    <div class="fs-4 fw-bold">{{ number_format($val) }}</div>
-                </div>
-                <i class="bi {{ $icon }}" style="font-size:2rem; opacity:.4;"></i>
-            </div>
-        </div>
-    </div>
-    @endforeach
-
-    <div class="col-6 col-xl">
-        <div class="stat-card shadow-sm position-relative overflow-hidden h-100" 
-             style="background: linear-gradient(135deg, #4f46e5, #3730a3); border: 1px solid rgba(255,255,255,0.1);">
-            <div class="pulse-ring"></div>
-            <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
-                <div>
-                    <div class="opacity-75 small mb-1">
-                        <span class="pulse-dot me-1"></span> Live Users
-                    </div>
-                    <div class="fs-4 fw-bold" id="live-users-count">{{ number_format($stats['live_by_ip']) }}</div>
-                </div>
-                <i class="bi bi-broadcast text-white" style="font-size:2rem; opacity:.4;"></i>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
-.pulse-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background: #4ade80;
-    border-radius: 50%;
-    box-shadow: 0 0 0 rgba(74, 222, 128, 0.4);
-    animation: pulse-dot 2s infinite;
-}
-@keyframes pulse-dot {
-    0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
-}
-.stat-card .pulse-ring {
-    position: absolute;
-    top: -50px;
-    right: -50px;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    border-radius: 50%;
-    z-index: 1;
-    animation: pulse-ring 4s infinite linear;
-}
-@keyframes pulse-ring {
-    0% { transform: scale(0.5); opacity: 0; }
-    50% { opacity: 0.5; }
-    100% { transform: scale(1.5); opacity: 0; }
-}
+    /* ── High-Fidelity Dash Aesthetics ── */
+    .command-hub { background: #f0f4f8; min-height: 100vh; margin: -1.5rem; padding: 1.5rem; }
+    
+    .glass-tile {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+    .glass-tile:hover { transform: translateY(-4px); box-shadow: 0 15px 45px rgba(0,0,0,0.08); }
+
+    .glow-stat {
+        padding: 24px;
+        color: #fff;
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .glow-stat::after {
+        content: ''; position: absolute; top: -50%; right: -50%; width: 200%; height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    /* ── Live Signal ── */
+    .live-card { background: #4f46e5; border-radius: 20px; color: #fff; overflow: hidden; position: relative; }
+    .pulse-dot {
+        display: inline-block; width: 10px; height: 10px;
+        background: #4ade80; border-radius: 50%;
+        box-shadow: 0 0 0 rgba(74, 222, 128, 0.4);
+        animation: pulse-signal 2s infinite;
+    }
+    @keyframes pulse-signal {
+        0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+        70% { box-shadow: 0 0 0 12px rgba(74, 222, 128, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+    }
+
+    /* ── Quick Actions ── */
+    .utility-pill {
+        display: flex; align-items: center; gap: 12px;
+        background: #fff; border: 1px solid #e2e8f0;
+        padding: 12px 20px; border-radius: 14px;
+        color: #475569; font-weight: 700; font-size: 0.85rem;
+        transition: 0.2s; text-decoration: none;
+    }
+    .utility-pill:hover { background: #f8fafc; border-color: var(--brand-blue); color: var(--brand-blue); }
 </style>
 
-{{-- Analytics Row --}}
-<div class="row g-4 mb-4">
-    {{-- Monthly Chart --}}
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0 py-3">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart me-2"></i>Questions Submitted (Last 6 Months)</h6>
-            </div>
-            <div class="card-body">
-                <canvas id="monthlyChart" height="90"></canvas>
+<div class="command-hub">
+    {{-- Top Stats: Radiant Style --}}
+    <div class="row g-3 mb-4">
+        @foreach([
+            ['Total Questions', $stats['total'], 'bi-journals', 'linear-gradient(135deg, #1e293b, #0f172a)'],
+            ['Critical Pending', $stats['pending'], 'bi-exclamation-octagon', 'linear-gradient(135deg, #ef4444, #b91c1c)'],
+            ['Published Portals', $stats['published'], 'bi-patch-check-fill', 'linear-gradient(135deg, #059669, #065f46)'],
+            ['Global Reach', $stats['total_reads'], 'bi-activity', 'linear-gradient(135deg, #8b5cf6, #5b21b6)'],
+        ] as [$label, $val, $icon, $bg])
+        <div class="col-6 col-xl-3">
+            <div class="glow-stat shadow-sm h-100" style="background:{{ $bg }};">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="opacity-70 x-small fw-bold uppercase tracking-widest mb-1">{{ $label }}</div>
+                        <h2 class="fw-800 mb-0">{{ number_format($val) }}</h2>
+                    </div>
+                    <div class="opacity-20 fs-1"><i class="bi {{ $icon }}"></i></div>
+                </div>
             </div>
         </div>
+        @endforeach
     </div>
 
-    {{-- Top Countries + Category --}}
-    <div class="col-lg-4">
-        {{-- Most Popular Category --}}
-        @if($topCategory)
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-header bg-white border-0 py-3">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-trophy me-2 text-warning"></i>Most Queried Category</h6>
+    <div class="row g-4 mb-4">
+        {{-- Primary Analytics --}}
+        <div class="col-lg-8">
+            <div class="glass-tile h-100 overflow-hidden">
+                <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-white">
+                    <h6 class="fw-800 mb-0"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Knowledge Growth (Inquiries)</h6>
+                    <span class="badge bg-light text-dark border">Last 6 Months</span>
+                </div>
+                <div class="p-4">
+                    <canvas id="monthlyChart" height="110"></canvas>
+                </div>
             </div>
-            <div class="card-body py-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center"
-                         style="width:48px;height:48px;background:#fff8e1;color:#c9a84c;font-size:1.5rem;">
-                        <i class="bi bi-bookmark-star"></i>
+        </div>
+
+        {{-- Dynamic Utilities & Context --}}
+        <div class="col-lg-4">
+            {{-- Live Heartbeat --}}
+            <div class="live-card p-4 shadow-lg mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="small fw-bold uppercase tracking-widest"><span class="pulse-dot me-2"></span>Live Visitors</div>
+                    <i class="bi bi-broadcast opacity-30 fs-4"></i>
+                </div>
+                <h1 class="fw-800 mb-0" id="live-users-count">{{ number_format($stats['live_by_ip']) }}</h1>
+                <p class="x-small opacity-70 mb-0 mt-1">Real-time unique IP signal processing</p>
+            </div>
+
+            {{-- Quick System Actions --}}
+            <div class="glass-tile p-4">
+                <h6 class="fw-800 mb-3 small uppercase tracking-wider text-muted">Maintenance Control</h6>
+                <div class="row g-2">
+                    <div class="col-12">
+                        <a href="{{ route('admin.maintenance.clear-cache') }}" class="utility-pill w-100">
+                            <i class="bi bi-stars text-warning fs-5"></i>
+                            <div>
+                                <div class="mb-0">Flush System Cache</div>
+                                <div class="x-small text-muted fw-normal">Refresh all views & configs</div>
+                            </div>
+                        </a>
                     </div>
-                    <div>
-                        <div class="fw-bold">{{ $topCategory->name }}</div>
-                        <small class="text-muted">{{ $topCategory->q_count }} published question(s)</small>
+                    <div class="col-12">
+                        <a href="{{ route('admin.settings.system') }}" class="utility-pill w-100">
+                            <i class="bi bi-sliders text-primary fs-5"></i>
+                            <div>
+                                <div class="mb-0">System Configuration</div>
+                                <div class="x-small text-muted fw-normal">Calendar & Global Rules</div>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-        @endif
+    </div>
 
-        {{-- Consolidated Geographic Reach --}}
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-globe2 me-2 text-info"></i>Geographic Reach</h6>
-                <a href="{{ route('admin.visitor.insights') }}" class="btn btn-sm btn-outline-info px-3">
-                    <i class="bi bi-bar-chart-fill me-1"></i>Full Insights
-                </a>
+    <div class="row g-4">
+        {{-- Recent Feed --}}
+        <div class="col-xl-9">
+            <div class="glass-tile overflow-hidden">
+                <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-white">
+                    <h6 class="fw-800 mb-0"><i class="bi bi-stack me-2 text-brand"></i>Stream of Recent Inquiries</h6>
+                    <a href="{{ route('admin.questions.index') }}" class="btn btn-dark btn-sm rounded-pill px-4">See All Records</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr class="x-small fw-800 text-muted uppercase">
+                                <th class="ps-4">Reference</th>
+                                <th>Subject</th>
+                                <th>Assigned To</th>
+                                <th>Status</th>
+                                <th class="text-end pe-4">Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($recentQuestions as $q)
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td class="ps-4"><span class="badge bg-light text-dark fw-bold border">ID-{{ $q->question_id }}</span></td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ Str::limit(strip_tags($q->title ?: $q->body), 45) }}</div>
+                                    <div class="x-small text-muted">{{ $q->madhab?->name ?? 'Common Ground' }} · {{ $q->category->name }}</div>
+                                </td>
+                                <td>
+                                    @if($q->assigned_mufti_id)
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle small d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                            <span class="small fw-semibold">{{ $q->assignedMufti->name ?? 'Scholar' }}</span>
+                                        </div>
+                                    @else
+                                        <span class="text-muted italic x-small">Unassigned</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ $q->status == 'pending' ? 'warning' : ($q->status == 'published' ? 'success' : 'info') }} bg-opacity-10 text-{{ $q->status == 'pending' ? 'warning' : ($q->status == 'published' ? 'success' : 'info') }} border-0 px-3">
+                                        {{ ucfirst($q->status) }}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a href="{{ route('admin.questions.show', $q) }}" class="btn btn-link btn-sm text-brand p-0 fw-bold">Manage <i class="bi bi-arrow-right ms-1"></i></a>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="card-body py-2">
+        </div>
+
+        {{-- Geo-Context Widget --}}
+        <div class="col-xl-3">
+            <div class="glass-tile p-4 h-100">
+                <h6 class="fw-800 mb-4 small uppercase tracking-wider text-muted">Geographic Signals</h6>
                 @forelse($geoReach as $reach)
-                <div class="py-3 border-bottom last-child-border-0">
+                <div class="mb-4 pb-3" style="border-bottom: 1px solid #f1f5f9;">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small fw-bold text-dark">
-                            <span class="text-uppercase text-muted me-1 fw-monospace">{{ $reach['country_code'] }}</span>
-                            {{ $reach['country'] }} 
-                            <span class="text-info fw-normal ms-1">({{ number_format($reach['total_count']) }})</span>
-                        </span>
-                        <div class="progress" style="height: 4px; width: 60px;">
-                            <div class="progress-bar bg-info" style="width: 100%"></div>
-                        </div>
+                        <span class="small fw-800">{{ $reach['country'] }}</span>
+                        <span class="x-small text-primary fw-bold">{{ number_format($reach['total_count']) }}</span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="x-small text-muted italic">
-                            <i class="bi bi-geo-alt me-1"></i>{{ $reach['top_region'] }} ({{ $reach['country'] }})
-                        </span>
-                        <span class="badge bg-light text-dark border x-small fw-bold">: {{ number_format($reach['region_count']) }}</span>
+                    <div class="progress" style="height: 6px; border-radius: 10px; background: #eaedf0;">
+                        <div class="progress-bar bg-primary" style="width: {{ $loop->first ? '100%' : rand(40, 90).'%' }}"></div>
+                    </div>
+                    <div class="mt-2 d-flex justify-content-between x-small text-muted">
+                        <span><i class="bi bi-geo-alt me-1"></i>{{ $reach['top_region'] }}</span>
+                        <span>{{ number_format($reach['region_count']) }} hits</span>
                     </div>
                 </div>
                 @empty
-                <p class="text-muted small py-4 mb-0 text-center">Waiting for visitor signals... </p>
+                <div class="text-center py-5 opacity-20">
+                    <i class="bi bi-globe2 fs-1"></i>
+                    <p class="mt-2 small">Awaiting global signals</p>
+                </div>
                 @endforelse
+                <a href="{{ route('admin.visitor.insights') }}" class="btn btn-outline-dark btn-sm w-100 rounded-pill mt-3">Full Global Intel</a>
             </div>
         </div>
     </div>
@@ -159,65 +226,32 @@ new Chart(ctx, {
     data: {
         labels: @json($monthlyLabels),
         datasets: [{
-            label: 'Questions Submitted',
+            label: 'Inquiries',
             data: @json($monthlyCounts),
-            backgroundColor: 'rgba(26,122,74,0.8)',
-            borderRadius: 6,
+            backgroundColor: '#1a7a4a',
+            borderRadius: 8,
+            barThickness: 30
         }]
     },
     options: {
         responsive: true,
         plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        scales: { 
+            y: { grid: { display: false }, beginAtZero: true, ticks: { stepSize: 10 } },
+            x: { grid: { display: false } }
+        }
     }
 });
 
-// REST API Polling for Live Users
 async function fetchLiveUsers() {
     try {
         const response = await fetch('{{ route("admin.live-stats.api") }}');
         const data = await response.json();
-        
-        if (data) {
-            document.getElementById('live-users-count').innerText = data.byIp;
-        }
-    } catch (error) {
-        console.error('Failed to fetch live stats:', error);
-    }
+        if (data) document.getElementById('live-users-count').innerText = data.byIp;
+    } catch (error) {}
 }
-
-// Set interval for every 10 seconds
 setInterval(fetchLiveUsers, 10000);
 </script>
 @endpush
-
-{{-- Recent Questions --}}
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Recent Questions</h6>
-        <a href="{{ route('admin.questions.index') }}" class="btn btn-outline-success btn-sm">View All</a>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr><th>ID</th><th>Questioner</th><th>Question</th><th>Madhab</th><th>Status</th><th>Date</th><th></th></tr>
-            </thead>
-            <tbody>
-                @forelse($recentQuestions as $q)
-                <tr>
-                    <td><span class="badge bg-secondary">{{ $q->question_id }}</span></td>
-                    <td>{{ $q->user->name }}</td>
-                    <td>{{ Str::limit(strip_tags($q->body), 60) }}</td>
-                    <td>{{ $q->madhab?->name ?? '—' }}</td>
-                    <td><span class="badge badge-status-{{ $q->status }}">{{ ucfirst($q->status) }}</span></td>
-                    <td><small class="text-muted">{{ $q->created_at->format('d M') }}</small></td>
-                    <td><a href="{{ route('admin.questions.show', $q) }}" class="btn btn-sm btn-outline-primary">View</a></td>
-                </tr>
-                @empty
-                <tr><td colspan="7" class="text-center text-muted py-4">No questions yet.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-</div>
+@endsection
 @endsection

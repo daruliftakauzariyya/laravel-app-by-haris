@@ -89,25 +89,14 @@ class FeaturedFatwaService
     {
         $limit = $rule->limit ?: 6;
 
-        // Pinned specific fatwa IDs take priority
+        // If specific fatwas are pinned → show ONLY those, nothing else
         if (!empty($rule->fatwa_ids)) {
-            $fatwas = Fatwa::with(['question.madhab', 'question.category', 'muftiAnswer.mufti'])
+            return Fatwa::with(['question.madhab', 'question.category', 'muftiAnswer.mufti'])
                 ->whereIn('id', $rule->fatwa_ids)
-                ->take($limit)
                 ->get();
-
-            // If pinned fatwas don't fill the limit, pad with category/views
-            if ($fatwas->count() < $limit) {
-                $remaining = $limit - $fatwas->count();
-                $extra = $this->buildQuery($rule)
-                    ->whereNotIn('id', $fatwas->pluck('id'))
-                    ->take($remaining)
-                    ->get();
-                $fatwas = $fatwas->merge($extra);
-            }
-            return $fatwas;
         }
 
+        // Otherwise filter by category / madhab up to limit
         return $this->buildQuery($rule)->take($limit)->get();
     }
 

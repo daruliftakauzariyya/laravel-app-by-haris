@@ -266,29 +266,28 @@
     </div>
 </section>
 
-{{-- How It Works --}}
-<section class="py-5 bg-white">
-    <div class="container">
-        <h2 class="text-center fw-bold mb-5 text-green">Process of Getting a Fatwa</h2>
-        <div class="row g-4 text-center">
+{{-- Process Section: Modernized --}}
+<section class="py-5" style="background: #f8fafc;">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="faculty-eyebrow">Trust & Authenticity</span>
+            <h2 class="fw-800 text-dark">Process of Getting a <span class="text-brand-gold">Fatwa</span></h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">Every inquiry undergoes a rigorous scholarly verification process before being shared with the public.</p>
+        </div>
+        
+        <div class="row g-0 justify-content-center process-container">
             @foreach([
-                ['bi-person-plus', '1', 'Register', 'Create your scholar-verified profile.'],
-                ['bi-pencil-square', '2', 'Ask Question', 'Submit your query anonymously if preferred.'],
-                ['bi-person-badge', '3', 'Expert Review', 'A qualified scholar reviews and answers.'],
-                ['bi-check-circle', '4', 'Certification', 'Final verification by the head of institution.'],
-            ] as [$icon, $step, $title, $desc])
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm p-4 h-100">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-                         style="width:60px;height:60px;background:linear-gradient(135deg,#1a7a4a,#c9a84c); color:#fff; font-size:1.5rem;">
+                ['bi-person-plus', '01', 'Register Account', 'Create your verified profile to track your scholarly inquiries.'],
+                ['bi-pencil-square', '02', 'Submit Inquiry', 'Detail your situation. Use Arabic support for scholarly references if needed.'],
+                ['bi-mortarboard', '03', 'Scholar Review', 'Qualified Muftis draft authentic rulings based on classical texts.'],
+                ['bi-shield-check', '04', 'Administrative Certification', 'Final verification by the Head of Ifta before publication.'],
+            ] as $index => [$icon, $step, $title, $desc])
+            <div class="col-md-3">
+                <div class="process-node text-center px-4">
+                    <div class="process-icon-wrap mb-4">
+                        <div class="process-number">{{ $step }}</div>
                         <i class="bi {{ $icon }}"></i>
                     </div>
-                    <span class="badge bg-secondary mb-2 mx-auto">Phase {{ $step }}</span>
-                    <h6 class="fw-bold">{{ $title }}</h6>
-                    <p class="small text-muted mb-0">{{ $desc }}</p>
-                </div>
-            </div>
-            @endforeach
         </div>
     </div>
 </section>
