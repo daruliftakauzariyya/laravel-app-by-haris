@@ -318,7 +318,7 @@
                             </div>
                             <div class="meta-unit">
                                 <span class="label">Madhab:</span>
-                                <span class="value">{{ $fatwa->question->madhab }}</span>
+                                <span class="value">{{ $fatwa->question->madhab?->name ?? '—' }}</span>
                             </div>
                             <div class="meta-unit">
                                 <span class="label">Date:</span>
@@ -398,9 +398,9 @@
                             <div class="sig-row">
                                 <b>Written by:</b> <span>{{ $fatwa->muftiAnswer->mufti->name }}</span>
                             </div>
-                            @if($fatwa->verifiedBy)
+                            @if($fatwa->verifiers->count() > 0)
                                 <div class="sig-row">
-                                    <b>Verified by:</b> <span>{{ $fatwa->verifiedBy->name }}</span>
+                                    <b>Verified by:</b> <span>{{ $fatwa->verifiers->pluck('name')->implode(', ') }}</span>
                                 </div>
                             @endif
                             @if($fatwa->checkedApprovedBy)

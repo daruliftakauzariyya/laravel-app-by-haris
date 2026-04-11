@@ -117,6 +117,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
+    // Madhabs
+    Route::get('/madhabs', [\App\Http\Controllers\Admin\MadhabController::class, 'index'])->name('madhabs.index');
+    Route::post('/madhabs', [\App\Http\Controllers\Admin\MadhabController::class, 'store'])->name('madhabs.store');
+    Route::put('/madhabs/{madhab}', [\App\Http\Controllers\Admin\MadhabController::class, 'update'])->name('madhabs.update');
+    Route::delete('/madhabs/{madhab}', [\App\Http\Controllers\Admin\MadhabController::class, 'destroy'])->name('madhabs.destroy');
+
     // Mufti Management
     Route::get('/muftis', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'index'])->name('muftis.index');
     Route::get('/muftis/create', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'create'])->name('muftis.create');

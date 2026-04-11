@@ -33,7 +33,7 @@
             <div class="card-body">
                 <div><small class="text-muted fw-bold">Question Summary (Short Question):</small></div>
                 @if($question->title)<h5 class="fw-bold {{ $langClass }}">{{ $question->title }}</h5>@endif
-                <div class="mb-3"><span class="badge" style="background:#1a7a4a;">{{ $question->madhab == 'Shafii' ? "Shafi'i" : $question->madhab }}</span></div>
+                <div class="mb-3"><span class="badge" style="background:#1a7a4a;">{{ $question->madhab?->name ?? '—' }}</span></div>
                 <div class="{{ $langClass }}" style="line-height:1.8;">{!! $question->body !!}</div>
                 <hr>
                 <div class="row g-2 small text-muted">

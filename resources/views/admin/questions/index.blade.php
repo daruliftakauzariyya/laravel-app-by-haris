@@ -19,10 +19,10 @@
             </select>
         </div>
         <div class="col-md-3">
-            <select name="madhab" class="form-select form-select-sm">
+            <select name="madhab_id" class="form-select form-select-sm">
                 <option value="">All Madhabs</option>
-                @foreach(['Hanafi','Shafii','Maliki','Hanbali','Other'] as $m)
-                    <option value="{{ $m }}" {{ request('madhab') == $m ? 'selected' : '' }}>{{ $m == 'Shafii' ? "Shafi'i" : $m }}</option>
+                @foreach(\App\Models\Madhab::all() as $m)
+                    <option value="{{ $m->id }}" {{ request('madhab_id') == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
                 @endforeach
             </select>
         </div>
@@ -59,7 +59,7 @@
                             {{ Str::limit(strip_tags($q->body), 50) }}
                         </small>
                     </td>
-                    <td>{{ $q->madhab == 'Shafii' ? "Shafi'i" : $q->madhab }}</td>
+                    <td>{{ $q->madhab?->name ?? '—' }}</td>
                     <td>{{ $q->assignedMufti?->name ?? '—' }}</td>
                     <td><small class="text-muted">{{ $q->created_at->format('d M Y') }}</small></td>
                     <td><span class="badge badge-status-{{ $q->status }}">{{ ucfirst(str_replace('_',' ',$q->status)) }}</span></td>

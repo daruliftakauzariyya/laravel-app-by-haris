@@ -19,7 +19,8 @@ class RegisterController extends Controller
         }
 
         $loginId = $request->query('login_id', '');
-        return view('auth.register', compact('loginId'));
+        $madhabs = \App\Models\Madhab::all();
+        return view('auth.register', compact('loginId', 'madhabs'));
     }
 
     public function register(Request $request)
@@ -35,7 +36,7 @@ class RegisterController extends Controller
             'state'          => ['required', 'string'],
             'district'       => ['required', 'string'],
             'gender'         => ['required', 'in:Male,Female'],
-            'madhab'         => ['required', 'in:Hanafi,Shafii,Maliki,Hanbali,Other,No Preference'],
+            'madhab_id'      => ['required', 'exists:madhabs,id'],
             'password'       => ['required', 'confirmed', Password::defaults()],
         ]);
 
@@ -52,7 +53,7 @@ class RegisterController extends Controller
             'state'          => $request->state,
             'district'       => $request->district,
             'gender'         => $request->gender,
-            'madhab'         => $request->madhab,
+            'madhab_id'      => $request->madhab_id,
             'password'       => Hash::make($request->password),
             'otp'            => $otp,
             'otp_expires_at' => now()->addMinutes(15),

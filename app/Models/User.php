@@ -25,7 +25,7 @@ class User extends Authenticatable
         'address_line_2',
         'state',
         'district',
-        'madhab',
+        'madhab_id',
         'mother_language',
         'profile_completed',
         'is_active',
@@ -46,7 +46,6 @@ class User extends Authenticatable
             'password' => 'hashed',
             'profile_completed' => 'boolean',
             'is_active' => 'boolean',
-            'madhab' => 'array',
         ];
     }
 
@@ -54,6 +53,16 @@ class User extends Authenticatable
     public function questions()
     {
         return $this->hasMany(Question::class);
+    }
+
+    public function madhab()
+    {
+        return $this->belongsTo(Madhab::class);
+    }
+
+    public function madhabs()
+    {
+        return $this->belongsToMany(Madhab::class, 'madhab_user');
     }
 
     public function assignedQuestions()

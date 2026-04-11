@@ -16,9 +16,8 @@ class Question extends Model
         'assigned_mufti_id',
         'title',
         'body',
-        'madhab',
+        'madhab_id',
         'language',
-        'question_type',
         'status',
         'accepted_at',
         'assigned_at',
@@ -48,6 +47,11 @@ class Question extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function madhab()
+    {
+        return $this->belongsTo(Madhab::class);
     }
 
     public function assignedMufti()

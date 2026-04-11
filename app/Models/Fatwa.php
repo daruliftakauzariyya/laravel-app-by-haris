@@ -15,18 +15,14 @@ class Fatwa extends Model
         'question_id',
         'mufti_answer_id',
         'published_by',
-        'verified_by',
         'checked_approved_by',
-        'fatwa_number',
         'featured_image',
-        'is_featured',
         'views',
         'published_at',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
-        'is_featured'  => 'boolean',
     ];
 
     public function fatwaLikes()
@@ -49,9 +45,9 @@ class Fatwa extends Model
         return $this->belongsTo(User::class, 'published_by');
     }
 
-    public function verifiedBy()
+    public function verifiers()
     {
-        return $this->belongsTo(User::class, 'verified_by');
+        return $this->belongsToMany(User::class, 'fatwa_verifier_user');
     }
 
     public function checkedApprovedBy()

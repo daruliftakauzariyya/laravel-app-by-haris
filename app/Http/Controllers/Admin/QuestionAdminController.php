@@ -29,8 +29,8 @@ class QuestionAdminController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        if ($request->filled('madhab')) {
-            $query->where('madhab', $request->madhab);
+        if ($request->filled('madhab_id')) {
+            $query->where('madhab_id', $request->madhab_id);
         }
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
@@ -40,19 +40,23 @@ class QuestionAdminController extends Controller
         }
 
         $questions = $query->paginate(20)->withQueryString();
+        // Return all muftis for general filtering if needed, but usually limited by Madhab in specific contexts
         $muftis    = User::role('mufti')->get();
         return view('admin.questions.index', compact('questions', 'muftis'));
     }
 
     /** Show a single question detail */
-    public function show(Question $question)
-    {
         $question->load([
             'user', 'category', 'files', 'assignedMufti', 
             'muftiAnswer.supportingReferences',
             'activityLogs' => fn($q) => $q->with('actor')->orderBy('event_at', 'desc')
         ]);
-        $muftis         = User::role('mufti')->get();
+
+        // Only Muftis belonging to the same Madhab as the question
+        $muftis = User::role('mufti')
+            ->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id))
+            ->get();
+
         $mainCategories = Category::whereNull('parent_id')->get();
         $subCategories  = Category::whereNotNull('parent_id')->get();
         
@@ -148,7 +152,12 @@ class QuestionAdminController extends Controller
     public function createAnswer(Question $question)
     {
         $question->load('user', 'files', 'muftiAnswer.supportingReferences');
-        $muftis = User::role('mufti')->get();
+        
+        // Only Muftis belonging to the same Madhab as the question
+        $muftis = User::role('mufti')
+            ->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id))
+            ->get();
+
         return view('admin.questions.answer', compact('question', 'muftis'));
     }
 
@@ -240,12 +249,13 @@ class QuestionAdminController extends Controller
 
         $writtenByMuftiId = $question->muftiAnswer->mufti_id;
 
-        // All muftis except the one who wrote the answer (for 'Verified by')
+        // Verifiers: Muftis of the same Madhab, excluding the author
         $verifierMuftis = User::role('mufti')
+            ->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id))
             ->where('id', '!=', $writtenByMuftiId)
             ->get();
 
-        // Only muftis with can_check_approve permission (for 'Checked & Approved by')
+        // Approvers: Muftis with can_check_approve permission (No Madhab filter required here)
         $approverMuftis = User::role('mufti')
             ->where('can_check_approve', true)
             ->get();
@@ -256,7 +266,8 @@ class QuestionAdminController extends Controller
     public function approve(Request $request, Question $question)
     {
         $request->validate([
-            'verified_by'          => ['nullable', 'exists:users,id'],
+            'verified_by'          => ['required', 'array'], // Now an array of IDs
+            'verified_by.*'        => ['exists:users,id'],
             'checked_approved_by'  => ['nullable', 'exists:users,id'],
         ]);
 
@@ -286,11 +297,13 @@ class QuestionAdminController extends Controller
             'question_id'         => $question->id,
             'mufti_answer_id'     => $answer->id,
             'published_by'        => Auth::id(),
-            'verified_by'         => $request->verified_by,
             'checked_approved_by' => $request->checked_approved_by,
             'featured_image'      => $featuredImagePath,
             'published_at'        => now(),
         ]);
+
+        // Sync multiple verifiers
+        $fatwa->verifiers()->sync($request->verified_by);
 
         $question->update(['status' => 'published']);
 
@@ -298,7 +311,7 @@ class QuestionAdminController extends Controller
             $question->id, 'published', 'Fatwa Published Publicly',
             'bi-patch-check-fill', 'success',
             'Published by: ' . Auth::user()->name .
-            ($request->verified_by ? ' | Verified by: ' . optional(User::find($request->verified_by))->name : '') .
+            (count($request->verified_by) > 0 ? ' | Verified by: ' . User::whereIn('id', $request->verified_by)->pluck('name')->implode(', ') : '') .
             ($request->checked_approved_by ? ' | Approved by: ' . optional(User::find($request->checked_approved_by))->name : ''),
             Auth::id(), $fatwa->id
         );

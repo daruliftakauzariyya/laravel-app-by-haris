@@ -17,7 +17,8 @@ class QuestionController extends Controller
 {
     public function create()
     {
-        return view('ask-question');
+        $madhabs = \App\Models\Madhab::all();
+        return view('ask-question', compact('madhabs'));
     }
 
     public function store(Request $request)
@@ -34,7 +35,7 @@ class QuestionController extends Controller
 
         $request->validate([
             'body'        => ['required', 'string', 'min:20'],
-            'madhab'      => ['required', 'in:Hanafi,Shafii,Maliki,Hanbali,Other'],
+            'madhab_id'   => ['required', 'exists:madhabs,id'],
             'title'       => ['required', 'string', 'max:200'],
             'category_id' => ['nullable', 'exists:categories,id'],
             'files.*'     => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:10240'],
@@ -46,15 +47,17 @@ class QuestionController extends Controller
             'category_id' => $request->category_id,
             'title'       => $request->title,
             'body'        => $request->body,
-            'madhab'      => $request->madhab,
+            'madhab_id'   => $request->madhab_id,
             'status'      => 'pending',
         ]);
+
+        $madhabName = \App\Models\Madhab::find($request->madhab_id)?->name ?? 'General';
 
         // Log the first event in the fatwa timeline
         FatwaActivityLog::log(
             $question->id, 'question_submitted', 'Question Submitted by Questioner',
             'bi-send', 'secondary',
-            'Submitted in ' . $request->madhab . ' madhab.', Auth::id(),
+            'Submitted in ' . $madhabName . ' madhab.', Auth::id(),
             null, $question->created_at
         );
 

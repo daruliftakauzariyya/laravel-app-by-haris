@@ -307,20 +307,33 @@
                 class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
+
             <div class="sidebar-section">Questions</div>
             <a href="{{ route('admin.questions.index') }}"
-                class="nav-link {{ request()->routeIs('admin.questions*') ? 'active' : '' }}">
+                class="nav-link {{ request()->routeIs('admin.questions.index') && !request('status') ? 'active' : '' }}">
                 <i class="bi bi-question-circle"></i> All Questions
             </a>
-            <a href="{{ route('admin.questions.index', ['status' => 'pending']) }}" class="nav-link">
-                <i class="bi bi-clock-history"></i> Pending
+            <a href="{{ route('admin.questions.index', ['status' => 'pending']) }}" 
+                class="nav-link {{ request('status') == 'pending' ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i> Pending (For Review)
             </a>
-            <a href="{{ route('admin.questions.index', ['status' => 'assigned']) }}" class="nav-link">
-                <i class="bi bi-person-check"></i> Assigned
+            <a href="{{ route('admin.questions.index', ['status' => 'assigned']) }}" 
+                class="nav-link {{ request('status') == 'assigned' ? 'active' : '' }}">
+                <i class="bi bi-person-check"></i> Assigned to Mufti
             </a>
-            <a href="{{ route('admin.questions.index', ['status' => 'answered']) }}" class="nav-link">
-                <i class="bi bi-chat-check"></i> For Review
+            <a href="{{ route('admin.questions.index', ['status' => 'answered']) }}" 
+                class="nav-link {{ request('status') == 'answered' ? 'active' : '' }}">
+                <i class="bi bi-chat-check"></i> Answered by Mufti
             </a>
+            <a href="{{ route('admin.questions.index', ['status' => 'published']) }}" 
+                class="nav-link {{ request('status') == 'published' ? 'active' : '' }}">
+                <i class="bi bi-journal-check"></i> Published to Public
+            </a>
+            <a href="{{ route('admin.questions.index', ['status' => 'rejected']) }}" 
+                class="nav-link {{ request('status') == 'rejected' ? 'active' : '' }}">
+                <i class="bi bi-x-circle"></i> Rejected
+            </a>
+
             <div class="sidebar-section">Settings</div>
             <a href="{{ route('admin.muftis.index') }}"
                 class="nav-link {{ request()->routeIs('admin.muftis*') ? 'active' : '' }}">
@@ -329,6 +342,10 @@
             <a href="{{ route('admin.categories.index') }}"
                 class="nav-link {{ request()->routeIs('admin.categories*') ? 'active' : '' }}">
                 <i class="bi bi-tags"></i> Categories
+            </a>
+            <a href="{{ route('admin.madhabs.index') }}"
+                class="nav-link {{ request()->routeIs('admin.madhabs*') ? 'active' : '' }}">
+                <i class="bi bi-book"></i> Madhab
             </a>
             <a href="{{ route('admin.questioners.index') }}"
                 class="nav-link {{ request()->routeIs('admin.questioners*') ? 'active' : '' }}">

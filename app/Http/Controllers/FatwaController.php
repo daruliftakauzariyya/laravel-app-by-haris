@@ -18,8 +18,8 @@ class FatwaController extends Controller
                       ->latest('published_at');
 
         // Filter by Madhab
-        if ($request->filled('madhab')) {
-            $query->whereHas('question', fn($q) => $q->where('madhab', $request->madhab));
+        if ($request->filled('madhab_id')) {
+            $query->whereHas('question', fn($q) => $q->where('madhab_id', $request->madhab_id));
         }
 
         // Filter by Category
@@ -36,7 +36,7 @@ class FatwaController extends Controller
                     $sq->where('body', 'like', "%{$term}%")
                        ->orWhere('title', 'like', "%{$term}%")
                        ->orWhere('question_id', 'like', "%{$term}%")
-                       ->orWhere('madhab', 'like', "%{$term}%");
+                       ->orWhereHas('madhab', fn($mq) => $mq->where('name', 'like', "%{$term}%"));
                 });
                 // Search in Answer
                 $q->orWhereHas('muftiAnswer', function ($aq) use ($term) {
@@ -61,7 +61,8 @@ class FatwaController extends Controller
             ->get();
             
         $fatwas = $query->paginate(12)->withQueryString();
-        return view('fatwa-archive', compact('fatwas', 'allCategories'));
+        $madhabs = \App\Models\Madhab::all();
+        return view('fatwa-archive', compact('fatwas', 'allCategories', 'madhabs'));
     }
 
     public function show(Fatwa $fatwa)

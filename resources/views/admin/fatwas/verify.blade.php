@@ -73,13 +73,13 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Verified by:</label>
-                        <select name="verified_by" id="verified_by" class="form-select form-select-sm" required>
-                            <option value="">-- Select Verifier --</option>
+                        <label class="form-label small fw-bold">Verified by <span class="text-muted">(Multiple allowed)</span>:</label>
+                        <select name="verified_by[]" id="verified_by" class="form-select form-select-sm" multiple required size="4">
                             @foreach($verifierMuftis as $mufti)
-                                <option value="{{ $mufti->id }}" {{ $question->fatwa?->verified_by == $mufti->id ? 'selected' : '' }}>{{ $mufti->name }}</option>
+                                <option value="{{ $mufti->id }}" {{ $question->fatwa?->verifiers->contains($mufti->id) ? 'selected' : '' }}>{{ $mufti->name }}</option>
                             @endforeach
                         </select>
+                        <small class="text-muted" style="font-size:0.7rem;">Hold Ctrl/Cmd to select multiple.</small>
                     </div>
 
                     <div class="mb-4">

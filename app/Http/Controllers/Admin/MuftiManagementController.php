@@ -44,7 +44,8 @@ class MuftiManagementController extends Controller
     /** Show the form for creating a new scholar */
     public function create()
     {
-        return view('admin.muftis.create');
+        $madhabs = \App\Models\Madhab::all();
+        return view('admin.muftis.create', compact('madhabs'));
     }
 
     /** Store a newly created scholar in storage */
@@ -63,11 +64,14 @@ class MuftiManagementController extends Controller
             'email'             => $request->email,
             'password'          => Hash::make($request->password),
             'country'           => $request->country,
-            'madhab'            => $request->madhab,
             'is_active'         => $request->has('is_active'),
             'can_check_approve' => $request->has('can_check_approve'),
             'profile_completed' => true,
         ]);
+
+        if ($request->has('madhab')) {
+            $user->madhabs()->sync($request->madhab);
+        }
 
         $user->assignRole('mufti');
 
@@ -82,7 +86,8 @@ class MuftiManagementController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        return view('admin.muftis.edit', compact('user'));
+        $madhabs = \App\Models\Madhab::all();
+        return view('admin.muftis.edit', compact('user', 'madhabs'));
     }
 
     /** Update the specified scholar in storage */
@@ -104,10 +109,15 @@ class MuftiManagementController extends Controller
             'name'              => $request->name,
             'email'             => $request->email,
             'country'           => $request->country,
-            'madhab'            => $request->madhab, // Array cast handled by model
             'is_active'         => $request->has('is_active'),
             'can_check_approve' => $request->has('can_check_approve'),
         ];
+
+        if ($request->has('madhab')) {
+            $user->madhabs()->sync($request->madhab);
+        } else {
+            $user->madhabs()->detach();
+        }
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);

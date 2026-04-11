@@ -114,13 +114,13 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-semibold">Madhab *</label>
-                        <select name="madhab" class="form-select @error('madhab') is-invalid @enderror" required>
-                            <option value="No Preference">No Preference</option>
-                            <option value="Hanafi" {{ old('madhab') == 'Hanafi' ? 'selected' : '' }}>Hanafi</option>
-                            <option value="Shafii" {{ old('madhab') == 'Shafii' ? 'selected' : '' }}>Shafii</option>
-                            <option value="Maliki" {{ old('madhab') == 'Maliki' ? 'selected' : '' }}>Maliki</option>
-                            <option value="Hanbali" {{ old('madhab') == 'Hanbali' ? 'selected' : '' }}>Hanbali</option>
-                            <option value="Other" {{ old('madhab') == 'Other' ? 'selected' : '' }}>Other</option>
+                        <select name="madhab_id" class="form-select @error('madhab_id') is-invalid @enderror" required>
+                            <option value="">Select Madhab</option>
+                            @foreach($madhabs as $m)
+                                <option value="{{ $m->id }}" {{ old('madhab_id') == $m->id ? 'selected' : '' }}>
+                                    {{ $m->name }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                 </div>

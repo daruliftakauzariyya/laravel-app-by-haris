@@ -40,15 +40,15 @@
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Madhab <span class="text-danger">*</span></label>
-                    <select name="madhab" class="form-select @error('madhab') is-invalid @enderror" required>
+                    <select name="madhab_id" class="form-select @error('madhab_id') is-invalid @enderror" required>
                         <option value="">Select Madhab...</option>
-                        @foreach(['Hanafi','Shafii','Maliki','Hanbali','Other'] as $m)
-                            <option value="{{ $m }}" {{ old('madhab') == $m ? 'selected' : '' }}>
-                                {{ $m == 'Shafii' ? "Shafi'i" : $m }}
+                        @foreach($madhabs as $m)
+                            <option value="{{ $m->id }}" {{ old('madhab_id') == $m->id ? 'selected' : '' }}>
+                                {{ $m->name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('madhab')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    @error('madhab_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
 

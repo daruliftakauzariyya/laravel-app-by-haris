@@ -42,15 +42,11 @@
                 </div>
                 <div class="mb-0">
                     <label class="small text-muted fw-semibold d-block mb-1">Scholar Madhhab(s)</label>
-                    @if($user->madhab && is_array($user->madhab))
-                        @foreach($user->madhab as $m)
-                            <span class="badge bg-light text-dark border me-1">{{ $m }}</span>
-                        @endforeach
-                    @elseif($user->madhab)
-                        <span class="badge bg-light text-dark border">{{ $user->madhab }}</span>
-                    @else
+                    @forelse($user->madhabs as $m)
+                        <span class="badge bg-light text-dark border me-1">{{ $m->name }}</span>
+                    @empty
                         <span class="text-muted small">Not specified</span>
-                    @endif
+                    @endforelse
                 </div>
             </div>
         </div>

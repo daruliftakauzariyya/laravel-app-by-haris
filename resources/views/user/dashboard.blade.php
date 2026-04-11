@@ -316,12 +316,11 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <select name="madhab" class="form-select">
-                                                <option value="Hanafi" {{ Auth::user()->madhab == 'Hanafi' ? 'selected' : '' }}>Hanafi</option>
-                                                <option value="Shafii" {{ Auth::user()->madhab == 'Shafii' ? 'selected' : '' }}>Shafi'i</option>
-                                                <option value="Maliki" {{ Auth::user()->madhab == 'Maliki' ? 'selected' : '' }}>Maliki</option>
-                                                <option value="Hanbali" {{ Auth::user()->madhab == 'Hanbali' ? 'selected' : '' }}>Hanbali</option>
-                                                <option value="Other" {{ Auth::user()->madhab == 'Other' ? 'selected' : '' }}>Other</option>
+                                            <select name="madhab_id" class="form-select">
+                                                <option value="">No Preference</option>
+                                                @foreach($madhabs as $m)
+                                                    <option value="{{ $m->id }}" {{ Auth::user()->madhab_id == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
+                                                @endforeach
                                             </select>
                                             <label>Madhab Preference</label>
                                         </div>

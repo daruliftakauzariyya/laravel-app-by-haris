@@ -58,11 +58,11 @@
                             <div class="mb-3">
                                 <label class="form-label fw-semibold text-muted small">Select Madhhab(s)</label>
                                 <div class="d-flex flex-wrap gap-3 mt-1">
-                                    @php $madhabs = ['Hanafi', 'Shafii', 'Maliki', 'Hanbali']; @endphp
+                                    @php $selectedMadhabs = old('madhab', $user->madhabs->pluck('id')->toArray()); @endphp
                                     @foreach($madhabs as $m)
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="madhab[]" value="{{ $m }}" id="madhab_{{ $m }}" {{ in_array($m, (array)old('madhab', $user->madhab ?? [])) ? 'checked' : '' }}>
-                                            <label class="form-check-label small" for="madhab_{{ $m }}">{{ $m }}</label>
+                                            <input class="form-check-input" type="checkbox" name="madhab[]" value="{{ $m->id }}" id="madhab_{{ $m->id }}" {{ in_array($m->id, $selectedMadhabs) ? 'checked' : '' }}>
+                                            <label class="form-check-label small" for="madhab_{{ $m->id }}">{{ $m->name }}</label>
                                         </div>
                                     @endforeach
                                 </div>

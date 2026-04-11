@@ -39,6 +39,18 @@
                         </div>
                     </div>
 
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small">Select Madhhab(s)</label>
+                        <div class="d-flex flex-wrap gap-3 mt-1">
+                            @foreach($madhabs as $m)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="madhab[]" value="{{ $m->id }}" id="madhab_{{ $m->id }}" {{ in_array($m->id, (array)old('madhab', [])) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="madhab_{{ $m->id }}">{{ $m->name }}</label>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
                     <div class="bg-light p-3 rounded-3 mb-4">
                         <div class="form-check form-switch mb-2">
                             <input class="form-check-input" type="checkbox" name="is_active" id="isActive" checked>

@@ -30,7 +30,7 @@
             <div class="mb-3">
                 <label class="form-label fw-semibold">Question Summary <span class="text-danger">*</span></label>
                 <input type="text" name="summary" class="form-control @error('summary') is-invalid @enderror"
-                       placeholder="Brief one-line summary of the question" value="{{ old('summary', $question->muftiAnswer?->summary) }}" required>
+                       placeholder="Brief one-line summary of the question" value="{{ old('summary', $question->muftiAnswer?->summary ?? $question->title) }}" required>
                 @error('summary')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 

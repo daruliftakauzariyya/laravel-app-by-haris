@@ -21,7 +21,8 @@ class UserDashboardController extends Controller
             'pending'  => \App\Models\Question::where('user_id', $userId)->where('status', 'pending')->count(),
         ];
                         
-        return view('user.dashboard', compact('questions', 'stats'));
+        $madhabs = \App\Models\Madhab::all();
+        return view('user.dashboard', compact('questions', 'stats', 'madhabs'));
     }
 
     public function updateProfile(Request $request)
@@ -31,7 +32,7 @@ class UserDashboardController extends Controller
             'name'            => 'required|string|max:255',
             'mobile'          => 'nullable|string|max:20',
             'gender'          => 'nullable|string|in:Male,Female',
-            'madhab'          => 'nullable|string|max:50',
+            'madhab_id'       => 'nullable|exists:madhabs,id',
             'address_line_1'  => 'nullable|string|max:255',
             'address_line_2'  => 'nullable|string|max:255',
             'country'         => 'nullable|string|max:100',

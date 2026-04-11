@@ -20,11 +20,11 @@
                        value="{{ request('search') }}">
             </div>
             <div class="col-md-4">
-                <select name="madhab" class="form-select">
+                <select name="madhab_id" class="form-select">
                     <option value="">All Madhabs</option>
-                    @foreach(['Hanafi','Shafii','Maliki','Hanbali','Other'] as $m)
-                        <option value="{{ $m }}" {{ request('madhab') == $m ? 'selected' : '' }}>
-                            {{ $m == 'Shafii' ? "Shafi'i" : $m }}
+                    @foreach($madhabs as $m)
+                        <option value="{{ $m->id }}" {{ request('madhab_id') == $m->id ? 'selected' : '' }}>
+                            {{ $m->name }}
                         </option>
                     @endforeach
                 </select>
@@ -55,7 +55,7 @@
                                 <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}"
                                      alt="Fatwa"
                                      onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
-                                <span class="madhab-badge">{{ $fatwa->question->madhab }}</span>
+                                <span class="madhab-badge">{{ $fatwa->question->madhab?->name }}</span>
                             </div>
 
                             {{-- Card Body --}}
@@ -132,10 +132,10 @@
             <div class="sidebar-widget">
                 <span class="widget-title">Madhabs</span>
                 <div class="d-flex flex-wrap gap-2 mt-2">
-                    @foreach(['Hanafi','Shafii','Maliki','Hanbali'] as $m)
-                        <a href="{{ route('fatwa.archive', ['madhab' => $m]) }}" 
-                           class="btn btn-sm btn-outline-success px-3 rounded-pill {{ request('madhab') == $m ? 'active' : '' }}">
-                            {{ $m == 'Shafii' ? "Shafi'i" : $m }}
+                    @foreach($madhabs as $m)
+                        <a href="{{ route('fatwa.archive', ['madhab_id' => $m->id]) }}" 
+                           class="btn btn-sm btn-outline-success px-3 rounded-pill {{ request('madhab_id') == $m->id ? 'active' : '' }}">
+                            {{ $m->name }}
                         </a>
                     @endforeach
                 </div>
