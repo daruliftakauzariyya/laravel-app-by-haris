@@ -14,11 +14,26 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Public: List published fatwas
+// Public: List published fatwas with optional search
 Route::get('/fatwas', function (Request $request) {
-    $fatwas = \App\Models\Fatwa::with(['question', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences'])
-                ->latest('published_at')
-                ->paginate(20);
+    $query = \App\Models\Fatwa::with(['question', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences'])
+                ->latest('published_at');
+
+    if ($request->filled('search')) {
+        $term = $request->search;
+        $query->where(function ($q) use ($term) {
+            $q->whereHas('question', function ($sq) use ($term) {
+                $sq->where('body', 'like', "%{$term}%")
+                   ->orWhere('title', 'like', "%{$term}%");
+            })
+            ->orWhereHas('muftiAnswer', function ($aq) use ($term) {
+                $aq->where('full_answer', 'like', "%{$term}%")
+                   ->orWhere('summary', 'like', "%{$term}%");
+            });
+        });
+    }
+
+    $fatwas = $query->paginate(20);
     return response()->json([
         'status' => 'success',
         'data'   => $fatwas,
