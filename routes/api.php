@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public: List published fatwas with optional search
 Route::get('/fatwas', function (Request $request) {
-    $query = \App\Models\Fatwa::with(['question', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences'])
+    $query = \App\Models\Fatwa::with(['question.category', 'question.madhab', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences'])
                 ->latest('published_at');
 
     if ($request->filled('search')) {
@@ -51,7 +51,7 @@ Route::get('/categories', function () {
 
 // Public: Get single fatwa
 Route::get('/fatwas/{fatwa}', function (\App\Models\Fatwa $fatwa) {
-    $fatwa->load(['question', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences', 'publisher']);
+    $fatwa->load(['question.category', 'question.madhab', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences', 'publisher']);
     return response()->json(['status' => 'success', 'data' => $fatwa]);
 });
 
