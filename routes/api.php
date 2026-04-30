@@ -110,6 +110,12 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json(['status' => 'success', 'data' => $questions]);
     });
 
+    // Admin (Management) Routes
+    Route::middleware('role:admin')->prefix('admin')->group(function () {
+        Route::get('/pending-call', [\App\Http\Controllers\Api\AdminApiController::class, 'pendingCall']);
+        Route::post('/questions/{question}/accept', [\App\Http\Controllers\Api\AdminApiController::class, 'acceptQuestion']);
+    });
+
     // Scholar (Mufti) Routes
     Route::middleware('role:mufti')->prefix('mufti')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Api\MuftiApiController::class, 'dashboard']);

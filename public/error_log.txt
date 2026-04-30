@@ -16,3 +16,4 @@
 [06-Apr-2026 08:29:39 Europe/Berlin] PHP Parse error:  syntax error, unexpected identifier "readonly", expecting "abstract" or "final" or "class" in C:\xampp-server\htdocs\fatwa-app-by-haris\vendor\sebastian\version\src\Version.php on line 23
 [06-Apr-2026 08:29:39 Europe/Berlin] PHP Parse error:  syntax error, unexpected identifier "readonly", expecting "abstract" or "final" or "class" in C:\xampp-server\htdocs\fatwa-app-by-haris\vendor\sebastian\version\src\Version.php on line 23
 [06-Apr-2026 08:39:03 Europe/Berlin] PHP Parse error:  syntax error, unexpected identifier "readonly", expecting "abstract" or "final" or "class" in C:\xampp-server\htdocs\fatwa-app-by-haris\vendor\sebastian\version\src\Version.php on line 23
+[23-Apr-2026 08:45:03 Europe/Berlin] PHP Parse error:  syntax error, unexpected token ")" in C:\xampp-server\htdocs\fatwa laravel\laravel-app-by-haris\vendor\laravel\framework\src\Illuminate\Container\Container.php on line 817

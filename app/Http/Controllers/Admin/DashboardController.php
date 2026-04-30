@@ -90,7 +90,7 @@ class DashboardController extends Controller
             $monthlyCounts[] = $monthlyData[$key]->count ?? 0;
         }
 
-        $recentQuestions = Question::with('user', 'madhab')
+        $recentQuestions = Question::with(['user', 'madhab', 'category', 'assignedMufti'])
             ->latest()
             ->take(5)
             ->get();

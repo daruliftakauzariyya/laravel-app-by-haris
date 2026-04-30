@@ -112,14 +112,14 @@
                         </div>
                         <div class="fatwa-body">
                             <div class="fatwa-meta">
-                                <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category->name ?? 'General' }}</span>
+                                <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category?->name ?? 'General' }}</span>
                                 <span>{{ $fatwa->published_at?->format('d M Y') }}</span>
                             </div>
                             <h6 class="fatwa-title">{{ Str::limit(strip_tags($fatwa->question->title ?: $fatwa->question->body), 75) }}</h6>
-                            <p class="fatwa-excerpt">{{ Str::limit(strip_tags($fatwa->muftiAnswer->summary ?: $fatwa->muftiAnswer->full_answer), 95) }}</p>
+                            <p class="fatwa-excerpt">{{ Str::limit(strip_tags($fatwa->muftiAnswer?->summary ?: $fatwa->muftiAnswer?->full_answer ?? ''), 95) }}</p>
                             <div class="fatwa-footer">
                                 <i class="bi bi-person-circle text-muted flex-shrink-0"></i>
-                                <span class="fatwa-author">{{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}</span>
+                                <span class="fatwa-author">{{ $fatwa->muftiAnswer?->mufti?->name ?? 'Darul Ifta' }}</span>
                                 <span class="like-count flex-shrink-0 text-danger small fw-semibold"><i class="bi bi-heart-fill me-1"></i>{{ number_format($fatwa->likes) }}</span>
                                 <span class="read-more-btn flex-shrink-0">Read More <i class="bi bi-arrow-right"></i></span>
                             </div>
@@ -171,14 +171,14 @@
                         </div>
                         <div class="fatwa-body">
                             <div class="fatwa-meta">
-                                <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category->name ?? 'General' }}</span>
+                                <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category?->name ?? 'General' }}</span>
                                 <span><i class="bi bi-eye me-1"></i>{{ number_format($fatwa->views) }}</span>
                             </div>
                             <h6 class="fatwa-title">{{ Str::limit(strip_tags($fatwa->question->title ?: $fatwa->question->body), 75) }}</h6>
-                            <p class="fatwa-excerpt">{{ Str::limit(strip_tags($fatwa->muftiAnswer->summary ?: $fatwa->muftiAnswer->full_answer), 95) }}</p>
+                            <p class="fatwa-excerpt">{{ Str::limit(strip_tags($fatwa->muftiAnswer?->summary ?: $fatwa->muftiAnswer?->full_answer ?? ''), 95) }}</p>
                             <div class="fatwa-footer">
                                 <i class="bi bi-person-circle text-muted flex-shrink-0"></i>
-                                <span class="fatwa-author">{{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}</span>
+                                <span class="fatwa-author">{{ $fatwa->muftiAnswer?->mufti?->name ?? 'Darul Ifta' }}</span>
                                 <span class="like-count flex-shrink-0 text-danger small fw-semibold"><i class="bi bi-heart-fill me-1"></i>{{ number_format($fatwa->likes) }}</span>
                                 <span class="read-more-btn flex-shrink-0">Read More <i class="bi bi-arrow-right"></i></span>
                             </div>

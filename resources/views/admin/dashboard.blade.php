@@ -161,7 +161,7 @@
                                 <td class="ps-4"><span class="badge bg-light text-dark fw-bold border">ID-{{ $q->question_id }}</span></td>
                                 <td>
                                     <div class="fw-bold text-dark">{{ Str::limit(strip_tags($q->title ?: $q->body), 45) }}</div>
-                                    <div class="x-small text-muted">{{ $q->madhab?->name ?? 'Common Ground' }} · {{ $q->category->name }}</div>
+                                    <div class="x-small text-muted">{{ $q->madhab?->name ?? 'Common Ground' }} · {{ $q->category?->name ?? 'General' }}</div>
                                 </td>
                                 <td>
                                     @if($q->assigned_mufti_id)
@@ -169,7 +169,7 @@
                                             <div class="bg-primary bg-opacity-10 text-primary rounded-circle small d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
                                                 <i class="bi bi-person"></i>
                                             </div>
-                                            <span class="small fw-semibold">{{ $q->assignedMufti->name ?? 'Scholar' }}</span>
+                                            <span class="small fw-semibold">{{ $q->assignedMufti?->name ?? 'Scholar' }}</span>
                                         </div>
                                     @else
                                         <span class="text-muted italic x-small">Unassigned</span>
