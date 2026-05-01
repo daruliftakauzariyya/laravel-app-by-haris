@@ -14,15 +14,15 @@ class AdminApiController extends Controller
      */
     public function pendingCall()
     {
-        $question = Question::with('user')
+        $questions = Question::with('user')
                     ->where('status', 'pending')
                     ->whereNull('assigned_mufti_id')
                     ->latest()
-                    ->first();
+                    ->get();
 
         return response()->json([
             'status' => 'success',
-            'data' => $question
+            'data' => $questions
         ]);
     }
 
