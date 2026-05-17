@@ -46,14 +46,17 @@
                 <div class="row">
                     <div class="col-md-12 mb-3">
                         <label class="form-label fw-semibold">Mobile Number *</label>
-                        <div class="input-group">
-                            <select name="country_code" id="country_code" class="form-select @error('country_code') is-invalid @enderror" style="max-width: 120px;" required>
-                                <option value="">Code</option>
-                            </select>
-                            <input type="text" name="mobile" class="form-control @error('mobile') is-invalid @enderror"
-                                   value="{{ old('mobile', !str_contains($loginId, '@') ? $loginId : '') }}" placeholder="Mobile Number" required>
+                        <!-- intl-tel-input: searchable country code + mobile number -->
+                        <div class="iti-wrapper">
+                            <input type="tel" id="phone" name="mobile"
+                                   class="form-control @error('mobile') is-invalid @enderror"
+                                   value="{{ old('mobile', !str_contains($loginId, '@') ? $loginId : '') }}"
+                                   placeholder="Mobile Number" required>
                         </div>
+                        <!-- Hidden field that holds just the dial code for backend validation -->
+                        <input type="hidden" name="country_code" id="selected_country_code" value="{{ old('country_code', '+91') }}">
                         @error('mobile')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                        @error('country_code')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     </div>
                 </div>
                 <div class="d-flex justify-content-end mt-4">
@@ -148,6 +151,10 @@
 </div>
 
 @push('styles')
+<!-- intl-tel-input CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/css/intlTelInput.css">
+<!-- Tom Select CSS (searchable dropdowns for Country / State / District) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
 <style>
     .step-indicator {
         width: 32px;
@@ -168,11 +175,145 @@
         background: #1a7a4a;
         color: #fff;
     }
+
+    /* intl-tel-input overrides to match Bootstrap form-control */
+    .iti-wrapper {
+        width: 100%;
+    }
+    .iti {
+        width: 100%;
+    }
+    .iti__tel-input {
+        width: 100%;
+        height: calc(1.5em + 0.75rem + 2px);
+        padding: 0.375rem 0.75rem 0.375rem 52px;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    .iti__tel-input:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+    }
+    .iti__tel-input.is-invalid {
+        border-color: #dc3545;
+    }
+    /* Search box inside the dropdown */
+    .iti__search-input {
+        width: calc(100% - 20px);
+        padding: 6px 10px;
+        margin: 8px 10px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+    .iti__search-input:focus {
+        outline: none;
+        border-color: #1a7a4a;
+        box-shadow: 0 0 0 0.2rem rgba(26,122,74,.2);
+    }
+    /* Dropdown z-index fix */
+    .iti__dropdown-content {
+        z-index: 9999;
+    }
+
+    /* Tom Select overrides — match Bootstrap form-control look */
+    .ts-wrapper {
+        padding: 0;
+    }
+    .ts-control {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        min-height: calc(1.5em + 0.75rem + 2px);
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        box-shadow: none;
+        cursor: text;
+    }
+    .ts-control:focus-within {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+    }
+    .ts-control input {
+        color: #212529;
+    }
+    .ts-dropdown {
+        z-index: 9999;
+        border-radius: 0.375rem;
+        border-color: #ced4da;
+        box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    }
+    .ts-dropdown .ts-dropdown-content {
+        max-height: 220px;
+    }
+    /* Green highlight on selected/active item */
+    .ts-dropdown .option.selected,
+    .ts-dropdown .option:hover,
+    .ts-dropdown .active {
+        background-color: #1a7a4a !important;
+        color: #fff !important;
+    }
+    /* Disabled wrapper styling */
+    .ts-wrapper.disabled .ts-control {
+        background-color: #e9ecef;
+        pointer-events: none;
+        opacity: 0.7;
+    }
 </style>
 @endpush
 
 @push('scripts')
+<!-- intl-tel-input JS -->
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/js/intlTelInput.min.js"></script>
+<!-- Tom Select JS -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
+    // ---- intl-tel-input initialisation ----
+    let itiInstance;
+    document.addEventListener('DOMContentLoaded', function () {
+        const phoneInput = document.getElementById('phone');
+        const hiddenCode = document.getElementById('selected_country_code');
+
+        itiInstance = window.intlTelInput(phoneInput, {
+            // Use the CDN-hosted utility script for geo-IP detection
+            utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/js/utils.js',
+            initialCountry: 'auto',
+            geoIpLookup: function(callback) {
+                fetch('https://ipapi.co/json')
+                    .then(r => r.json())
+                    .then(data => callback(data.country_code))
+                    .catch(() => callback('in'));
+            },
+            separateDialCode: true,
+            searchPlaceholder: 'Search country or code...',
+            // Show search box inside the dropdown
+            countrySearch: true,
+            formatOnDisplay: false,
+        });
+
+        // Keep hidden field in sync whenever the user changes the country flag
+        phoneInput.addEventListener('countrychange', function () {
+            const dialCode = '+' + itiInstance.getSelectedCountryData().dialCode;
+            hiddenCode.value = dialCode;
+        });
+
+        // On form submit: update the hidden code once more & validate
+        document.getElementById('registrationForm').addEventListener('submit', function (e) {
+            const dialCode = '+' + itiInstance.getSelectedCountryData().dialCode;
+            hiddenCode.value = dialCode;
+        });
+    });
+    // ----------------------------------------
+
     function validateStep(step) {
         let isValid = true;
         const stepEl = document.getElementById('step-' + step);
@@ -239,97 +380,109 @@
             validateStep(1) ? nextStep(3) : nextStep(1);
         @endif
         
-        const countrySelect = document.getElementById('country');
-        const stateSelect = document.getElementById('state');
-        const districtSelect = document.getElementById('district');
-        const dialCodeSelect = document.getElementById('country_code');
+        // ---- Tom Select for Country / State / District ----
+        // Three long-lived instances. Use Tom Select's own API to update options
+        // in-place — no destroy/recreate needed.
 
-        // Fetch Countries for Dial Codes
-        fetch('https://countriesnow.space/api/v0.1/countries/codes')
-            .then(response => response.json())
-            .then(data => {
-                if(data.error === false) {
-                    data.data.sort((a,b) => a.name.localeCompare(b.name)).forEach(country => {
-                        let option = new Option(`${country.dial_code} (${country.code})`, country.dial_code);
-                        dialCodeSelect.add(option);
-                    });
-                }
-            });
+        const countryEl  = document.getElementById('country');
+        const stateEl    = document.getElementById('state');
+        const districtEl = document.getElementById('district');
 
-        // Fetch Countries for Address
+        // Ensure underlying selects are not disabled before Tom Select wraps them
+        stateEl.disabled   = false;
+        districtEl.disabled = false;
+
+        const tsOpts = {
+            allowEmptyOption: true,
+            maxOptions: null,
+            searchField: ['text'],
+            sortField: { field: 'text', direction: 'asc' },
+            create: false,
+        };
+
+        const tsCountry  = new TomSelect(countryEl,  Object.assign({}, tsOpts, { placeholder: 'Search or select country…'  }));
+        const tsState    = new TomSelect(stateEl,    Object.assign({}, tsOpts, { placeholder: 'Select country first…'      }));
+        const tsDistrict = new TomSelect(districtEl, Object.assign({}, tsOpts, { placeholder: 'Select state first…'        }));
+
+        // State & District start disabled
+        tsState.disable();
+        tsDistrict.disable();
+
+        // Load countries into tsCountry
         fetch('https://countriesnow.space/api/v0.1/countries/positions')
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
-                if(data.error === false) {
-                    data.data.forEach(country => {
-                        let option = new Option(country.name, country.name);
-                        countrySelect.add(option);
-                    });
+                if (data.error === false) {
+                    const opts = data.data.map(c => ({ value: c.name, text: c.name }));
+                    tsCountry.addOptions(opts);
                 }
             });
 
-        countrySelect.addEventListener('change', function() {
-            stateSelect.innerHTML = '<option value="">Loading...</option>';
-            stateSelect.disabled = true;
-            districtSelect.innerHTML = '<option value="">Select District</option>';
-            districtSelect.disabled = true;
+        // Country → States
+        tsCountry.on('change', function(countryValue) {
+            tsState.clear(true);
+            tsState.clearOptions();
+            tsState.disable();
+            tsDistrict.clear(true);
+            tsDistrict.clearOptions();
+            tsDistrict.disable();
 
-            if (this.value) {
-                fetch('https://countriesnow.space/api/v0.1/countries/states', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ country: this.value })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    stateSelect.innerHTML = '<option value="">Select State</option>';
-                    if(data.error === false && data.data.states.length > 0) {
-                        data.data.states.forEach(state => {
-                            let option = new Option(state.name, state.name);
-                            stateSelect.add(option);
-                        });
-                        stateSelect.disabled = false;
-                    } else {
-                        let option = new Option("N/A", "N/A");
-                        stateSelect.add(option);
-                        stateSelect.disabled = false;
-                        districtSelect.innerHTML = '<option value="N/A">N/A</option>';
-                        districtSelect.disabled = false;
-                    }
-                })
-                .catch(err => {
-                    stateSelect.innerHTML = '<option value="Unknown">Unknown</option>';
-                    stateSelect.disabled = false;
-                });
-            }
+            if (!countryValue) return;
+
+            fetch('https://countriesnow.space/api/v0.1/countries/states', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ country: countryValue })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error === false && data.data.states && data.data.states.length > 0) {
+                    const opts = data.data.states.map(s => ({ value: s.name, text: s.name }));
+                    tsState.addOptions(opts);
+                    tsState.enable();
+                } else {
+                    tsState.addOption({ value: 'N/A', text: 'N/A' });
+                    tsState.enable();
+                    tsDistrict.addOption({ value: 'N/A', text: 'N/A' });
+                    tsDistrict.setValue('N/A', true);
+                    tsDistrict.enable();
+                }
+            })
+            .catch(() => {
+                tsState.addOption({ value: 'Unknown', text: 'Unknown' });
+                tsState.enable();
+            });
         });
 
-        stateSelect.addEventListener('change', function() {
-            districtSelect.innerHTML = '<option value="">Loading...</option>';
-            districtSelect.disabled = true;
+        // State → Districts
+        tsState.on('change', function(stateValue) {
+            tsDistrict.clear(true);
+            tsDistrict.clearOptions();
+            tsDistrict.disable();
 
-            if (this.value && this.value !== "N/A") {
-                fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ country: countrySelect.value, state: this.value })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    districtSelect.innerHTML = '<option value="">Select District</option>';
-                    if(data.error === false && data.data.length > 0) {
-                        data.data.forEach(city => {
-                            let option = new Option(city, city);
-                            districtSelect.add(option);
-                        });
-                        districtSelect.disabled = false;
-                    } else {
-                        let option = new Option(this.value, this.value);
-                        districtSelect.add(option);
-                        districtSelect.disabled = false;
-                    }
-                });
-            }
+            if (!stateValue || stateValue === 'N/A') return;
+
+            const countryValue = tsCountry.getValue();
+
+            fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ country: countryValue, state: stateValue })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error === false && data.data && data.data.length > 0) {
+                    const opts = data.data.map(c => ({ value: c, text: c }));
+                    tsDistrict.addOptions(opts);
+                } else {
+                    tsDistrict.addOption({ value: stateValue, text: stateValue });
+                }
+                tsDistrict.enable();
+            })
+            .catch(() => {
+                tsDistrict.addOption({ value: stateValue, text: stateValue });
+                tsDistrict.enable();
+            });
         });
     });
 </script>

@@ -16,7 +16,7 @@ body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;padding:20px;}
         <p>Dear <strong>{{ $question->assignedMufti->name }}</strong>,</p>
         <p>A question has been assigned to you for Fatwa.</p>
         <p><strong>Question ID:</strong> <span class="badge">{{ $question->question_id }}</span></p>
-        <p><strong>Madhab:</strong> {{ $question->madhab == 'Shafii' ? "Shafi'i" : $question->madhab }}</p>
+        <p><strong>Madhab:</strong> {{ $question->madhab?->name ?? 'General' }}</p>
         <p><strong>Question:</strong></p>
         <p style="background:#f8f8f8;padding:12px;border-radius:5px;border-left:3px solid #0d6efd;">{{ Str::limit($question->body, 300) }}</p>
         <a href="{{ url('/mufti/questions/' . $question->id) }}" class="btn">Submit Answer →</a>

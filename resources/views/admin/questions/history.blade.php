@@ -167,7 +167,7 @@
                     $rows = [
                         ['Questioner', $question->user->name ?? '—'],
                         ['Question ID', $question->question_id],
-                        ['Madhab', $question->madhab],
+                        ['Madhab', $question->madhab?->name ?? '—'],
                         ['Language', $question->language ?? '—'],
                         ['Category', $question->category?->name ?? '—'],
                         ['Status', ucfirst($question->status)],
