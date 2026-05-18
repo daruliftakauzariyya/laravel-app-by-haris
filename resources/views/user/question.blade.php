@@ -201,7 +201,7 @@
                         <div class="meta-item"><span class="meta-label text-dark">Qu-Id:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->question_id }}</span></div>
                     </div>
                     <div class="col-6">
-                        <div class="meta-item"><span class="meta-label text-dark">Madhab:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->madhab }}</span></div>
+                        <div class="meta-item"><span class="meta-label text-dark">Madhab:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->madhab?->name == 'Shafii' ? "Shafi'i" : ($question->madhab?->name ?? 'General/Other') }}</span></div>
                     </div>
                 </div>
                 {{-- Row 2: Category & Published --}}

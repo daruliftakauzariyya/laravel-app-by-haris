@@ -76,7 +76,7 @@
                             <div class="fatwa-card h-100">
                                 <div class="fatwa-thumb">
                                     <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}" alt="Fatwa" onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
-                                    <span class="madhab-badge">{{ $fatwa->question->madhab }}</span>
+                                    <span class="madhab-badge">{{ $fatwa->question->madhab?->name == 'Shafii' ? "Shafi'i" : ($fatwa->question->madhab?->name ?? 'General/Other') }}</span>
                                 </div>
                                 <div class="fatwa-body">
                                     <div class="fatwa-meta small mb-2 d-flex justify-content-between">
