@@ -384,16 +384,6 @@
                 <img src="{{ asset('assets/logo/logoblueNew.svg') }}" alt="Darul Ifta Kauzariyya Logo">
             </a>
 
-            {{-- Hijri Date Display (Public) --}}
-            @if(\App\Models\SiteSetting::get('show_hijri_public', true))
-                <div class="d-none d-md-flex ms-3 border-start ps-3 align-items-center h-100">
-                    <span class="badge bg-light text-brand border border-info-subtle rounded-pill font-Inter"
-                        style="font-size: 0.8rem; letter-spacing: 0.5px;">
-                        <i class="bi bi-moon-stars me-1 text-gold"></i>{{ \App\Helpers\HijriHelper::now('j F Y') }}
-                    </span>
-                </div>
-            @endif
-
             {{-- Mobile Hamburger --}}
             <button class="navbar-toggler border-0 shadow-none d-lg-none" type="button" data-bs-toggle="offcanvas"
                 data-bs-target="#mobileMenu">

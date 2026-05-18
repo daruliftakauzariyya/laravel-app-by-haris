@@ -242,10 +242,10 @@
         </div>
         <div class="row g-4 justify-content-center">
             @foreach([
-                ['name' => 'Muhammad Ibrahim',  'role' => 'Principal — KAUZARIYYA', 'img' => 'https://new.daruliftakauzariyya.com/assets/img/team/principal.png'],
-                ['name' => 'Mufti Rajeeb Qasimi','role' => 'HOD — Darul Ifta',      'img' => 'https://new.daruliftakauzariyya.com/assets/img/team/hod.png'],
-                ['name' => 'Mufti Abid Ibrahim', 'role' => 'Professor Kauzariyya',  'img' => 'https://new.daruliftakauzariyya.com/assets/img/team/professor.png'],
-                ['name' => 'Ansaf',              'role' => 'Master — Kauzariyya',   'img' => 'https://new.daruliftakauzariyya.com/assets/img/team/master.png'],
+                ['name' => 'Muhammad Ibrahim',  'role' => 'Principal — KAUZARIYYA', 'img' => 'https://daruliftakauzariyya.com/assets/img/team/principal.png'],
+                ['name' => 'Mufti Rajeeb Qasimi','role' => 'HOD — Darul Ifta',      'img' => 'https://daruliftakauzariyya.com/assets/img/team/hod.png'],
+                ['name' => 'Mufti Abid Ibrahim', 'role' => 'Professor Kauzariyya',  'img' => 'https://daruliftakauzariyya.com/assets/img/team/professor.png'],
+                ['name' => 'Al Usthad Ilyas Kanjar', 'role' => 'Professor — Kauzariyya', 'img' => 'https://daruliftakauzariyya.com/assets/img/team/master.png'],
             ] as $member)
             <div class="col-6 col-md-3">
                 <div class="faculty-card-modern">

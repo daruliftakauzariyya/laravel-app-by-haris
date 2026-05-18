@@ -1,7 +1,7 @@
 <?php
 /**
  * Clear Laravel view cache and application cache
- * Run once at: https://new.daruliftakauzariyya.com/clear_cache.php
+ * Run once at: https://daruliftakauzariyya.com/clear_cache.php
  */
 
 // Clear compiled view cache
@@ -23,4 +23,4 @@ if (file_exists($artisan)) {
 echo "<h2>✅ Cache Cleared</h2>";
 echo "<p>Compiled view files removed: <strong>$cleared</strong></p>";
 echo "<p>Laravel will recompile all views on next page load.</p>";
-echo "<p>Now visit: <a href='https://new.daruliftakauzariyya.com/mufti/questions'>Mufti Questions</a> to verify the fix.</p>";
+echo "<p>Now visit: <a href='https://daruliftakauzariyya.com/mufti/questions'>Mufti Questions</a> to verify the fix.</p>";

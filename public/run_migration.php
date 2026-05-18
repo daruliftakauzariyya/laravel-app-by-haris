@@ -1,7 +1,7 @@
 <?php
 /**
  * Run migration for fatwa_featured_rules table
- * Visit: https://new.daruliftakauzariyya.com/run_migration.php
+ * Visit: https://daruliftakauzariyya.com/run_migration.php
  */
 
 $host    = '162.214.80.164';
@@ -58,7 +58,7 @@ try {
     }
 
     echo "\n✅ Migration complete! You can delete this file.\n";
-    echo "\nManage rules at: <a href='https://new.daruliftakauzariyya.com/admin/featured-rules'>Admin → Featured Fatwas</a>";
+    echo "\nManage rules at: <a href='https://daruliftakauzariyya.com/admin/featured-rules'>Admin → Featured Fatwas</a>";
 } catch (Exception $e) {
     echo "❌ Error: " . $e->getMessage();
 }

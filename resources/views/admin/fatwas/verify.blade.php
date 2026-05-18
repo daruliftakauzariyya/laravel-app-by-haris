@@ -73,13 +73,18 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Verified by <span class="text-muted">(Multiple allowed)</span>:</label>
-                        <select name="verified_by[]" id="verified_by" class="form-select form-select-sm" multiple required size="4">
+                        <label class="form-label small fw-bold d-block">Verified by <span class="text-muted">(Multiple allowed)</span>:</label>
+                        <div id="verified_by_container" class="border rounded p-2 bg-light" style="max-height: 160px; overflow-y: auto;">
                             @foreach($verifierMuftis as $mufti)
-                                <option value="{{ $mufti->id }}" {{ $question->fatwa?->verifiers->contains($mufti->id) ? 'selected' : '' }}>{{ $mufti->name }}</option>
+                                <div class="form-check my-1">
+                                    <input class="form-check-input verifier-checkbox" type="checkbox" name="verified_by[]" value="{{ $mufti->id }}" id="verifier_{{ $mufti->id }}"
+                                        {{ $question->fatwa?->verifiers->contains($mufti->id) ? 'checked' : '' }}>
+                                    <label class="form-check-label small cursor-pointer" for="verifier_{{ $mufti->id }}">
+                                        {{ $mufti->name }}
+                                    </label>
+                                </div>
                             @endforeach
-                        </select>
-                        <small class="text-muted" style="font-size:0.7rem;">Hold Ctrl/Cmd to select multiple.</small>
+                        </div>
                     </div>
 
                     <div class="mb-4">
@@ -124,31 +129,70 @@
         <script>
             // --- Mufti Filtering Logic ---
             const writtenById = "{{ $question->muftiAnswer->mufti_id }}";
-            const verifierSelect = document.getElementById('verified_by');
+            const verifierCheckboxes = document.querySelectorAll('.verifier-checkbox');
             const approverSelect = document.getElementById('checked_approved_by');
 
             function filterMuftis() {
-                const selectedVerifier = verifierSelect.value;
-                const selectedApprover = approverSelect.value;
+                // Get all selected verifier IDs as an array of trimmed strings
+                const selectedVerifierIds = [];
+                verifierCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selectedVerifierIds.push(String(cb.value).trim());
+                    }
+                });
+                
+                const selectedApproverId = approverSelect.value ? String(approverSelect.value).trim() : "";
+                const authorId = writtenById ? String(writtenById).trim() : "";
 
-                // Simple client-side filtering: disable the options
-                Array.from(verifierSelect.options).forEach(opt => {
-                    if (opt.value === writtenById) opt.disabled = true;
+                // Disable options/checkboxes in the verifiers list if they are the author or the currently selected approver
+                verifierCheckboxes.forEach(cb => {
+                    const val = String(cb.value).trim();
+                    const container = cb.closest('.form-check');
+                    if (val === authorId) {
+                        cb.disabled = true;
+                        cb.checked = false;
+                        if (container) container.style.opacity = '0.5';
+                    } else if (selectedApproverId && val === selectedApproverId) {
+                        cb.disabled = true;
+                        cb.checked = false; // Deselect if checked
+                        if (container) container.style.opacity = '0.5';
+                    } else {
+                        cb.disabled = false;
+                        if (container) container.style.opacity = '1';
+                    }
                 });
 
-                Array.from(approverSelect.options).forEach(opt => {
-                    // Hide if written by or currently selected as verifier
-                    if (opt.value === writtenById || (selectedVerifier && opt.value === selectedVerifier)) {
+                // Disable options in approverSelect if they are selected as a verifier or is the author
+                for (let i = 0; i < approverSelect.options.length; i++) {
+                    const opt = approverSelect.options[i];
+                    if (!opt.value) continue; // Skip placeholder option
+                    const val = String(opt.value).trim();
+                    
+                    if (val === authorId || selectedVerifierIds.indexOf(val) !== -1) {
                         opt.disabled = true;
-                        if (opt.selected) approverSelect.value = ""; // Reset if it was selected
+                        if (opt.selected) {
+                            approverSelect.value = ""; // Reset if it was selected
+                        }
                     } else {
                         opt.disabled = false;
                     }
-                });
+                }
             }
 
-            verifierSelect.addEventListener('change', filterMuftis);
+            verifierCheckboxes.forEach(cb => {
+                cb.addEventListener('change', filterMuftis);
+            });
+            approverSelect.addEventListener('change', filterMuftis);
             window.addEventListener('load', filterMuftis);
+
+            // Client-side required validation for checkboxes
+            document.querySelector('#publish-btn').closest('form').addEventListener('submit', function(e) {
+                const checkedCount = Array.from(verifierCheckboxes).filter(cb => cb.checked).length;
+                if (checkedCount === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one Mufti in "Verified by" list.');
+                }
+            });
 
             // --- Cropper Logic ---
             let cropper;

@@ -22,7 +22,7 @@
                 <select name="mufti_id" class="form-select @error('mufti_id') is-invalid @enderror" required>
                     <option value="">Select Mufti...</option>
                     @foreach($muftis as $m)
-                        <option value="{{ $m->id }}" {{ old('mufti_id', $question->muftiAnswer?->mufti_id) == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
+                        <option value="{{ $m->id }}" {{ old('mufti_id', $question->muftiAnswer?->mufti_id ?? $question->assigned_mufti_id) == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
                     @endforeach
                 </select>
                 @error('mufti_id')<div class="invalid-feedback">{{ $message }}</div>@enderror

@@ -5,7 +5,7 @@
  * 
  * Instructions:
  * 1. Upload this file to your public/ directory on the live server.
- * 2. Visit: https://new.daruliftakauzariyya.com/seed_categories_standalone.php
+ * 2. Visit: https://daruliftakauzariyya.com/seed_categories_standalone.php
  * 3. DELETE THIS FILE after running for security!
  */
 
