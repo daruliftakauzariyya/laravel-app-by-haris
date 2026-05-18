@@ -107,13 +107,47 @@
         <div class="col-lg-4">
             <div class="sidebar-widget">
                 <span class="widget-title">Knowledge Streams</span>
-                <ul class="cat-list">
+                <ul class="cat-list" style="padding-left: 0; list-style: none;">
                     @foreach($allCategories as $cat)
-                    <li>
-                        <a href="{{ route('fatwa.archive', ['category' => $cat->id]) }}">
-                            <span>{{ $cat->name }}</span>
-                            <span class="cat-count">{{ $cat->questions_count }}</span>
-                        </a>
+                    @php
+                        $isCurrentOrChildSelected = (request('category') == $cat->id || $cat->children->pluck('id')->contains(request('category')));
+                    @endphp
+                    <li class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center w-100">
+                            <a href="{{ route('fatwa.archive', ['category' => $cat->id]) }}" 
+                               class="flex-grow-1 d-flex justify-content-between align-items-center text-decoration-none {{ request('category') == $cat->id ? 'active text-success fw-bold' : 'text-dark' }}" style="font-weight: 600; font-size: 0.95rem;">
+                                <span>
+                                    @if($cat->children->isNotEmpty())
+                                        <i class="bi bi-chevron-{{ $isCurrentOrChildSelected ? 'down' : 'right' }} me-1 small text-muted"></i>
+                                    @else
+                                        <i class="bi bi-circle me-1 small text-muted" style="font-size: 0.5rem; vertical-align: middle;"></i>
+                                    @endif
+                                    {{ $cat->name }}
+                                </span>
+                                <span class="cat-count px-2 py-0.5 rounded-pill bg-light text-muted small border" style="font-size: 0.75rem;">
+                                    {{ $cat->questions_count }}
+                                </span>
+                            </a>
+                        </div>
+                        
+                        @if($cat->children->isNotEmpty())
+                            <ul class="sub-cat-list ps-3 mt-2 {{ $isCurrentOrChildSelected ? 'd-block' : 'd-none' }}" style="list-style: none; padding-left: 1rem;">
+                                @foreach($cat->children as $child)
+                                <li class="py-1">
+                                    <a href="{{ route('fatwa.archive', ['category' => $child->id]) }}" 
+                                       class="d-flex justify-content-between align-items-center text-decoration-none {{ request('category') == $child->id ? 'active text-success fw-bold' : 'text-muted' }}" style="font-size: 0.85rem; font-weight: 500;">
+                                        <span>
+                                            <i class="bi bi-arrow-return-right me-1 text-muted" style="font-size: 0.75rem;"></i>
+                                            {{ $child->name }}
+                                        </span>
+                                        <span class="badge bg-light text-muted rounded-pill border px-2" style="font-size: 0.7rem; font-weight: normal;">
+                                            {{ $child->questions_count }}
+                                        </span>
+                                    </a>
+                                </li>
+                                @endforeach
+                            </ul>
+                        @endif
                     </li>
                     @endforeach
                 </ul>

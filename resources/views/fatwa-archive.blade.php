@@ -15,11 +15,29 @@
     {{-- Filters --}}
     <form method="GET" class="card border-0 shadow-sm p-3 mb-4">
         <div class="row g-2 align-items-end">
-            <div class="col-md-5">
-                <input type="text" name="search" class="form-control" placeholder="Search by keyword or ID..."
+            <div class="col-md-3 col-sm-6">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-search me-1"></i>Search Keyword</label>
+                <input type="text" name="search" class="form-control" placeholder="Search fatwas..."
                        value="{{ request('search') }}">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3 col-sm-6">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-folder2 me-1"></i>Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    @foreach($allCategories as $parent)
+                        <option value="{{ $parent->id }}" {{ request('category') == $parent->id ? 'selected' : '' }}>
+                            {{ $parent->name }}
+                        </option>
+                        @foreach($parent->children as $child)
+                            <option value="{{ $child->id }}" {{ request('category') == $child->id ? 'selected' : '' }}>
+                                &nbsp;&nbsp;&mdash;&nbsp;{{ $child->name }}
+                            </option>
+                        @endforeach
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-bank me-1"></i>Madhab</label>
                 <select name="madhab_id" class="form-select">
                     <option value="">All Madhabs</option>
                     @foreach($madhabs as $m)
@@ -29,9 +47,19 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-search me-1"></i>Filter</button>
-                <a href="{{ route('fatwa.archive') }}" class="btn btn-outline-secondary">Reset</a>
+            <div class="col-md-2 col-sm-6">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-sort-down me-1"></i>Sort By</label>
+                <select name="sort" class="form-select">
+                    <option value="latest" {{ request('sort') == 'latest' || !request('sort') ? 'selected' : '' }}>Latest Published</option>
+                    <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest Published</option>
+                    <option value="most_read" {{ request('sort') == 'most_read' ? 'selected' : '' }}>Most Read (Popular)</option>
+                    <option value="most_liked" {{ request('sort') == 'most_liked' ? 'selected' : '' }}>Most Liked</option>
+                    <option value="most_starred" {{ request('sort') == 'most_starred' ? 'selected' : '' }}>Highest Rated (Stars)</option>
+                </select>
+            </div>
+            <div class="col-md-2 col-sm-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-funnel-fill me-1"></i>Filter</button>
+                <a href="{{ route('fatwa.archive') }}" class="btn btn-outline-secondary" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
             </div>
         </div>
     </form>
@@ -116,13 +144,47 @@
             {{-- Widget: Categories --}}
             <div class="sidebar-widget">
                 <span class="widget-title">Categories</span>
-                <ul class="cat-list">
+                <ul class="cat-list" style="padding-left: 0; list-style: none;">
                     @foreach($allCategories as $cat)
-                    <li>
-                        <a href="{{ route('fatwa.archive', ['category' => $cat->id]) }}" class="{{ request('category') == $cat->id ? 'active text-primary' : '' }}">
-                            <span>{{ $cat->name }}</span>
-                            <span class="cat-count">{{ $cat->questions_count }}</span>
-                        </a>
+                    @php
+                        $isCurrentOrChildSelected = (request('category') == $cat->id || $cat->children->pluck('id')->contains(request('category')));
+                    @endphp
+                    <li class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center w-100">
+                            <a href="{{ route('fatwa.archive', ['category' => $cat->id]) }}" 
+                               class="flex-grow-1 d-flex justify-content-between align-items-center text-decoration-none {{ request('category') == $cat->id ? 'active text-success fw-bold' : 'text-dark' }}" style="font-weight: 600; font-size: 0.95rem;">
+                                <span>
+                                    @if($cat->children->isNotEmpty())
+                                        <i class="bi bi-chevron-{{ $isCurrentOrChildSelected ? 'down' : 'right' }} me-1 small text-muted"></i>
+                                    @else
+                                        <i class="bi bi-circle me-1 small text-muted" style="font-size: 0.5rem; vertical-align: middle;"></i>
+                                    @endif
+                                    {{ $cat->name }}
+                                </span>
+                                <span class="cat-count px-2 py-0.5 rounded-pill bg-light text-muted small border" style="font-size: 0.75rem;">
+                                    {{ $cat->questions_count }}
+                                </span>
+                            </a>
+                        </div>
+                        
+                        @if($cat->children->isNotEmpty())
+                            <ul class="sub-cat-list ps-3 mt-2 {{ $isCurrentOrChildSelected ? 'd-block' : 'd-none' }}" style="list-style: none; padding-left: 1rem;">
+                                @foreach($cat->children as $child)
+                                <li class="py-1">
+                                    <a href="{{ route('fatwa.archive', ['category' => $child->id]) }}" 
+                                       class="d-flex justify-content-between align-items-center text-decoration-none {{ request('category') == $child->id ? 'active text-success fw-bold' : 'text-muted' }}" style="font-size: 0.85rem; font-weight: 500;">
+                                        <span>
+                                            <i class="bi bi-arrow-return-right me-1 text-muted" style="font-size: 0.75rem;"></i>
+                                            {{ $child->name }}
+                                        </span>
+                                        <span class="badge bg-light text-muted rounded-pill border px-2" style="font-size: 0.7rem; font-weight: normal;">
+                                            {{ $child->questions_count }}
+                                        </span>
+                                    </a>
+                                </li>
+                                @endforeach
+                            </ul>
+                        @endif
                     </li>
                     @endforeach
                 </ul>

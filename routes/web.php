@@ -28,6 +28,7 @@ Route::get('/team', [HomeController::class, 'team'])->name('team');
 // Fatwa Archive
 Route::get('/fatwa-archive', [FatwaController::class, 'index'])->name('fatwa.archive');
 Route::get('/fatwa-archive/{fatwa}', [FatwaController::class, 'show'])->name('fatwa.show');
+Route::get('/fatwa/madhab', [FatwaController::class, 'madhabArchive'])->name('fatwa.madhab');
 Route::get('/mufti-archive/{user}', [FatwaController::class, 'muftiArchive'])->name('fatwa.mufti.archive');
 Route::post('/fatwa-archive/{fatwa}/like', [FatwaController::class, 'like'])->name('fatwa.like');
 
