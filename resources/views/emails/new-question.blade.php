@@ -19,7 +19,7 @@ body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;padding:20px;}
         <p>A new question has been submitted and requires your review.</p>
         <p><strong>Question ID:</strong> <span class="badge">{{ $question->question_id }}</span></p>
         <p><strong>Questioner:</strong> {{ $question->user->name }} ({{ $question->user->email }})</p>
-        <p><strong>Madhab:</strong> {{ $question->madhab?->name ?? 'General' }}</p>
+        <p><strong>Madhab:</strong> {{ $question->madhab == 'Shafii' ? "Shafi'i" : $question->madhab }}</p>
         <p><strong>Question:</strong></p>
         <p style="background:#f8f8f8;padding:12px;border-radius:5px;border-left:3px solid #1a7a4a;">{{ Str::limit($question->body, 300) }}</p>
         <a href="{{ url('/admin/questions/' . $question->id) }}" class="btn">View in Admin Panel →</a>
