@@ -113,6 +113,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin (Management) Routes
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         Route::get('/pending-call', [\App\Http\Controllers\Api\AdminApiController::class, 'pendingCall']);
+        Route::get('/dashboard-stats', [\App\Http\Controllers\Api\AdminApiController::class, 'dashboardStats']);
         Route::post('/questions/{question}/accept', [\App\Http\Controllers\Api\AdminApiController::class, 'acceptQuestion']);
     });
 

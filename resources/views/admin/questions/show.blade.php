@@ -19,7 +19,7 @@
                     <button onclick="window.print()" class="btn btn-sm btn-outline-dark"><i class="bi bi-printer me-1"></i>Print</button>
                     <a href="{{ route('admin.questions.index') }}" class="btn btn-sm btn-outline-secondary">← Back</a>
                     @if(in_array($question->status, ['pending']))
-                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#acceptModal">Accept</button>
+                    <a href="{{ route('admin.questions.accept.form', $question) }}" class="btn btn-sm btn-primary">Accept</a>
                     @endif
                 </div>
             </div>
@@ -263,93 +263,4 @@
     </div>
 </div>
 
-{{-- Accept Modal --}}
-<div class="modal fade" id="acceptModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Accept Question</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-            <form method="POST" action="{{ route('admin.questions.accept', $question) }}">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Question Summary (Short Question) <span class="text-danger">*</span></label>
-                        <input type="text" name="title" class="form-control" value="{{ $question->title }}" maxlength="200" required>
-                        <small class="text-muted">A clear, brief summary (max 200 chars) for archive headings.</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Language</label>
-                        <select name="language" class="form-select" required>
-                            <option value="Urdu" {{ $question->language == 'Urdu' || $question->user->mother_language == 'Urdu' ? 'selected' : '' }}>Urdu</option>
-                            <option value="Arabic" {{ $question->language == 'Arabic' || $question->user->mother_language == 'Arabic' ? 'selected' : '' }}>Arabic</option>
-                            <option value="English" {{ $question->language == 'English' || $question->user->mother_language == 'English' ? 'selected' : '' }}>English</option>
-                            <option value="Hindi" {{ $question->language == 'Hindi' || $question->user->mother_language == 'Hindi' ? 'selected' : '' }}>Hindi</option>
-                            <option value="Malayalam" {{ $question->language == 'Malayalam' || $question->user->mother_language == 'Malayalam' ? 'selected' : '' }}>Malayalam</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Main Category <span class="text-danger">*</span></label>
-                        <select id="main_category" class="form-select" required>
-                            <option value="">Select Main Category...</option>
-                            @foreach($mainCategories as $cat)
-                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="mb-3" id="sub_category_container" style="display:none;">
-                        <label class="form-label fw-semibold">Sub Category <span class="text-danger">*</span></label>
-                        <select name="category_id" id="sub_category" class="form-select" required>
-                            <option value="">Select Sub Category...</option>
-                            @foreach($subCategories as $sub)
-                                <option value="{{ $sub->id }}" data-parent="{{ $sub->parent_id }}">{{ $sub->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Accept Question</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-// Store all original subcategory options in a safe place
-const allSubOptions = Array.from(document.querySelectorAll('#sub_category option[data-parent]'));
-
-document.getElementById('main_category').addEventListener('change', function() {
-    const parentId = this.value;
-    const subContainer = document.getElementById('sub_category_container');
-    const subSelect = document.getElementById('sub_category');
-
-    // Create a fresh list of options starting with the placeholder
-    subSelect.innerHTML = '<option value="">Select Sub Category...</option>';
-
-    if (parentId) {
-        // Find matching options from our stored list
-        const matches = allSubOptions.filter(opt => opt.getAttribute('data-parent') === parentId);
-
-        if (matches.length > 0) {
-            subContainer.style.display = 'block';
-            matches.forEach(opt => {
-                // Re-append the matching option a clone to keep the data
-                subSelect.appendChild(opt.cloneNode(true));
-            });
-        } else {
-            // Show a "No subcategories" message if nothing matches
-            const emptyOpt = document.createElement('option');
-            emptyOpt.text = "No subcategories found for this section";
-            emptyOpt.disabled = true;
-            subSelect.appendChild(emptyOpt);
-            subContainer.style.display = 'block';
-        }
-    } else {
-        // Hide if no main category selected
-        subContainer.style.display = 'none';
-    }
-    
-    subSelect.value = ''; // Reset selection
-});
-</script>
 @endsection

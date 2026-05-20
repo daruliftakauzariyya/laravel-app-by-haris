@@ -14,7 +14,6 @@ use App\Http\Controllers\Mufti\MuftiController;
 use App\Http\Controllers\QuestionController;
 use Illuminate\Support\Facades\Route;
 
-
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -96,6 +95,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Questions
     Route::get('/questions', [QuestionAdminController::class, 'index'])->name('questions.index');
     Route::get('/questions/{question}', [QuestionAdminController::class, 'show'])->name('questions.show');
+    Route::get('/questions/{question}/accept', [QuestionAdminController::class, 'showAcceptForm'])->name('questions.accept.form');
     Route::post('/questions/{question}/accept', [QuestionAdminController::class, 'accept'])->name('questions.accept');
     Route::post('/questions/{question}/assign', [QuestionAdminController::class, 'assign'])->name('questions.assign');
 

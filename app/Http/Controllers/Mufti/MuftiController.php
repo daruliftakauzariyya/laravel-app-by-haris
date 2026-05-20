@@ -117,7 +117,17 @@ class MuftiController extends Controller
             'arabic_text.*'  => ['nullable', 'string'],
             'book_name.*'    => ['nullable', 'string'],
             'ref_language.*' => ['nullable', 'string'],
+            'question_title' => ['nullable', 'string', 'max:200'],
+            'question_body'  => ['nullable', 'string'],
         ]);
+
+        // Update the question title and body if provided
+        if ($request->has('question_title')) {
+            $question->update(['title' => $request->question_title]);
+        }
+        if ($request->has('question_body')) {
+            $question->update(['body' => $request->question_body]);
+        }
 
         // Update or create
         $answer = MuftiAnswer::updateOrCreate(

@@ -10,13 +10,27 @@
         <h6 class="mb-0 fw-bold"><i class="bi bi-pencil me-2"></i>Write Fatwa Answer — {{ $question->question_id }}</h6>
     </div>
     <div class="card-body">
-        {{-- Question Summary --}}
-        <div class="alert alert-light border mb-4">
-            <strong>Question:</strong><br>{{ Str::limit(strip_tags($question->body), 300) }}
-        </div>
-
         <form method="POST" action="{{ route('admin.questions.answer.store', $question) }}">
             @csrf
+
+            {{-- Editable Question Details --}}
+            <div class="card border mb-4 bg-light shadow-none">
+                <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-secondary small"><i class="bi bi-pencil-square me-1"></i>Edit Question Text (Optional)</span>
+                    <span class="badge bg-secondary">Original Questioner Input</span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Questioner Name / Heading</label>
+                        <input type="text" name="question_title" class="form-control form-control-sm" value="{{ old('question_title', $question->title) }}" placeholder="e.g. Questioner Title...">
+                    </div>
+                    <div>
+                        <label class="form-label fw-semibold small">Question Body</label>
+                        <textarea name="question_body" rows="4" class="form-control form-control-sm" placeholder="Original question text...">{{ old('question_body', $question->body) }}</textarea>
+                    </div>
+                </div>
+            </div>
+
             <div class="mb-3">
                 <label class="form-label fw-semibold">Answering Mufti <span class="text-danger">*</span></label>
                 <select name="mufti_id" class="form-select @error('mufti_id') is-invalid @enderror" required>

@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Models\Category;
 use App\Models\PortalVisitorLog;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 use App\Models\SiteSetting;
 use App\Helpers\HijriHelper;
@@ -152,6 +154,25 @@ class DashboardController extends Controller
 
         if ($request->has('show_hijri_public')) {
             SiteSetting::set('show_hijri_public', $request->show_hijri_public, 'boolean');
+        }
+
+        // Admin Account Update
+        if ($request->filled('admin_email') || $request->filled('admin_password')) {
+            $request->validate([
+                'admin_email'    => ['nullable', 'email', 'unique:users,email,' . Auth::id()],
+                'admin_password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            ]);
+
+            $user = Auth::user();
+            if ($request->filled('admin_email')) {
+                $user->email = $request->admin_email;
+            }
+            if ($request->filled('admin_password')) {
+                $user->password = Hash::make($request->admin_password);
+            }
+            $user->save();
+
+            return back()->with('success', 'Admin login credentials updated successfully.');
         }
 
         return back()->with('success', 'Site settings updated successfully.');

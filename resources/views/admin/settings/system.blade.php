@@ -89,6 +89,66 @@
             </div>
         </div>
     </div>
+
+    {{-- Admin Account Settings --}}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 15px; border-left: 4px solid #dc3545 !important;">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="mb-0 fw-bold text-danger"><i class="bi bi-shield-lock me-2"></i>Admin Login Credentials</h6>
+                    <p class="text-muted small mb-0">Update the primary administrator account's email address and sign-in password.</p>
+                </div>
+                <div class="card-body">
+                    @if ($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <ul class="mb-0 small">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('admin.settings.update') }}" method="POST">
+                        @csrf
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Admin Login Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" name="admin_email" class="form-control border-start-0 ps-0 @error('admin_email') is-invalid @enderror" 
+                                           value="{{ old('admin_email', auth()->user()->email) }}" placeholder="admin@darulifta.com" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">New Password (Min 8 chars)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-key"></i></span>
+                                    <input type="password" name="admin_password" class="form-control border-start-0 ps-0 @error('admin_password') is-invalid @enderror" 
+                                           placeholder="••••••••" autocomplete="new-password">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Confirm New Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-key-fill"></i></span>
+                                    <input type="password" name="admin_password_confirmation" class="form-control border-start-0 ps-0" 
+                                           placeholder="••••••••" autocomplete="new-password">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 border-top pt-3 text-end">
+                            <button type="submit" class="btn btn-danger px-4">
+                                <i class="bi bi-shield-check me-1"></i>Update Admin Credentials
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>

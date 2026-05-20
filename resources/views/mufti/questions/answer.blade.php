@@ -100,48 +100,50 @@
 <div class="workspace-wrapper">
     <div class="row g-4">
         <div class="col-xl-8">
-            {{-- Question Focus Card --}}
-            <div class="glass-card mb-4 overflow-hidden border-0">
-                <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
-                    <div>
-                        <span class="q-id-pill mb-2 d-inline-block">{{ $question->question_id }}</span>
-                        <h4 class="fw-800 mb-0" style="color: var(--brand-blue-dark);">{{ strip_tags($question->title ?: 'Original Inquiry') }}</h4>
-                    </div>
-                    <div class="text-end">
-                        <span class="badge px-3 py-2 rounded-pill" style="background: var(--brand-green);">{{ $question->madhab?->name ?? 'Common Ground' }}</span>
-                        <div class="x-small text-muted mt-2 fw-bold uppercase tracking-wider">{{ $question->category->name ?? 'General' }}</div>
-                    </div>
-                </div>
-                <div class="card-body p-4">
-                    <div class="bg-light rounded-4 p-4 mb-4" style="line-height:1.8; border: 1px dashed rgba(0,0,0,0.1);">
-                        {!! $question->body !!}
-                    </div>
-
-                    @if($question->files->count())
-                    <div class="attachment-reel d-flex gap-3 overflow-auto pb-2">
-                        @foreach($question->files as $file)
-                        <div class="flex-shrink-0" style="width: 140px;">
-                            <a href="{{ route('files.view', $file) }}" target="_blank" class="text-decoration-none">
-                                <div class="rounded-3 border overflow-hidden bg-white shadow-sm hover-shadow transition-all">
-                                    @if(str_starts_with($file->file_type, 'image/'))
-                                        <img src="{{ route('files.view', $file) }}" class="w-100" style="height: 100px; object-fit: cover;">
-                                    @else
-                                        <div class="d-flex align-items-center justify-content-center bg-light" style="height: 100px;">
-                                            <i class="bi bi-file-earmark-{{ $file->file_type == 'application/pdf' ? 'pdf text-danger' : 'text text-muted' }} fs-2"></i>
-                                        </div>
-                                    @endif
-                                    <div class="p-2 x-small fw-bold text-dark text-truncate">{{ $file->original_name }}</div>
-                                </div>
-                            </a>
-                        </div>
-                        @endforeach
-                    </div>
-                    @endif
-                </div>
-            </div>
-
             <form method="POST" action="{{ route('mufti.questions.answer', $question) }}" id="fatwaForm">
                 @csrf
+
+                {{-- Editable Question Details --}}
+                <div class="glass-card mb-4 overflow-hidden border-0 bg-white">
+                    <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="q-id-pill mb-2 d-inline-block">{{ $question->question_id }}</span>
+                            <span class="fw-800 text-secondary small d-block"><i class="bi bi-pencil-square me-1"></i>Review / Edit Original Question (Optional)</span>
+                        </div>
+                        <span class="badge px-3 py-2 rounded-pill" style="background: var(--brand-green);">{{ $question->madhab?->name ?? 'Common Ground' }}</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark small">Questioner Name / Heading</label>
+                            <input type="text" name="question_title" class="form-control premium-input border-0 bg-light fw-bold" value="{{ old('question_title', $question->title) }}" placeholder="Original Inquiry Title...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark small">Question Body</label>
+                            <textarea name="question_body" rows="6" class="form-control premium-input border-0 bg-light" style="line-height: 1.8;" placeholder="Original question text...">{{ old('question_body', $question->body) }}</textarea>
+                        </div>
+                        
+                        @if($question->files->count())
+                        <div class="attachment-reel d-flex gap-3 overflow-auto pt-3 border-top mt-3">
+                            @foreach($question->files as $file)
+                            <div class="flex-shrink-0" style="width: 140px;">
+                                <a href="{{ route('files.view', $file) }}" target="_blank" class="text-decoration-none">
+                                    <div class="rounded-3 border overflow-hidden bg-white shadow-sm hover-shadow transition-all">
+                                        @if(str_starts_with($file->file_type, 'image/'))
+                                            <img src="{{ route('files.view', $file) }}" class="w-100" style="height: 100px; object-fit: cover;">
+                                        @else
+                                            <div class="d-flex align-items-center justify-content-center bg-light" style="height: 100px;">
+                                                <i class="bi bi-file-earmark-{{ $file->file_type == 'application/pdf' ? 'pdf text-danger' : 'text text-muted' }} fs-2"></i>
+                                            </div>
+                                        @endif
+                                        <div class="p-2 x-small fw-bold text-dark text-truncate">{{ $file->original_name }}</div>
+                                    </div>
+                                </a>
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+                    </div>
+                </div>
                 
                 {{-- Global Summary --}}
                 <div class="glass-card p-4 mb-4">

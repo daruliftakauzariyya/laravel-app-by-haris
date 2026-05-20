@@ -53,15 +53,18 @@ class QuestionAdminController extends Controller
             'activityLogs' => fn($q) => $q->with('actor')->orderBy('event_at', 'desc')
         ]);
 
-        // Only Muftis belonging to the same Madhab as the question
-        $muftis = User::role('mufti')
-            ->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id))
-            ->get();
+        // Only Muftis who are eligible for the selected Madhab of the question
+        // (If the question is General/Other or common, all active Muftis can be assigned; if specific, strictly match the pivot relation madhabs)
+        $madhab = $question->madhab;
+        $isGeneral = !$madhab || in_array(strtolower($madhab->slug), ['general-other', 'common', 'general', 'other']);
 
-        $mainCategories = Category::whereNull('parent_id')->get();
-        $subCategories  = Category::whereNotNull('parent_id')->get();
-        
-        return view('admin.questions.show', compact('question', 'muftis', 'mainCategories', 'subCategories'));
+        $muftisQuery = User::role('mufti')->where('is_active', true);
+        if (!$isGeneral) {
+            $muftisQuery->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id));
+        }
+        $muftis = $muftisQuery->get();
+
+        return view('admin.questions.show', compact('question', 'muftis'));
     }
 
     /** Full fatwa history / timeline */
@@ -96,6 +99,19 @@ class QuestionAdminController extends Controller
             : null;
 
         return view('admin.questions.history', compact('question', 'logs', 'snapshots', 'userViews'));
+    }
+
+    /** Show Accept Question Form Page */
+    public function showAcceptForm(Question $question)
+    {
+        if ($question->status !== 'pending') {
+            return redirect()->route('admin.questions.show', $question)->with('error', 'This question has already been accepted or processed.');
+        }
+
+        $mainCategories = Category::whereNull('parent_id')->get();
+        $subCategories  = Category::whereNotNull('parent_id')->get();
+
+        return view('admin.questions.accept', compact('question', 'mainCategories', 'subCategories'));
     }
 
     /** Accept and update question details */
@@ -154,10 +170,16 @@ class QuestionAdminController extends Controller
     {
         $question->load('user', 'files', 'muftiAnswer.supportingReferences');
         
-        // Only Muftis belonging to the same Madhab as the question
-        $muftis = User::role('mufti')
-            ->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id))
-            ->get();
+        // Only Muftis who are eligible for the selected Madhab of the question
+        // (If the question is General/Other or common, all active Muftis can be assigned; if specific, strictly match the pivot relation madhabs)
+        $madhab = $question->madhab;
+        $isGeneral = !$madhab || in_array(strtolower($madhab->slug), ['general-other', 'common', 'general', 'other']);
+
+        $muftisQuery = User::role('mufti')->where('is_active', true);
+        if (!$isGeneral) {
+            $muftisQuery->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id));
+        }
+        $muftis = $muftisQuery->get();
 
         return view('admin.questions.answer', compact('question', 'muftis'));
     }
@@ -172,11 +194,21 @@ class QuestionAdminController extends Controller
             'arabic_text.*'    => ['nullable', 'string'],
             'book_name.*'      => ['nullable', 'string'],
             'ref_language.*'   => ['nullable', 'string'],
+            'question_title'   => ['nullable', 'string', 'max:200'],
+            'question_body'    => ['nullable', 'string'],
         ]);
 
         // Update the question language if provided
         if ($request->filled('language')) {
             $question->update(['language' => $request->language]);
+        }
+
+        // Update the question title and body if provided
+        if ($request->has('question_title')) {
+            $question->update(['title' => $request->question_title]);
+        }
+        if ($request->has('question_body')) {
+            $question->update(['body' => $request->question_body]);
         }
 
         // Find existing answer or create new one
@@ -250,11 +282,19 @@ class QuestionAdminController extends Controller
 
         $writtenByMuftiId = $question->muftiAnswer->mufti_id;
 
-        // Verifiers: Muftis of the same Madhab, excluding the author
-        $verifierMuftis = User::role('mufti')
-            ->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id))
-            ->where('id', '!=', $writtenByMuftiId)
-            ->get();
+        // Verifiers: Muftis who are eligible for the selected Madhab of the question (excluding the author)
+        // (If the question is General/Other or common, all active Muftis can verify; if specific, strictly match the pivot relation madhabs)
+        $madhab = $question->madhab;
+        $isGeneral = !$madhab || in_array(strtolower($madhab->slug), ['general-other', 'common', 'general', 'other']);
+
+        $verifierQuery = User::role('mufti')
+            ->where('is_active', true)
+            ->where('id', '!=', $writtenByMuftiId);
+
+        if (!$isGeneral) {
+            $verifierQuery->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id));
+        }
+        $verifierMuftis = $verifierQuery->get();
 
         // Approvers: Muftis with can_check_approve permission (No Madhab filter required here)
         $approverMuftis = User::role('mufti')
