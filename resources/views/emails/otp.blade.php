@@ -22,6 +22,12 @@
         <p>This OTP will expire in 15 minutes. Do not share this code with anyone.</p>
         <p>If you did not request this OTP, please ignore this email.</p>
         
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #e2e8f0; text-align: center;">
+            <a href="https://pages.razorpay.com/daruliftakauzariyya" target="_blank" style="color: #1a7a4a; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
+                🎁 send your hadiyya to darul ifta kauzariyya
+            </a>
+        </div>
+
         <div class="footer">
             &copy; {{ date('Y') }} Darul Ifta Kauzariyya. All rights reserved.
         </div>

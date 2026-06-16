@@ -16,6 +16,11 @@ body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;padding:20px;}
         <p><strong>Mufti:</strong> {{ $answer->mufti->name }}</p>
         <p><strong>Summary:</strong> {{ $answer->summary }}</p>
         <a href="{{ url('/admin/questions/' . $answer->question->id . '/verify') }}" class="btn">Verify & Publish →</a>
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #e2e8f0; text-align: center;">
+            <a href="https://pages.razorpay.com/daruliftakauzariyya" target="_blank" style="color: #1a7a4a; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
+                🎁 send your hadiyya to darul ifta kauzariyya
+            </a>
+        </div>
     </div>
     <div class="footer">© {{ date('Y') }} Darul Ifta Kauzariyya.</div>
 </div>

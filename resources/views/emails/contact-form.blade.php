@@ -31,6 +31,11 @@
                 <div class="label">Message:</div>
                 <div class="value" style="white-space: pre-line;">{{ $data['message'] }}</div>
             </div>
+            <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #e2e8f0; text-align: center;">
+                <a href="https://pages.razorpay.com/daruliftakauzariyya" target="_blank" style="color: #1a7a4a; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
+                    🎁 send your hadiyya to darul ifta kauzariyya
+                </a>
+            </div>
         </div>
         <div class="footer">
             &copy; {{ date('Y') }} Darul Ifta Kauzariyya. This message was sent from the public contact portal.

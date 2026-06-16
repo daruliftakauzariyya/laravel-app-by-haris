@@ -35,7 +35,6 @@ class OtpVerificationController extends Controller
                 'otp' => null,
                 'otp_expires_at' => null,
                 'is_active' => true,
-                'profile_completed' => true
             ]);
 
             Auth::login($user);

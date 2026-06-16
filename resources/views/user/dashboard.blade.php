@@ -425,6 +425,15 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.location.hash === '#profile') {
+            const profileTab = document.getElementById('profile-tab');
+            if (profileTab) {
+                profileTab.click();
+            }
+        }
+    });
 </script>
 
 @endsection

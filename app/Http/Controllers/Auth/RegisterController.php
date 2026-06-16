@@ -30,14 +30,7 @@ class RegisterController extends Controller
             'country_code'   => ['required', 'string', 'max:10'],
             'mobile'         => ['required', 'string', 'max:20'],
             'email'          => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'address_line_1' => ['required', 'string'],
-            'address_line_2' => ['nullable', 'string'],
-            'country'        => ['required', 'string'],
-            'state'          => ['required', 'string'],
-            'district'       => ['required', 'string'],
-            'gender'         => ['required', 'in:Male,Female'],
-            'madhab_id'      => ['required', 'exists:madhabs,id'],
-            'password'       => ['required', 'confirmed', Password::defaults()],
+            'password'       => ['required', Password::defaults()],
         ]);
 
         $otp = rand(100000, 999999);
@@ -47,18 +40,11 @@ class RegisterController extends Controller
             'country_code'   => $request->country_code,
             'mobile'         => $request->mobile,
             'email'          => $request->email,
-            'address_line_1' => $request->address_line_1,
-            'address_line_2' => $request->address_line_2,
-            'country'        => $request->country,
-            'state'          => $request->state,
-            'district'       => $request->district,
-            'gender'         => $request->gender,
-            'madhab_id'      => $request->madhab_id,
             'password'       => Hash::make($request->password),
             'otp'            => $otp,
             'otp_expires_at' => now()->addMinutes(15),
             'is_active'      => false,
-            'profile_completed' => true,
+            'profile_completed' => false,
         ]);
 
         try {

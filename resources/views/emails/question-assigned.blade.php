@@ -20,6 +20,11 @@ body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;padding:20px;}
         <p><strong>Question:</strong></p>
         <p style="background:#f8f8f8;padding:12px;border-radius:5px;border-left:3px solid #0d6efd;">{{ Str::limit($question->body, 300) }}</p>
         <a href="{{ url('/mufti/questions/' . $question->id) }}" class="btn">Submit Answer →</a>
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #e2e8f0; text-align: center;">
+            <a href="https://pages.razorpay.com/daruliftakauzariyya" target="_blank" style="color: #1a7a4a; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
+                🎁 send your hadiyya to darul ifta kauzariyya
+            </a>
+        </div>
     </div>
     <div class="footer">© {{ date('Y') }} Darul Ifta Kauzariyya.</div>
 </div>

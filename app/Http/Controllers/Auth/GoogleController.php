@@ -46,10 +46,6 @@ class GoogleController extends Controller
 
             Auth::login($user, true);
 
-            if (!$user->profile_completed) {
-                return redirect()->route('profile.complete');
-            }
-
             // Role-based redirect
             if ($user->hasRole('admin')) {
                 return redirect()->route('admin.dashboard');

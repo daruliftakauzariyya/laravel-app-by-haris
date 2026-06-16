@@ -17,12 +17,38 @@ class QuestionController extends Controller
 {
     public function create()
     {
+        $user = Auth::user();
+        if ($user && $user->questions()->count() >= 1) {
+            $hasMobile  = !empty($user->mobile);
+            $hasGender  = !empty($user->gender) && strtolower($user->gender) !== 'not set';
+            $hasMadhab  = !empty($user->madhab_id);
+            $hasAddress = !empty($user->address_line_1);
+
+            if (!$hasMobile || !$hasGender || !$hasMadhab || !$hasAddress || !$user->profile_completed) {
+                return redirect(route('user.dashboard') . '#profile')
+                    ->with('error', 'Completing your profile is mandatory before asking your second question. Please complete your profile details below.');
+            }
+        }
+
         $madhabs = \App\Models\Madhab::all();
         return view('ask-question', compact('madhabs'));
     }
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+        if ($user && $user->questions()->count() >= 1) {
+            $hasMobile  = !empty($user->mobile);
+            $hasGender  = !empty($user->gender) && strtolower($user->gender) !== 'not set';
+            $hasMadhab  = !empty($user->madhab_id);
+            $hasAddress = !empty($user->address_line_1);
+
+            if (!$hasMobile || !$hasGender || !$hasMadhab || !$hasAddress || !$user->profile_completed) {
+                return redirect(route('user.dashboard') . '#profile')
+                    ->with('error', 'Completing your profile is mandatory before asking your second question. Please complete your profile details below.');
+            }
+        }
+
         // Check for 5-minute patience (Throttling)
         $lastQuestion = Question::where('user_id', Auth::id())
             ->latest()
@@ -33,13 +59,38 @@ class QuestionController extends Controller
             return redirect()->back()->withInput()->with('error', "Please wait. You can submit another question in {$diff}. A 5-minute patience is required between submissions.");
         }
 
-        $request->validate([
+        $user = Auth::user();
+        $profileValidationRules = [];
+        $shouldUpdateProfile = false;
+
+        // Ask for profile details if they haven't completed the profile OR if they are missing a Mobile number (e.g. Google auth)
+        if (!$user->profile_completed || empty($user->mobile)) {
+            if (!$request->boolean('skip_profile')) {
+                $shouldUpdateProfile = true;
+                $profileValidationRules = [
+                    'gender'          => ['required', 'in:Male,Female'],
+                    'address_line_1'  => ['required', 'string', 'max:255'],
+                    'address_line_2'  => ['nullable', 'string', 'max:255'],
+                    'country'         => ['required', 'string', 'max:100'],
+                    'state'           => ['required', 'string', 'max:100'],
+                    'district'        => ['required', 'string', 'max:100'],
+                ];
+
+                if (empty($user->mobile)) {
+                    $profileValidationRules['mobile'] = ['required', 'string', 'max:20'];
+                }
+            }
+        }
+
+        $rules = array_merge([
             'body'        => ['required', 'string', 'min:20'],
             'madhab_id'   => ['required', 'exists:madhabs,id'],
             'title'       => ['required', 'string', 'max:200'],
             'category_id' => ['nullable', 'exists:categories,id'],
             'files.*'     => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:10240'],
-        ]);
+        ], $profileValidationRules);
+
+        $request->validate($rules);
 
         $question = Question::create([
             'question_id' => Question::generateQuestionId(),
@@ -50,6 +101,40 @@ class QuestionController extends Controller
             'madhab_id'   => $request->madhab_id,
             'status'      => 'pending',
         ]);
+
+        if ($shouldUpdateProfile) {
+            $updateData = [
+                'gender'            => $request->gender,
+                'address_line_1'    => $request->address_line_1,
+                'address_line_2'    => $request->address_line_2,
+                'country'           => $request->country,
+                'state'             => $request->state,
+                'district'          => $request->district,
+                'madhab_id'         => $request->madhab_id,
+                'profile_completed' => true,
+            ];
+
+            if (empty($user->mobile)) {
+                $updateData['mobile'] = $request->mobile;
+            }
+
+            $user->update($updateData);
+        }
+
+        // Send email if Mobile, Gender, Madhab Preference, or Address are not set in the DB
+        $user->refresh();
+        $hasMobile  = !empty($user->mobile);
+        $hasGender  = !empty($user->gender) && strtolower($user->gender) !== 'not set';
+        $hasMadhab  = !empty($user->madhab_id);
+        $hasAddress = !empty($user->address_line_1);
+
+        if (!$hasMobile || !$hasGender || !$hasMadhab || !$hasAddress) {
+            try {
+                Mail::to($user->email)->send(new \App\Mail\CompleteProfileRequestMail($user));
+            } catch (\Exception $e) {
+                \Log::error("Failed to send CompleteProfileRequestMail: " . $e->getMessage());
+            }
+        }
 
         $madhabName = \App\Models\Madhab::find($request->madhab_id)?->name ?? 'General';
 

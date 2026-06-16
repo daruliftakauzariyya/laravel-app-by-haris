@@ -39,10 +39,6 @@ class LoginController extends Controller
 
             $user = Auth::user();
 
-            if (!$user->profile_completed) {
-                return redirect()->route('profile.complete');
-            }
-
             $defaultUrl = $this->redirectBasedOnRoleUrl($user);
 
             // Prevent redirecting to API/JSON endpoints after login

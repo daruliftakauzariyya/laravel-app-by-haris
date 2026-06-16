@@ -73,6 +73,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/user/questions/{question}', [\App\Http\Controllers\User\UserDashboardController::class, 'show'])->name('user.question.show');
     Route::get('/ask-question', [\App\Http\Controllers\QuestionController::class, 'create'])->name('question.create');
     Route::post('/ask-question', [\App\Http\Controllers\QuestionController::class, 'store'])->name('question.store');
+    Route::get('/complete-profile', [ProfileController::class, 'showCompleteForm'])->name('profile.complete');
+    Route::post('/complete-profile', [ProfileController::class, 'complete'])->name('profile.complete.store');
+    Route::post('/complete-profile/skip', [ProfileController::class, 'skip'])->name('profile.complete.skip');
 
     // AJAX File Uploading
     Route::post('/question-files/upload', [\App\Http\Controllers\QuestionFileController::class, 'upload'])->name('question.files.upload');

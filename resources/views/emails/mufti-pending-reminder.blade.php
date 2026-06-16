@@ -76,6 +76,11 @@
             Jazakallah Khairan for your selfless service to the Ummah.<br>
             <span style="font-size: 0.75rem; opacity: 0.7;">This is an automated administrative reminder.</span>
         </p>
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #e2e8f0; text-align: center;">
+            <a href="https://pages.razorpay.com/daruliftakauzariyya" target="_blank" style="color: #1a7a4a; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
+                🎁 send your hadiyya to darul ifta kauzariyya
+            </a>
+        </div>
     </div>
 
     <div class="footer">

@@ -173,6 +173,46 @@
         </div>
         @endif
 
+        {{-- Questioner Profile Sidebar Card --}}
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-person-circle me-2 text-green"></i>Questioner Details
+                </h6>
+                <a href="{{ route('admin.questioners.show', $question->user) }}" class="btn btn-link btn-sm p-0 text-decoration-none small" style="color: #1a7a4a;">View Profile</a>
+            </div>
+            <div class="card-body small">
+                <div class="d-flex align-items-center mb-3">
+                    <img src="{{ $question->user->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($question->user->name).'&background=1a7a4a&color=fff&size=80' }}"
+                         class="rounded-circle border me-2"
+                         width="40" height="40">
+                    <div>
+                        <div class="fw-bold text-dark">{{ $question->user->name }}</div>
+                        <span class="badge {{ $question->user->profile_completed ? 'bg-success' : 'bg-warning text-dark' }} py-1" style="font-size: 0.65rem;">
+                            {{ $question->user->profile_completed ? 'Profile Completed' : 'Profile Incomplete' }}
+                        </span>
+                    </div>
+                </div>
+                
+                <p class="mb-1"><strong>Email:</strong> <a href="mailto:{{ $question->user->email }}" class="text-decoration-none">{{ $question->user->email }}</a></p>
+                <p class="mb-1"><strong>Mobile:</strong> <a href="tel:{{ $question->user->mobile }}" class="text-decoration-none">{{ $question->user->country_code }}{{ $question->user->mobile }}</a></p>
+                <p class="mb-1"><strong>Gender:</strong> {{ $question->user->gender ?? 'Not set' }}</p>
+                <p class="mb-1"><strong>Madhab Pref:</strong> {{ $question->user->madhab?->name ?? 'None' }}</p>
+                <hr class="my-2">
+                <p class="mb-1"><strong>Address:</strong></p>
+                <p class="text-muted mb-0 lh-sm">
+                    @if($question->user->address_line_1)
+                        {{ $question->user->address_line_1 }}<br>
+                        @if($question->user->address_line_2) {{ $question->user->address_line_2 }}<br> @endif
+                        {{ $question->user->district ?? '' }}{{ $question->user->state ? ', ' . $question->user->state : '' }}<br>
+                        {{ $question->user->country ?? '' }}
+                    @else
+                        <em>Address details skipped.</em>
+                    @endif
+                </p>
+            </div>
+        </div>
+
         {{-- Question detail info --}}
         {{-- Question detail info --}}
         <div class="card border-0 shadow-sm mb-3">

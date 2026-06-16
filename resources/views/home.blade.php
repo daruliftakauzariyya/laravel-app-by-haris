@@ -244,18 +244,19 @@
             @foreach([
                 ['name' => 'Muhammad Ibrahim',  'role' => 'Principal — KAUZARIYYA', 'img' => 'https://daruliftakauzariyya.com/assets/img/team/principal.png'],
                 ['name' => 'Mufti Rajeeb Qasimi','role' => 'HOD — Darul Ifta',      'img' => 'https://daruliftakauzariyya.com/assets/img/team/hod.png'],
+                ['name' => 'Abdul Samad',        'role' => 'HOD — Shafi Department', 'img' => 'https://daruliftakauzariyya.com/assets/img/team/shafi.png'],
                 ['name' => 'Mufti Abid Ibrahim', 'role' => 'Professor Kauzariyya',  'img' => 'https://daruliftakauzariyya.com/assets/img/team/professor.png'],
                 ['name' => 'Al Usthad Ilyas Kanjar', 'role' => 'Professor — Kauzariyya', 'img' => 'https://daruliftakauzariyya.com/assets/img/team/master.png'],
             ] as $member)
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-4 col-lg-2">
                 <div class="faculty-card-modern">
                     <div class="faculty-photo-wrapper">
                         <img src="{{ $member['img'] }}" alt="{{ $member['name'] }}" class="faculty-photo" loading="lazy"
                              onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($member['name']) }}&background=E5E7EB&color=295A75&size=300&bold=true'">
                     </div>
                     <div class="faculty-content text-center">
-                        <h5 class="m-0 fw-bold">{{ $member['name'] }}</h5>
-                        <p class="small opacity-75 mb-0 mt-1">{{ $member['role'] }}</p>
+                        <h5 class="m-0 fw-bold" style="font-size: 1rem;">{{ $member['name'] }}</h5>
+                        <p class="small opacity-75 mb-0 mt-1" style="font-size: 0.75rem;">{{ $member['role'] }}</p>
                     </div>
                 </div>
             </div>
