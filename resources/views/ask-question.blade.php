@@ -3,46 +3,8 @@
 
 @push('styles')
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
 <style>
     .ql-editor { font-size: 1rem; line-height: 1.6; min-height: 200px; }
-    .ts-wrapper { padding: 0; }
-    .ts-control {
-        border: 1px solid #ced4da;
-        border-radius: 0.375rem;
-        min-height: calc(1.5em + 0.75rem + 2px);
-        padding: 0.375rem 0.75rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #212529;
-        background-color: #fff;
-        box-shadow: none;
-        cursor: text;
-    }
-    .ts-control:focus-within {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
-    }
-    .ts-dropdown {
-        z-index: 9999;
-        border-radius: 0.375rem;
-        border-color: #ced4da;
-        box-shadow: 0 4px 16px rgba(0,0,0,.12);
-    }
-    .ts-dropdown .ts-dropdown-content {
-        max-height: 200px;
-    }
-    .ts-dropdown .option.selected,
-    .ts-dropdown .option:hover,
-    .ts-dropdown .active {
-        background-color: #1a7a4a !important;
-        color: #fff !important;
-    }
-    .ts-wrapper.disabled .ts-control {
-        background-color: #e9ecef;
-        pointer-events: none;
-        opacity: 0.7;
-    }
 </style>
 @endpush
 
@@ -91,75 +53,7 @@
             </div>
 
 
-            @if(!Auth::user()->profile_completed || empty(Auth::user()->mobile))
-            <div class="card border-0 bg-light p-4 mb-4 rounded-3 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold mb-0 text-green" style="color: #1a7a4a;">
-                        <i class="bi bi-person-badge me-2"></i>Complete Your Profile Details
-                    </h6>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="skip_profile" id="skipProfileSwitch" value="1" {{ old('skip_profile') ? 'checked' : '' }}>
-                        <label class="form-check-label fw-bold text-muted small" for="skipProfileSwitch">Skip details</label>
-                    </div>
-                </div>
-                <p class="text-muted small mb-3">Completing these details is highly recommended as region-specific rulings (Fatwas) often depend on your locale and context.</p>
-                
-                <div id="profileDetailsSection" class="row g-3">
-                    @if(empty(Auth::user()->mobile))
-                    <div class="col-md-12">
-                        <label class="form-label fw-semibold small">Mobile Number <span class="text-danger">*</span></label>
-                        <input type="text" name="mobile" id="profile_mobile" class="form-control profile-input" value="{{ old('mobile') }}" placeholder="Enter your mobile number (with country code)" required>
-                        @error('mobile')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-                    </div>
-                    @endif
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold small">Gender <span class="text-danger">*</span></label>
-                        <select name="gender" id="profile_gender" class="form-select profile-input" required>
-                            <option value="">Select Gender</option>
-                            <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Male</option>
-                            <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Female</option>
-                        </select>
-                        @error('gender')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold small">Address Line 1 <span class="text-danger">*</span></label>
-                        <input type="text" name="address_line_1" id="profile_address_1" class="form-control profile-input" value="{{ old('address_line_1') }}" placeholder="Street address, P.O. Box" required>
-                        @error('address_line_1')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-                    </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold small">Address Line 2 <span class="text-muted">(Optional)</span></label>
-                        <input type="text" name="address_line_2" id="profile_address_2" class="form-control" value="{{ old('address_line_2') }}" placeholder="Apartment, suite, unit, etc.">
-                        @error('address_line_2')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold small">Country <span class="text-danger">*</span></label>
-                        <select name="country" id="profile_country" class="form-select profile-input" required>
-                            <option value="">Select Country</option>
-                        </select>
-                        @error('country')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold small">State <span class="text-danger">*</span></label>
-                        <select name="state" id="profile_state" class="form-select profile-input" required disabled>
-                            <option value="">Select State</option>
-                        </select>
-                        @error('state')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold small">District <span class="text-danger">*</span></label>
-                        <select name="district" id="profile_district" class="form-select profile-input" required disabled>
-                            <option value="">Select District</option>
-                        </select>
-                        @error('district')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-                    </div>
-                </div>
-            </div>
-            @endif
 
             <div class="mb-4">
                 <label class="form-label fw-semibold">Supporting Files <small class="text-muted">(Optional, PDF/DOC/Images, max 10MB each)</small></label>
@@ -176,6 +70,13 @@
                 <a href="{{ route('home') }}" class="btn btn-outline-secondary px-4 text-decoration-none">Cancel</a>
             </div>
         </form>
+    </div>
+    
+    <div class="mt-4 text-center">
+        <a href="https://pages.razorpay.com/daruliftakauzariyya" target="_blank" class="d-inline-block text-decoration-none">
+            <img src="{{ asset('assets/logo/fecher.png') }}" alt="Darul Ifta Kauzariyya" class="img-fluid rounded-3 shadow-sm mb-2" style="max-width: 380px; width: 100%; height: auto;">
+            <p class="text-green fw-bold mb-0">🎁 send your hadiyya to darul ifta kauzariyya</p>
+        </a>
     </div>
 </div>
 
@@ -314,153 +215,6 @@
     };
 </script>
 
-@if(!Auth::user()->profile_completed || empty(Auth::user()->mobile))
-<!-- Tom Select JS -->
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const skipSwitch = document.getElementById('skipProfileSwitch');
-        const profileInputs = document.querySelectorAll('.profile-input');
-        const profileSection = document.getElementById('profileDetailsSection');
-        
-        // Setup country, state, district selects
-        const countryEl = document.getElementById('profile_country');
-        const stateEl = document.getElementById('profile_state');
-        const districtEl = document.getElementById('profile_district');
-        
-        const tsOpts = {
-            allowEmptyOption: true,
-            maxOptions: null,
-            searchField: ['text'],
-            sortField: { field: 'text', direction: 'asc' },
-            create: false,
-        };
 
-        const tsCountry  = new TomSelect(countryEl,  Object.assign({}, tsOpts, { placeholder: 'Search or select country…'  }));
-        const tsState    = new TomSelect(stateEl,    Object.assign({}, tsOpts, { placeholder: 'Select country first…'      }));
-        const tsDistrict = new TomSelect(districtEl, Object.assign({}, tsOpts, { placeholder: 'Select state first…'        }));
-
-        tsState.disable();
-        tsDistrict.disable();
-
-        // Load countries
-        fetch('https://countriesnow.space/api/v0.1/countries/positions')
-            .then(r => r.json())
-            .then(data => {
-                if (data.error === false) {
-                    const opts = data.data.map(c => ({ value: c.name, text: c.name }));
-                    tsCountry.addOptions(opts);
-                }
-            });
-
-        // Country change -> load states
-        tsCountry.on('change', function(countryValue) {
-            tsState.clear(true);
-            tsState.clearOptions();
-            tsState.disable();
-            tsDistrict.clear(true);
-            tsDistrict.clearOptions();
-            tsDistrict.disable();
-
-            if (!countryValue) return;
-
-            fetch('https://countriesnow.space/api/v0.1/countries/states', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ country: countryValue })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error === false && data.data.states && data.data.states.length > 0) {
-                    const opts = data.data.states.map(s => ({ value: s.name, text: s.name }));
-                    tsState.addOptions(opts);
-                    tsState.enable();
-                } else {
-                    tsState.addOption({ value: 'N/A', text: 'N/A' });
-                    tsState.enable();
-                    tsDistrict.addOption({ value: 'N/A', text: 'N/A' });
-                    tsDistrict.setValue('N/A', true);
-                    tsDistrict.enable();
-                }
-            })
-            .catch(() => {
-                tsState.addOption({ value: 'Unknown', text: 'Unknown' });
-                tsState.enable();
-            });
-        });
-
-        // State change -> load cities/districts
-        tsState.on('change', function(stateValue) {
-            tsDistrict.clear(true);
-            tsDistrict.clearOptions();
-            tsDistrict.disable();
-
-            if (!stateValue || stateValue === 'N/A') return;
-
-            const countryValue = tsCountry.getValue();
-
-            fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ country: countryValue, state: stateValue })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error === false && data.data && data.data.length > 0) {
-                    const opts = data.data.map(c => ({ value: c, text: c }));
-                    tsDistrict.addOptions(opts);
-                } else {
-                    tsDistrict.addOption({ value: stateValue, text: stateValue });
-                }
-                tsDistrict.enable();
-            })
-            .catch(() => {
-                tsDistrict.addOption({ value: stateValue, text: stateValue });
-                tsDistrict.enable();
-            });
-        });
-
-        if (skipSwitch) {
-            function toggleProfileRequired() {
-                if (skipSwitch.checked) {
-                    profileSection.style.opacity = '0.4';
-                    profileSection.style.pointerEvents = 'none';
-                    profileInputs.forEach(input => {
-                        input.removeAttribute('required');
-                        if (input.tomselect) {
-                            input.tomselect.disable();
-                        } else {
-                            input.disabled = true;
-                        }
-                    });
-                } else {
-                    profileSection.style.opacity = '1';
-                    profileSection.style.pointerEvents = 'auto';
-                    profileInputs.forEach(input => {
-                        if (input.id === 'profile_gender' || input.id === 'profile_address_1' || input.id === 'profile_country' || input.id === 'profile_mobile') {
-                            input.setAttribute('required', '');
-                        }
-                        if (input.tomselect) {
-                            if (input.id === 'profile_country') {
-                                input.tomselect.enable();
-                            } else if (input.id === 'profile_state' && tsCountry.getValue()) {
-                                input.tomselect.enable();
-                            } else if (input.id === 'profile_district' && tsState.getValue()) {
-                                input.tomselect.enable();
-                            }
-                        } else {
-                            input.disabled = false;
-                        }
-                    });
-                }
-            }
-            
-            skipSwitch.addEventListener('change', toggleProfileRequired);
-            // Run on load
-            toggleProfileRequired();
-        }
-    });
-</script>
-@endif
 @endpush
 @endsection

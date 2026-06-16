@@ -3,45 +3,132 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\QuestionController;
+use App\Models\Madhab;
+use App\Mail\CompleteProfileRequestMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class ProfileController extends Controller
 {
     public function showCompleteForm()
     {
-        if (Auth::user()->profile_completed) {
-            return redirect()->route('home');
+        $user = Auth::user();
+        $hasPendingQuestion = session()->has('pending_question');
+        $isSecondQuestion = $user->questions()->count() >= 1;
+        $showMobile = empty($user->mobile);
+
+        // Preselect the preferred madhab
+        $preferredMadhabId = $user->madhab_id;
+        if ($hasPendingQuestion) {
+            $pendingQuestion = session('pending_question');
+            if (!empty($pendingQuestion['madhab_id'])) {
+                $preferredMadhabId = $pendingQuestion['madhab_id'];
+            }
         }
-        return view('auth.profile-complete');
+
+        // If profile is already completed AND no pending question, redirect
+        $hasAddress = !empty($user->address_line_1);
+        $hasGender = !empty($user->gender) && strtolower($user->gender) !== 'not set';
+        $hasMobile = !empty($user->mobile);
+        $hasMadhab = !empty($user->madhab_id);
+        $isProfileComplete = $hasAddress && $hasGender && $hasMobile && $hasMadhab && $user->profile_completed;
+
+        if ($isProfileComplete && !$hasPendingQuestion) {
+            return redirect()->route('user.dashboard');
+        }
+
+        $madhabs = Madhab::all();
+
+        return view('auth.profile-complete', compact(
+            'hasPendingQuestion',
+            'isSecondQuestion',
+            'showMobile',
+            'preferredMadhabId',
+            'madhabs'
+        ));
     }
 
     public function complete(Request $request)
     {
-        $request->validate([
-            'name'            => ['required', 'string', 'max:255'],
-            'gender'          => ['required', 'in:male,female'],
-            'country'         => ['required', 'string', 'max:100'],
-            'mobile'          => ['required', 'string', 'max:20'],
-            'mother_language' => ['required', 'string', 'max:50'],
-        ]);
-
         $user = Auth::user();
-        $user->update([
-            'name'              => $request->name,
+
+        $rules = [
+            'gender'          => ['required', 'in:Male,Female'],
+            'address_line_1'  => ['required', 'string', 'max:255'],
+            'address_line_2'  => ['nullable', 'string', 'max:255'],
+            'country'         => ['required', 'string', 'max:100'],
+            'state'           => ['required', 'string', 'max:100'],
+            'district'        => ['required', 'string', 'max:100'],
+            'madhab_id'       => ['required', 'exists:madhabs,id'],
+            'mother_language' => ['nullable', 'string', 'max:50'],
+        ];
+
+        if (empty($user->mobile)) {
+            $rules['mobile'] = ['required', 'string', 'max:20'];
+        }
+
+        $request->validate($rules);
+
+        $updateData = [
             'gender'            => $request->gender,
+            'address_line_1'    => $request->address_line_1,
+            'address_line_2'    => $request->address_line_2,
             'country'           => $request->country,
-            'mobile'            => $request->mobile,
+            'state'             => $request->state,
+            'district'          => $request->district,
+            'madhab_id'         => $request->madhab_id,
             'mother_language'   => $request->mother_language,
             'profile_completed' => true,
-        ]);
+        ];
 
-        if ($user->hasRole('admin')) {
-            return redirect()->route('admin.dashboard');
+        if (empty($user->mobile)) {
+            $updateData['mobile'] = $request->mobile;
         }
-        if ($user->hasRole('mufti')) {
-            return redirect()->route('mufti.dashboard');
+
+        $user->update($updateData);
+
+        // Check if there is a pending question
+        if (session()->has('pending_question')) {
+            $pendingQuestion = session('pending_question');
+            
+            // Post the question
+            $question = QuestionController::saveQuestion($user->id, $pendingQuestion);
+            
+            session()->forget('pending_question');
+
+            return redirect()->route('home')->with('success', 'Your profile details have been completed and your question has been posted successfully! Question ID: ' . $question->question_id);
         }
-        return redirect()->route('home')->with('success', 'Profile completed successfully!');
+
+        return redirect()->route('user.dashboard')->with('success', 'Profile details completed successfully!');
+    }
+
+    public function skip(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Skip is only allowed if they have a pending question AND it is their first question
+        $isSecondQuestion = $user->questions()->count() >= 1;
+
+        if (!session()->has('pending_question') || $isSecondQuestion) {
+            return redirect()->route('home')->with('error', 'Bypassing profile completion is not allowed.');
+        }
+
+        $pendingQuestion = session('pending_question');
+
+        // Post the question
+        $question = QuestionController::saveQuestion($user->id, $pendingQuestion);
+
+        // Send profile completion reminder email
+        try {
+            Mail::to($user->email)->send(new CompleteProfileRequestMail($user));
+        } catch (\Exception $e) {
+            \Log::error("Failed to send CompleteProfileRequestMail: " . $e->getMessage());
+        }
+
+        session()->forget('pending_question');
+
+        return redirect()->route('home')->with('success', 'Your question has been submitted successfully! Please check your email to complete your profile later. Question ID: ' . $question->question_id);
     }
 }

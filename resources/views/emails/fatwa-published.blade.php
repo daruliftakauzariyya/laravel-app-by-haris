@@ -21,6 +21,7 @@ body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;padding:20px;}
         <p style="margin-top:20px;color:#888;font-size:.9rem;">Jazakumullahu Khayran for trusting Darul Ifta Kauzariyya.</p>
         <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #e2e8f0; text-align: center;">
             <a href="https://pages.razorpay.com/daruliftakauzariyya" target="_blank" style="color: #1a7a4a; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
+                <img src="{{ asset('assets/logo/fecher.png') }}" alt="Darul Ifta Kauzariyya" style="width: 100%; max-width: 350px; height: auto; display: block; margin: 0 auto 10px auto; border-radius: 8px;">
                 🎁 send your hadiyya to darul ifta kauzariyya
             </a>
         </div>
