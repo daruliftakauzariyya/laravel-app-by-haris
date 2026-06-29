@@ -16,24 +16,30 @@ use Illuminate\Support\Facades\Route;
 
 // Public: List published fatwas with optional search
 Route::get('/fatwas', function (Request $request) {
-    $query = \App\Models\Fatwa::with(['question.category', 'question.madhab', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences'])
-        ->latest('published_at');
+    $page = $request->get('page', 1);
+    $search = $request->get('search', '');
+    $cacheKey = "api_fatwas_page_{$page}_search_" . md5($search);
 
-    if ($request->filled('search')) {
-        $term = $request->search;
-        $query->where(function ($q) use ($term) {
-            $q->whereHas('question', function ($sq) use ($term) {
-                $sq->where('body', 'like', "%{$term}%")
-                    ->orWhere('title', 'like', "%{$term}%");
-            })
-                ->orWhereHas('muftiAnswer', function ($aq) use ($term) {
-                    $aq->where('full_answer', 'like', "%{$term}%")
-                        ->orWhere('summary', 'like', "%{$term}%");
-                });
-        });
-    }
+    $fatwas = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () use ($search) {
+        $query = \App\Models\Fatwa::with(['question.category', 'question.madhab', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences'])
+            ->latest('published_at');
 
-    $fatwas = $query->paginate(20);
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('question', function ($sq) use ($search) {
+                    $sq->where('body', 'like', "%{$search}%")
+                        ->orWhere('title', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('muftiAnswer', function ($aq) use ($search) {
+                        $aq->where('full_answer', 'like', "%{$search}%")
+                            ->orWhere('summary', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        return $query->paginate(20);
+    });
+
     return response()->json([
         'status' => 'success',
         'data' => $fatwas,
@@ -42,16 +48,29 @@ Route::get('/fatwas', function (Request $request) {
 
 // Public: Get categories tree
 Route::get('/categories', function () {
-    $categories = \App\Models\Category::with('children')
-        ->whereNull('parent_id')
-        ->orderBy('sort_order')
-        ->get();
+    $categories = \Illuminate\Support\Facades\Cache::remember('api_categories', 3600, function () {
+        return \App\Models\Category::with('children')
+            ->whereNull('parent_id')
+            ->orderBy('sort_order')
+            ->get();
+    });
     return response()->json(['status' => 'success', 'data' => $categories]);
 });
 
-// Public: Get single fatwa
-Route::get('/fatwas/{fatwa}', function (\App\Models\Fatwa $fatwa) {
-    $fatwa->load(['question.category', 'question.madhab', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences', 'publisher']);
+// Public: Get single fatwa (optimized with ID lookup to bypass model binding DB queries)
+Route::get('/fatwas/{fatwaId}', function ($fatwaId) {
+    $fatwa = \Illuminate\Support\Facades\Cache::remember("api_fatwa_{$fatwaId}", 3600, function () use ($fatwaId) {
+        $item = \App\Models\Fatwa::find($fatwaId);
+        if ($item) {
+            $item->load(['question.category', 'question.madhab', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences', 'publisher']);
+        }
+        return $item;
+    });
+
+    if (!$fatwa) {
+        return response()->json(['status' => 'error', 'message' => 'Fatwa not found'], 404);
+    }
+
     return response()->json(['status' => 'success', 'data' => $fatwa]);
 });
 

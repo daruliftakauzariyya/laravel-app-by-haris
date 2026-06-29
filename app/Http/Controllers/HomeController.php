@@ -16,17 +16,21 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
-        $stats = [
-            'total'     => Question::count(),
-            'published' => Fatwa::count(),
-            'muftis'    => \App\Models\User::role('mufti')->count(),
-            'visitors'  => Fatwa::sum('views') + 1250,
-        ];
+        $stats = \Illuminate\Support\Facades\Cache::remember('home_stats', 900, function () {
+            return [
+                'total'     => Question::count(),
+                'published' => Fatwa::count(),
+                'muftis'    => \App\Models\User::role('mufti')->count(),
+                'visitors'  => Fatwa::sum('views') + 1250,
+            ];
+        });
 
-        $latestFatwas = Fatwa::with(['question.madhab', 'question.category', 'muftiAnswer.mufti'])
-                             ->latest('published_at')
-                             ->take(6)
-                             ->get();
+        $latestFatwas = \Illuminate\Support\Facades\Cache::remember('latest_fatwas', 1800, function () {
+            return Fatwa::with(['question.madhab', 'question.category', 'muftiAnswer.mufti'])
+                                 ->latest('published_at')
+                                 ->take(6)
+                                 ->get();
+        });
 
         // Detect visitor country from IP via PortalVisitorLog
         $visitorIp      = $request->ip();

@@ -17,10 +17,12 @@ class FeaturedFatwaService
     public function resolve(string $visitorCountry = '', int $hijriMonth = 0, int $hijriDay = 0): array
     {
         // Load all active rules ordered by priority
-        $rules = FatwaFeaturedRule::where('is_active', true)
-            ->with(['category', 'madhab'])
-            ->orderByDesc('priority')
-            ->get();
+        $rules = Cache::remember('featured_rules', 3600, function () {
+            return FatwaFeaturedRule::where('is_active', true)
+                ->with(['category', 'madhab'])
+                ->orderByDesc('priority')
+                ->get();
+        });
 
         $matchedRule = null;
 
@@ -88,16 +90,19 @@ class FeaturedFatwaService
     private function fetchForRule(FatwaFeaturedRule $rule): Collection
     {
         $limit = $rule->limit ?: 6;
+        $cacheKey = "featured_fatwas_rule_{$rule->id}";
 
-        // If specific fatwas are pinned → show ONLY those, nothing else
-        if (!empty($rule->fatwa_ids)) {
-            return Fatwa::with(['question.madhab', 'question.category', 'muftiAnswer.mufti'])
-                ->whereIn('id', $rule->fatwa_ids)
-                ->get();
-        }
+        return Cache::remember($cacheKey, 1800, function () use ($rule, $limit) {
+            // If specific fatwas are pinned → show ONLY those, nothing else
+            if (!empty($rule->fatwa_ids)) {
+                return Fatwa::with(['question.madhab', 'question.category', 'muftiAnswer.mufti'])
+                    ->whereIn('id', $rule->fatwa_ids)
+                    ->get();
+            }
 
-        // Otherwise filter by category / madhab up to limit
-        return $this->buildQuery($rule)->take($limit)->get();
+            // Otherwise filter by category / madhab up to limit
+            return $this->buildQuery($rule)->take($limit)->get();
+        });
     }
 
     private function buildQuery(FatwaFeaturedRule $rule)

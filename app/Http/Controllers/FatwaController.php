@@ -255,19 +255,21 @@ class FatwaController extends Controller
 
     private function getCategoryHierarchy()
     {
-        $categoriesList = \App\Models\Category::withCount(['questions' => fn($q) => $q->where('status', 'published')])->get();
-        
-        $allCategories = $categoriesList->whereNull('parent_id')->sortBy('sort_order');
-        foreach ($allCategories as $cat) {
-            $cat->setRelation('children', $categoriesList->where('parent_id', $cat->id)->sortBy('sort_order'));
-            // Calculate parent total including children
-            $parentCount = $cat->questions_count;
-            foreach ($cat->children as $child) {
-                $parentCount += $child->questions_count;
+        return \Illuminate\Support\Facades\Cache::remember('category_hierarchy', 3600, function () {
+            $categoriesList = \App\Models\Category::withCount(['questions' => fn($q) => $q->where('status', 'published')])->get();
+            
+            $allCategories = $categoriesList->whereNull('parent_id')->sortBy('sort_order');
+            foreach ($allCategories as $cat) {
+                $cat->setRelation('children', $categoriesList->where('parent_id', $cat->id)->sortBy('sort_order'));
+                // Calculate parent total including children
+                $parentCount = $cat->questions_count;
+                foreach ($cat->children as $child) {
+                    $parentCount += $child->questions_count;
+                }
+                $cat->questions_count = $parentCount;
             }
-            $cat->questions_count = $parentCount;
-        }
-        
-        return $allCategories;
+            
+            return $allCategories;
+        });
     }
 }
