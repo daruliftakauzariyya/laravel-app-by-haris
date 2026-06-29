@@ -70,6 +70,21 @@
                         </div>
                     </div>
 
+                    {{-- Display Order --}}
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small d-flex align-items-center gap-2">
+                            <i class="bi bi-sort-numeric-down"></i> Display Order on Team Page
+                        </label>
+                        <input type="number" name="mufti_sort_order" min="0" max="9998"
+                               class="form-control @error('mufti_sort_order') is-invalid @enderror"
+                               value="{{ old('mufti_sort_order', $user->mufti_sort_order ?? 0) }}"
+                               style="max-width: 160px;">
+                        <div class="form-text small mt-1">
+                            <strong>0</strong> = Automatic (sorted by most fatwas first). Set <strong>1, 2, 3…</strong> to pin this Mufti to a specific position.
+                        </div>
+                        @error('mufti_sort_order')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
                     <div class="bg-info bg-opacity-10 border border-info border-opacity-10 p-3 rounded-3 mb-4">
                         <div class="form-check form-switch mb-2">
                             <input class="form-check-input" type="checkbox" name="is_active" id="isActive" value="1" {{ $user->is_active ? 'checked' : '' }}>

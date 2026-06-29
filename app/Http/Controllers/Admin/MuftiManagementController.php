@@ -52,11 +52,12 @@ class MuftiManagementController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
-            'country'  => ['nullable', 'string', 'max:100'],
-            'madhab'   => ['nullable', 'array'],
+            'name'             => ['required', 'string', 'max:255'],
+            'email'            => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password'         => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+            'country'          => ['nullable', 'string', 'max:100'],
+            'madhab'           => ['nullable', 'array'],
+            'mufti_sort_order' => ['nullable', 'integer', 'min:0', 'max:9998'],
         ]);
 
         $user = User::create([
@@ -67,6 +68,7 @@ class MuftiManagementController extends Controller
             'is_active'         => $request->has('is_active'),
             'can_check_approve' => $request->has('can_check_approve'),
             'profile_completed' => true,
+            'mufti_sort_order'  => (int) $request->input('mufti_sort_order', 0),
         ]);
 
         if ($request->has('madhab')) {
@@ -98,11 +100,12 @@ class MuftiManagementController extends Controller
         }
 
         $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'password' => ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
-            'country'  => ['nullable', 'string', 'max:100'],
-            'madhab'   => ['nullable', 'array'],
+            'name'             => ['required', 'string', 'max:255'],
+            'email'            => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'password'         => ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+            'country'          => ['nullable', 'string', 'max:100'],
+            'madhab'           => ['nullable', 'array'],
+            'mufti_sort_order' => ['nullable', 'integer', 'min:0', 'max:9998'],
         ]);
 
         $data = [
@@ -111,6 +114,7 @@ class MuftiManagementController extends Controller
             'country'           => $request->country,
             'is_active'         => $request->has('is_active'),
             'can_check_approve' => $request->has('can_check_approve'),
+            'mufti_sort_order'  => (int) $request->input('mufti_sort_order', 0),
         ];
 
         if ($request->has('madhab')) {

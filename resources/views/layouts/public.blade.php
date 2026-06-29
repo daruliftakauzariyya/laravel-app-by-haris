@@ -552,10 +552,10 @@
                         and Sunnah. Our mission is to illuminate the path of knowledge for the global community.
                     </p>
                     <div class="footer-social mt-4">
-                        <a href="#"><i class="bi bi-facebook"></i></a>
-                        <a href="#"><i class="bi bi-twitter-x"></i></a>
-                        <a href="#"><i class="bi bi-instagram"></i></a>
-                        <a href="#"><i class="bi bi-youtube"></i></a>
+                        <a href="https://www.youtube.com/@Kauzariyya" target="_blank" rel="noopener noreferrer"><i class="bi bi-youtube"></i></a>
+                        <a href="https://www.instagram.com/kauzariyya" target="_blank" rel="noopener noreferrer"><i class="bi bi-instagram"></i></a>
+                        <a href="https://x.com/kauzariyya" target="_blank" rel="noopener noreferrer"><i class="bi bi-twitter-x"></i></a>
+                        <a href="https://www.linkedin.com/company/kauzariyya/" target="_blank" rel="noopener noreferrer"><i class="bi bi-linkedin"></i></a>
                     </div>
                 </div>
 

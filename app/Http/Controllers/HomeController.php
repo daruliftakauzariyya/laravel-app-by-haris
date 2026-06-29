@@ -78,8 +78,11 @@ class HomeController extends Controller
         $muftis = User::role('mufti')
             ->where('is_active', true)
             ->withCount(['muftiAnswers', 'publishedFatwas'])
+            // Primary:  explicit sort_order (0 = auto, pushed to end of pinned group)
+            // Secondary: most published fatwas first
+            ->orderByRaw('CASE WHEN mufti_sort_order = 0 THEN 9999 ELSE mufti_sort_order END ASC')
             ->orderByDesc('published_fatwas_count')
-            ->paginate(8);
+            ->paginate(999);
 
         return view('team', compact('muftis'));
     }

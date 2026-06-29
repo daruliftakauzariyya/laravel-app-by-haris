@@ -2,12 +2,44 @@
 @section('title', 'Meet the Muftis — Our Scholar Team')
 
 @section('content')
-<div class="team-hero py-5 mb-5" style="background: linear-gradient(135deg, #1a7a4a 0%, #0d4a2d 100%);">
-    <div class="container py-4 text-center text-white">
-        <h1 class="fw-black display-4 mb-3">Meet the Muftis</h1>
-        <p class="lead opacity-75 mx-auto" style="max-width: 700px;">
+<div class="team-hero" style="
+    background: url('{{ asset('images/team-hero-bg.png') }}') center center / cover no-repeat;
+    position: relative;
+    overflow: hidden;
+">
+    {{-- Dark overlay --}}
+    <div style="
+        position: absolute; inset: 0;
+        background: linear-gradient(135deg, rgba(10,40,22,0.82) 0%, rgba(5,20,12,0.72) 100%);
+        backdrop-filter: blur(1px);
+    "></div>
+
+    {{-- Arabic geometric top accent --}}
+    <div class="hero-geo-accent"></div>
+
+    <div class="container position-relative py-5 text-center text-white">
+        {{-- Arabic calligraphy label --}}
+        <div class="hero-bismillah-label">&#x202B;فَتَاوَى الْعُلَمَاء&#x202C;</div>
+
+        <h1 class="fw-black display-3 mb-3" style="letter-spacing:-1px; text-shadow: 0 4px 24px rgba(0,0,0,0.5);">
+            Meet the Muftis
+        </h1>
+
+        {{-- Gold decorative divider --}}
+        <div class="hero-divider">
+            <span></span><span class="diamond">&#9670;</span><span></span>
+        </div>
+
+        <p class="lead opacity-85 mx-auto mt-3" style="max-width: 680px; font-size:1.1rem; line-height:1.7; text-shadow:0 2px 8px rgba(0,0,0,0.4);">
             A dedicated team of qualified scholars committed to providing authentic Islamic guidance and jurisprudential clarity for the global community.
         </p>
+    </div>
+
+    {{-- Wavy bottom edge --}}
+    <div class="hero-wave-bottom">
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#f8f9fa"/>
+        </svg>
     </div>
 </div>
 
@@ -61,13 +93,75 @@
         @endforelse
     </div>
 
-    <div class="mt-5 d-flex justify-content-center">
-        {{ $muftis->links() }}
-    </div>
+    {{-- Pagination removed: all muftis shown at once --}}
 </div>
 
 <style>
     .fw-black { font-weight: 900; }
+
+    /* ── Hero ── */
+    .team-hero {
+        min-height: 380px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-bottom: 60px; /* room for wave */
+    }
+
+    .hero-bismillah-label {
+        display: inline-block;
+        font-family: 'Georgia', 'Times New Roman', serif;
+        font-size: 1.05rem;
+        letter-spacing: 3px;
+        color: #d4af37;
+        border: 1px solid rgba(212,175,55,0.35);
+        border-radius: 100px;
+        padding: 0.35rem 1.4rem;
+        margin-bottom: 1.25rem;
+        backdrop-filter: blur(4px);
+        background: rgba(212,175,55,0.08);
+    }
+
+    .hero-divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin: 0.75rem auto;
+    }
+    .hero-divider span:not(.diamond) {
+        display: block;
+        width: 80px;
+        height: 1px;
+        background: linear-gradient(to right, transparent, #d4af37, transparent);
+    }
+    .hero-divider .diamond {
+        color: #d4af37;
+        font-size: 0.65rem;
+        line-height: 1;
+    }
+
+    .hero-geo-accent {
+        position: absolute;
+        inset: 0;
+        background-image:
+            radial-gradient(circle at 15% 50%, rgba(212,175,55,0.06) 0%, transparent 55%),
+            radial-gradient(circle at 85% 30%, rgba(26,122,74,0.15) 0%, transparent 55%);
+        pointer-events: none;
+    }
+
+    .hero-wave-bottom {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        line-height: 0;
+    }
+    .hero-wave-bottom svg {
+        display: block;
+        width: 100%;
+        height: 60px;
+    }
     
     .scholar-premium-card {
         aspect-ratio: 95 / 150;
