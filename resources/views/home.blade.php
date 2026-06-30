@@ -299,43 +299,43 @@
 @php
 $scholars = [
     [
-        'name' => 'Muhammad Ibrahim',
-        'role' => 'Principal',
+        'name' => 'Moulana Mohammed Ibrahim',
+        'role' => 'Muthavalli',
         'dept' => 'KAUZARIYYA',
-        'img' => 'https://daruliftakauzariyya.com/assets/img/team/principal.png',
+        'img' => asset('team-photos/ibrahim.jpeg'),
         'icon' => 'bi-book-open',
         'has_image' => true
     ],
     [
-        'name' => 'Mufti Rajeeb Qasimi',
-        'role' => 'HOD',
-        'dept' => 'Darul Ifta',
-        'img' => 'https://daruliftakauzariyya.com/assets/img/team/hod.png',
+        'name' => 'Mufti Rajeeb Al Qasimi',
+        'role' => 'HOD - Hanafi',
+        'dept' => 'Darul Ifta Kauzariyya',
+        'img' => asset('team-photos/rajeeb.png'),
         'icon' => 'bi-pen',
         'has_image' => true
     ],
     [
-        'name' => 'Abdul Samad',
+        'name' => 'Al Usthad Abdul Samad Al Kauzari',
         'role' => 'HOD — Shafi',
-        'dept' => 'Department',
-        'img' => '',
+        'dept' => 'Darul Ifta Kauzariyya',
+        'img' => asset('team-photos/Abdul-Samad.png'),
         'icon' => 'bi-bank',
-        'has_image' => false,
+        'has_image' => true,
         'initials' => 'AS'
     ],
     [
-        'name' => 'Mufti Abid Ibrahim',
-        'role' => 'Professor',
+        'name' => 'Mufti Abid Ibrahim Al Kauzari',
+        'role' => 'Admin Darul Ifta',
         'dept' => 'Kauzariyya',
-        'img' => 'https://daruliftakauzariyya.com/assets/img/team/professor.png',
+        'img' => asset('team-photos/Abid.png'),
         'icon' => 'bi-book',
         'has_image' => true
     ],
     [
-        'name' => 'Al Usthad Ilyas Kanjar',
-        'role' => 'Professor',
+        'name' => 'Al Usthad Ilyas Al Kauzari',
+        'role' => 'Sheikhul Hadhees',
         'dept' => 'Kauzariyya',
-        'img' => 'https://daruliftakauzariyya.com/assets/img/team/master.png',
+        'img' => asset('team-photos/Usthad-Ilyas.png'),
         'icon' => 'bi-mortarboard',
         'has_image' => true
     ]
