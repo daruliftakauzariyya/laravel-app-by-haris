@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class FatwaActivityLog extends Model
 {
-    protected $table = 'fatwa_activity_logs';
+    use HasFactory;
 
     protected $fillable = [
         'question_id',
@@ -24,45 +25,23 @@ class FatwaActivityLog extends Model
         'event_at' => 'datetime',
     ];
 
-    public function question()
+    public static function log($questionId, $event, $label, $icon = 'bi-circle', $color = 'secondary', $notes = null, $userId = null, $fatwaId = null)
     {
-        return $this->belongsTo(Question::class);
-    }
-
-    public function fatwa()
-    {
-        return $this->belongsTo(Fatwa::class);
-    }
-
-    public function actor()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    /**
-     * Central log-writer helper.
-     */
-    public static function log(
-        int $questionId,
-        string $event,
-        string $label,
-        string $icon = 'bi-circle',
-        string $color = 'secondary',
-        ?string $notes = null,
-        ?int $userId = null,
-        ?int $fatwaId = null,
-        ?\DateTime $eventAt = null
-    ): self {
         return self::create([
             'question_id' => $questionId,
             'fatwa_id'    => $fatwaId,
             'user_id'     => $userId ?? auth()->id(),
             'event'       => $event,
             'event_label' => $label,
-            'notes'       => $notes,
             'icon'        => $icon,
             'color'       => $color,
-            'event_at'    => $eventAt ?? now(),
+            'notes'       => $notes,
+            'event_at'    => now(),
         ]);
+    }
+
+    public function actor()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

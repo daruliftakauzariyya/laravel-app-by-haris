@@ -20,22 +20,25 @@
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-0 py-2 d-flex justify-content-between">
                 <h6 class="mb-0 fw-bold"><i class="bi bi-chat-text me-2"></i>Mufti's Answer</h6>
-                <span class="small text-muted">by {{ $question->muftiAnswer->mufti->name }}</span>
+                <span class="small text-muted">by {{ $question->assignedMufti->name ?? 'Darul Ifta' }}</span>
             </div>
             <div class="card-body">
                 <div class="alert alert-info border-0 py-2 mb-3">
-                    <strong>Summary:</strong> {{ $question->muftiAnswer->summary }}
+                    <strong>Summary:</strong> {{ $question->title }}
                 </div>
-                <p style="line-height:1.9;">{!! $question->muftiAnswer->full_answer !!}</p>
+                <p style="line-height:1.9;">{!! $question->draft_answer ?? $question->answer !!}</p>
             </div>
         </div>
 
         {{-- References --}}
-        @if($question->muftiAnswer->supportingReferences->count())
+        @php
+            $refs = $question->references->isNotEmpty() ? $question->references : $question->draftReferences;
+        @endphp
+        @if($refs->count())
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 py-2"><h6 class="mb-0 fw-bold"><i class="bi bi-book me-2"></i>Supporting References</h6></div>
             <div class="card-body">
-                @foreach($question->muftiAnswer->supportingReferences as $ref)
+                @foreach($refs as $ref)
                 <div class="p-3 mb-3 rounded" style="background:#fafafa; border:1px solid #e5e7eb;">
                     <div class="arabic-text text-success mb-2">{{ $ref->arabic_text }}</div>
                     <p class="small mb-0"><i class="bi bi-journal me-1"></i><strong>{{ $ref->book_name }}</strong>
@@ -78,7 +81,7 @@
                             @foreach($verifierMuftis as $mufti)
                                 <div class="form-check my-1">
                                     <input class="form-check-input verifier-checkbox" type="checkbox" name="verified_by[]" value="{{ $mufti->id }}" id="verifier_{{ $mufti->id }}"
-                                        {{ $question->fatwa?->verifiers->contains($mufti->id) ? 'checked' : '' }}>
+                                        {{ (is_array($question->verified_by) && in_array($mufti->id, $question->verified_by)) ? 'checked' : '' }}>
                                     <label class="form-check-label small cursor-pointer" for="verifier_{{ $mufti->id }}">
                                         {{ $mufti->name }}
                                     </label>
@@ -89,10 +92,10 @@
 
                     <div class="mb-4">
                         <label class="form-label small fw-bold">Checked & Approved by:</label>
-                        <select name="checked_approved_by" id="checked_approved_by" class="form-select form-select-sm" required>
+                        <select name="checked_approved_by" id="checked_approved_by" class="form-select form-select-sm">
                             <option value="">-- Select Approver --</option>
                             @foreach($approverMuftis as $mufti)
-                                <option value="{{ $mufti->id }}" {{ $question->fatwa?->checked_approved_by == $mufti->id ? 'selected' : '' }}>{{ $mufti->name }}</option>
+                                <option value="{{ $mufti->id }}" {{ $question->checked_approved_by == $mufti->id ? 'selected' : '' }}>{{ $mufti->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -128,7 +131,7 @@
         @push('scripts')
         <script>
             // --- Mufti Filtering Logic ---
-            const writtenById = "{{ $question->muftiAnswer->mufti_id }}";
+            const writtenById = "{{ $question->assigned_mufti_id }}";
             const verifierCheckboxes = document.querySelectorAll('.verifier-checkbox');
             const approverSelect = document.getElementById('checked_approved_by');
 

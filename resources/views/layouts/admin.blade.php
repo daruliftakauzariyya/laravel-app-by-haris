@@ -280,6 +280,13 @@
                 border-bottom: 2px solid #eee !important;
             }
         }
+        .hover-bg-light:hover {
+            background-color: #f1f5f9;
+        }
+        .btn-xs {
+            padding: 2px 8px;
+            font-size: 0.7rem;
+        }
     </style>
     <!-- Cropper.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
@@ -421,10 +428,61 @@
                 </div>
             </div>
 
-            <div class="d-flex align-items-center gap-2">
-                <small class="text-muted">{{ Auth::user()->name }}</small>
-                <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=1a7a4a&color=fff&size=40' }}"
-                    class="rounded-circle" width="34" height="34">
+            <div class="d-flex align-items-center gap-3">
+                @php
+                    $pendingAvatarUsers = \App\Models\User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->get()->filter(function($u) {
+                        return \Illuminate\Support\Facades\Storage::disk('public')->exists("avatars/pending_{$u->id}.jpg");
+                    });
+                    $pendingAvatarCount = $pendingAvatarUsers->count();
+                @endphp
+
+                <div class="dropdown me-2 no-print">
+                    <button class="btn btn-link text-dark position-relative p-1 text-decoration-none" type="button" id="avatarNotifications" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell-fill fs-5"></i>
+                        @if($pendingAvatarCount > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                                {{ $pendingAvatarCount }}
+                            </span>
+                        @endif
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" aria-labelledby="avatarNotifications" style="width: 320px; border-radius: 12px; margin-top: 8px;">
+                        <li class="px-2 py-1 border-bottom">
+                            <span class="small fw-bold text-muted">Avatar Approval Requests</span>
+                        </li>
+                        @forelse($pendingAvatarUsers as $u)
+                            <li class="my-2 p-2 rounded hover-bg-light d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="{{ asset('storage/avatars/pending_' . $u->id . '.jpg') }}" class="rounded border" width="40" height="40" style="object-fit: cover;">
+                                    <div>
+                                        <div class="small fw-bold text-dark">{{ $u->name }}</div>
+                                        <div class="x-small text-muted">{{ $u->email }}</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-xs btn-primary rounded-pill px-2 py-1" 
+                                        style="font-size: 0.7rem;"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#verifyAvatarModal" 
+                                        data-user-id="{{ $u->id }}"
+                                        data-user-name="{{ $u->name }}"
+                                        data-current-avatar="{{ $u->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($u->name) . '&background=1a7a4a&color=fff&size=40' }}"
+                                        data-pending-avatar="{{ asset('storage/avatars/pending_' . $u->id . '.jpg') }}">
+                                    Verify
+                                </button>
+                            </li>
+                        @empty
+                            <li class="text-center py-4 text-muted small">
+                                <i class="bi bi-shield-check fs-4 d-block mb-1 text-success"></i>
+                                No pending avatar approvals
+                            </li>
+                        @endforelse
+                    </ul>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <small class="text-muted">{{ Auth::user()->name }}</small>
+                    <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=1a7a4a&color=fff&size=40' }}"
+                        class="rounded-circle" width="34" height="34">
+                </div>
             </div>
         </div>
 
@@ -489,8 +547,69 @@
         }
         setInterval(updateAdminClock, 1000);
         updateAdminClock();
+
+        // Verify Avatar Modal populate
+        const verifyModal = document.getElementById('verifyAvatarModal');
+        if (verifyModal) {
+            verifyModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const userId = button.getAttribute('data-user-id');
+                const userName = button.getAttribute('data-user-name');
+                const currentAvatar = button.getAttribute('data-current-avatar');
+                const pendingAvatar = button.getAttribute('data-pending-avatar');
+
+                verifyModal.querySelector('#modal-user-name').textContent = userName;
+                verifyModal.querySelector('#modal-current-img').src = currentAvatar;
+                verifyModal.querySelector('#modal-pending-img').src = pendingAvatar;
+
+                verifyModal.querySelector('#approve-avatar-form').action = `/admin/muftis/${userId}/approve-avatar`;
+                verifyModal.querySelector('#reject-avatar-form').action = `/admin/muftis/${userId}/reject-avatar`;
+            });
+        }
     </script>
+    
+    {{-- Verify Avatar Modal --}}
+    <div class="modal fade" id="verifyAvatarModal" tabindex="-1" aria-labelledby="verifyAvatarModalLabel" aria-hidden="true" style="z-index: 1100;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                <div class="modal-header bg-light border-0 py-3" style="border-top-left-radius: 15px; border-top-right-radius: 15px;">
+                    <h6 class="modal-title fw-bold text-dark" id="verifyAvatarModalLabel">Verify Profile Picture</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <p class="small text-muted mb-4">Review the photo upload request for scholar <b id="modal-user-name">Mufti</b>.</p>
+                    
+                    <div class="d-flex align-items-center justify-content-center gap-5 mb-4">
+                        <div>
+                            <span class="d-block text-muted small mb-2 fw-semibold">Current Photo</span>
+                            <img id="modal-current-img" src="" class="rounded-circle border" width="90" height="90" style="object-fit: cover;">
+                        </div>
+                        <div class="text-muted"><i class="bi bi-arrow-right fs-4"></i></div>
+                        <div>
+                            <span class="d-block text-muted small mb-2 fw-semibold">New Proposed Photo</span>
+                            <img id="modal-pending-img" src="" class="rounded border shadow-sm" width="90" height="110" style="object-fit: cover;">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-2 mt-4">
+                        <form id="approve-avatar-form" method="POST" action="">
+                            @csrf
+                            <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold small shadow-sm">
+                                <i class="bi bi-check-lg me-1"></i>Approve Photo
+                            </button>
+                        </form>
+                        <form id="reject-avatar-form" method="POST" action="">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger rounded-pill px-4 fw-semibold small">
+                                <i class="bi bi-trash3 me-1"></i>Reject & Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @stack('scripts')
 </body>
-
 </html>

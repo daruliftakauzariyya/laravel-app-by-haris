@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Mufti;
 
 use App\Http\Controllers\Controller;
 use App\Mail\AnswerSubmittedMail;
-use App\Models\MuftiAnswer;
-use App\Models\Question;
-use App\Models\SupportingReference;
+use App\Models\QuestionAndAnswer;
+use App\Models\Reference;
 use App\Models\FatwaActivityLog;
 use App\Models\User;
+use App\Models\QuestionStatusHistory;
 use App\Traits\HandleAvatars;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,27 +19,29 @@ use Illuminate\Support\Facades\Storage;
 class MuftiController extends Controller
 {
     use HandleAvatars;
+
     public function dashboard()
     {
         $user = Auth::user();
-        $assigned = Question::where('assigned_mufti_id', $user->id)
+        $assigned = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
                             ->where('status', 'assigned')
                             ->count();
-        $answered = MuftiAnswer::where('mufti_id', $user->id)->count();
-        $recent   = Question::with('madhab')->where('assigned_mufti_id', $user->id)->latest()->take(5)->get();
+        $answered = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+                            ->whereNotNull('answer')
+                            ->count();
+        $recent   = QuestionAndAnswer::with('madhab')->where('assigned_mufti_id', $user->id)->latest()->take(5)->get();
 
         // Performance Score Calculation
-        $totalEver = Question::where('assigned_mufti_id', $user->id)->count();
+        $totalEver = QuestionAndAnswer::where('assigned_mufti_id', $user->id)->count();
         $score = 0;
         if ($totalEver > 0) {
             // 1. Base Completion Rate (0-70 pts)
             $completionRate = ($answered / $totalEver) * 70;
 
             // 2. Speed Factor (0-20 pts)
-            $avgDays = MuftiAnswer::where('mufti_id', $user->id)
-                ->join('questions', 'mufti_answers.question_id', '=', 'questions.id')
-                ->whereNotNull('questions.assigned_at')
-                ->selectRaw('AVG(DATEDIFF(mufti_answers.submitted_at, questions.assigned_at)) as avg_days')
+            $avgDays = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+                ->where('status', '!=', 'assigned')
+                ->selectRaw('AVG(DATEDIFF(updated_at, created_at)) as avg_days')
                 ->value('avg_days') ?: 5;
             
             $speedPoints = 0;
@@ -63,19 +65,19 @@ class MuftiController extends Controller
         $user = Auth::user();
         $tab = $request->get('tab', 'assigned');
 
-        // Tab counts for the badge pills
+        // Tab counts for the badge pills using statusHistory for verified actions
         $counts = [
-            'assigned' => Question::where('assigned_mufti_id', $user->id)->where('status', 'assigned')->count(),
-            'verified' => Question::whereHas('fatwa.verifiers', fn($v) => $v->where('users.id', $user->id))->count(),
-            'approved' => Question::whereHas('fatwa', fn($f) => $f->where('checked_approved_by', $user->id))->count(),
+            'assigned' => QuestionAndAnswer::where('assigned_mufti_id', $user->id)->where('status', 'assigned')->count(),
+            'verified' => QuestionAndAnswer::whereHas('statusHistory', fn($h) => $h->where('user_id', $user->id)->where('new_status', 'approved'))->count(),
+            'approved' => QuestionAndAnswer::where('published_by', $user->id)->count(),
         ];
 
-        $query = Question::with('user', 'fatwa.verifiers', 'category', 'madhab')->latest();
+        $query = QuestionAndAnswer::with('user', 'category', 'madhab')->latest();
 
         if ($tab == 'verified') {
-            $query->whereHas('fatwa.verifiers', fn($v) => $v->where('users.id', $user->id));
+            $query->whereHas('statusHistory', fn($h) => $h->where('user_id', $user->id)->where('new_status', 'approved'));
         } elseif ($tab == 'approved') {
-            $query->whereHas('fatwa', fn($f) => $f->where('checked_approved_by', $user->id));
+            $query->where('published_by', $user->id);
         } else {
             $query->where('assigned_mufti_id', $user->id);
         }
@@ -88,7 +90,7 @@ class MuftiController extends Controller
     public function pendingQuestions()
     {
         $user = Auth::user();
-        $questions = Question::with('user', 'category')
+        $questions = QuestionAndAnswer::with('user', 'category')
             ->where('assigned_mufti_id', $user->id)
             ->where('status', 'assigned')
             ->latest()
@@ -97,22 +99,32 @@ class MuftiController extends Controller
         return view('mufti.questions.pending', compact('questions'));
     }
 
-    public function showQuestion(Question $question)
+    public function showQuestion(QuestionAndAnswer $question)
     {
         abort_unless($question->assigned_mufti_id === Auth::id(), 403);
+
+        FatwaActivityLog::log(
+            $question->id,
+            'mufti_opened',
+            'Mufti Opened the Fatwa',
+            'bi-eye-fill',
+            'info',
+            'Mufti opened the fatwa @ ' . now()->format('Y-m-d H:i:s'),
+            Auth::id()
+        );
+
         $question->load([
-            'user', 'files', 'madhab', 'muftiAnswer.supportingReferences',
-            'activityLogs' => fn($q) => $q->orderBy('event_at', 'desc')
+            'user', 'madhab', 'references',
+            'statusHistory' => fn($q) => $q->orderBy('created_at', 'desc')
         ]);
         return view('mufti.questions.answer', compact('question'));
     }
 
-    public function submitAnswer(Request $request, Question $question)
+    public function submitAnswer(Request $request, QuestionAndAnswer $question)
     {
         abort_unless($question->assigned_mufti_id === Auth::id(), 403);
 
         $request->validate([
-            'summary'        => ['required', 'string', 'min:10'],
             'full_answer'    => ['required', 'string', 'min:30'],
             'arabic_text.*'  => ['nullable', 'string'],
             'book_name.*'    => ['nullable', 'string'],
@@ -129,35 +141,39 @@ class MuftiController extends Controller
             $question->update(['body' => $request->question_body]);
         }
 
-        // Update or create
-        $answer = MuftiAnswer::updateOrCreate(
-            ['question_id' => $question->id, 'mufti_id' => Auth::id()],
-            [
-                'summary'      => $request->summary,
-                'full_answer'  => $request->full_answer,
-                'status'       => 'submitted',
-                'submitted_at' => now(),
-            ]
-        );
+        $isPublished = $question->status === 'published';
+        $previousStatus = $question->status;
 
-        // Clear old references and re-save
-        $answer->supportingReferences()->delete();
+        if ($isPublished) {
+            // Update live answer directly for typos/immediate edits
+            $question->update([
+                'answer' => $request->full_answer,
+            ]);
+            $question->references()->delete();
+        } else {
+            // Store as draft answer for pending review
+            $question->update([
+                'draft_answer' => $request->full_answer,
+                'status'       => 'answered',
+            ]);
+            $question->draftReferences()->delete();
+        }
 
+        // Save references
         if ($request->filled('arabic_text')) {
             foreach ($request->arabic_text as $i => $text) {
                 if ($text) {
-                    SupportingReference::create([
-                        'mufti_answer_id' => $answer->id,
-                        'arabic_text'     => $text,
-                        'book_name'       => $request->book_name[$i] ?? '',
-                        'language'        => $request->ref_language[$i] ?? 'Arabic',
-                        'sort_order'      => $i,
+                    Reference::create([
+                        'question_and_answer_id' => $question->id,
+                        'arabic_text'            => $text,
+                        'book_name'              => $request->book_name[$i] ?? '',
+                        'language'               => $request->ref_language[$i] ?? 'Arabic',
+                        'sort_order'             => $i,
+                        'is_draft'               => !$isPublished,
                     ]);
                 }
             }
         }
-
-        $question->update(['status' => 'answered']);
 
         // Log the activity
         FatwaActivityLog::log(
@@ -167,13 +183,87 @@ class MuftiController extends Controller
             Auth::id()
         );
 
+        QuestionStatusHistory::create([
+            'question_and_answer_id' => $question->id,
+            'previous_status'        => $previousStatus,
+            'new_status'             => $isPublished ? 'published' : 'answered',
+            'user_id'                => Auth::id(),
+            'remarks'                => 'Answer submitted by scholar.',
+        ]);
+
         // Notify admin
-        $admin = User::role('admin')->first();
+        $admin = User::whereHas('role', fn($q) => $q->where('name', 'admin'))->first();
         if ($admin) {
-            Mail::to($admin->email)->send(new AnswerSubmittedMail($answer));
+            try {
+                Mail::to($admin->email)->send(new AnswerSubmittedMail($question));
+            } catch (\Exception $e) {
+                // Fail silently if mail server is not configured
+            }
         }
 
-        return redirect()->route('mufti.questions')->with('success', 'Answer submitted for admin review.');
+        return redirect()->route('mufti.questions')->with('success', 'Answer submitted successfully.');
+    }
+
+    public function saveDraft(Request $request, QuestionAndAnswer $question)
+    {
+        abort_unless($question->assigned_mufti_id === Auth::id(), 403);
+
+        $request->validate([
+            'full_answer'    => ['nullable', 'string'],
+            'arabic_text.*'  => ['nullable', 'string'],
+            'book_name.*'    => ['nullable', 'string'],
+            'ref_language.*' => ['nullable', 'string'],
+            'question_title' => ['nullable', 'string', 'max:200'],
+            'question_body'  => ['nullable', 'string'],
+        ]);
+
+        // Update the question title and body if provided
+        if ($request->has('question_title')) {
+            $question->update(['title' => $request->question_title]);
+        }
+        if ($request->has('question_body')) {
+            $question->update(['body' => $request->question_body]);
+        }
+
+        // Save draft answer
+        $question->update([
+            'draft_answer' => $request->full_answer,
+        ]);
+
+        // Save references
+        $question->draftReferences()->delete();
+        if ($request->filled('arabic_text')) {
+            foreach ($request->arabic_text as $i => $text) {
+                if ($text) {
+                    Reference::create([
+                        'question_and_answer_id' => $question->id,
+                        'arabic_text'            => $text,
+                        'book_name'              => $request->book_name[$i] ?? '',
+                        'language'               => $request->ref_language[$i] ?? 'Arabic',
+                        'sort_order'             => $i,
+                        'is_draft'               => true,
+                    ]);
+                }
+            }
+        }
+
+        // Log the activity
+        FatwaActivityLog::log(
+            $question->id, 'draft_saved', 'Draft Saved by Scholar',
+            'bi-journal-text', 'secondary',
+            'Mufti saved a draft of fatwa ' . $question->question_id . ' @ ' . now()->format('Y-m-d H:i:s'),
+            Auth::id()
+        );
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Draft saved successfully.',
+                'time' => now()->format('H:i:s'),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Draft saved successfully.');
     }
 
     public function profile()

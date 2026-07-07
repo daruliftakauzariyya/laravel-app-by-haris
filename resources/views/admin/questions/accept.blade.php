@@ -43,49 +43,6 @@
             </div>
         </div>
 
-        {{-- Attached Files --}}
-        @if($question->files->count())
-        <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
-            <div class="card-header bg-white border-0 py-3"><h6 class="mb-0 fw-bold"><i class="bi bi-paperclip me-2 text-primary"></i>Attached Files</h6></div>
-            <div class="card-body">
-                <div class="row g-3">
-                    @foreach($question->files as $file)
-                    <div class="col-sm-4 col-6">
-                        <div class="card h-100 border shadow-none overflow-hidden" style="border-radius: 12px;">
-                            @if(str_starts_with($file->file_type, 'image/'))
-                                <a href="{{ route('files.view', $file) }}" target="_blank" class="d-block">
-                                    <div style="height: 100px; background: #eee; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                        <img src="{{ route('files.view', $file) }}" class="img-fluid w-100 h-100" style="object-fit: cover;" alt="Attachment">
-                                    </div>
-                                </a>
-                            @elseif($file->file_type == 'application/pdf')
-                                <a href="{{ route('files.view', $file) }}" target="_blank" class="d-block text-decoration-none">
-                                    <div style="height: 100px; background: #fdf2f2; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                        <i class="bi bi-file-earmark-pdf text-danger fs-2"></i>
-                                        <span class="x-small text-danger fw-bold mt-1">VIEW</span>
-                                    </div>
-                                </a>
-                            @else
-                                <div style="height: 100px; background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                    <i class="bi bi-file-earmark-text text-secondary fs-2"></i>
-                                    <span class="x-small text-muted mt-1 uppercase">{{ explode('/', $file->file_type)[1] ?? 'FILE' }}</span>
-                                </div>
-                            @endif
-                            <div class="card-footer p-2 bg-white d-flex justify-content-between align-items-center border-top-0">
-                                <div class="overflow-hidden pe-1">
-                                    <div style="font-size: 0.65rem;" class="fw-bold text-truncate" title="{{ $file->original_name }}">{{ $file->original_name }}</div>
-                                </div>
-                                <a href="{{ route('files.download', $file) }}" class="btn btn-link btn-sm p-0 text-primary" title="Download">
-                                    <i class="bi bi-download" style="font-size: 0.8rem;"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-        @endif
     </div>
 
     {{-- Right: Accept Form --}}

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Question;
+use App\Models\QuestionAndAnswer;
 use App\Models\FatwaActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +15,7 @@ class AdminApiController extends Controller
      */
     public function pendingCall()
     {
-        $questions = Question::with('user')
+        $questions = QuestionAndAnswer::with('user')
                     ->where('status', 'pending')
                     ->whereNull('assigned_mufti_id')
                     ->latest()
@@ -32,11 +32,11 @@ class AdminApiController extends Controller
      */
     public function dashboardStats()
     {
-        $total = Question::count();
-        $pending = Question::where('status', 'pending')->count();
-        $ongoing = Question::whereIn('status', ['assigned', 'under_review'])->count();
-        $muftiAnswered = Question::where('status', 'answered')->count();
-        $published = Question::where('status', 'published')->count();
+        $total = QuestionAndAnswer::count();
+        $pending = QuestionAndAnswer::where('status', 'pending')->count();
+        $ongoing = QuestionAndAnswer::whereIn('status', ['assigned', 'under_review'])->count();
+        $muftiAnswered = QuestionAndAnswer::where('status', 'answered')->count();
+        $published = QuestionAndAnswer::where('status', 'published')->count();
 
         return response()->json([
             'status' => 'success',
@@ -53,8 +53,10 @@ class AdminApiController extends Controller
     /**
      * Accept, Categorize, and Approve a question for processing
      */
-    public function acceptQuestion(Request $request, Question $question)
+    public function acceptQuestion(Request $request, $id)
     {
+        $question = QuestionAndAnswer::findOrFail($id);
+
         $request->validate([
             'title'       => 'required|string|max:200',
             'category_id' => 'required|exists:categories,id',
@@ -66,7 +68,14 @@ class AdminApiController extends Controller
             'category_id' => $request->category_id,
             'language'    => $request->language,
             'status'      => 'accepted', // Admin accepts it, it's now ready for assignment or muftis
-            'accepted_at' => now(),
+        ]);
+
+        // Log status change
+        $question->statusHistory()->create([
+            'previous_status' => 'pending',
+            'new_status'      => 'accepted',
+            'user_id'         => Auth::id(),
+            'remarks'         => 'Categorised under: ' . optional($question->fresh()->category)->name,
         ]);
 
         FatwaActivityLog::log(

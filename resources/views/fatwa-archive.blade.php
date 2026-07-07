@@ -83,15 +83,15 @@
                                 <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}"
                                      alt="Fatwa"
                                      onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
-                                <span class="madhab-badge">{{ $fatwa->question->madhab?->name }}</span>
+                                <span class="madhab-badge">{{ $fatwa->madhab?->name }}</span>
                             </div>
 
                             {{-- Card Body --}}
                             <div class="fatwa-body">
                                 <div class="fatwa-meta">
-                                    <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category->name ?? 'General' }}</span>
+                                    <span><i class="bi bi-folder2 me-1"></i>{{ $fatwa->category->name ?? 'General' }}</span>
                                     <span class="text-warning">
-                                        @for($i=0; $i<($fatwa->question->category->stars ?? 5); $i++)
+                                        @for($i=0; $i<($fatwa->category->stars ?? 5); $i++)
                                             <i class="bi bi-star-fill x-small"></i>
                                         @endfor
                                     </span>
@@ -99,18 +99,18 @@
                                 </div>
 
                                 <h6 class="fatwa-title">
-                                    {{ Str::limit($fatwa->question->title ?: strip_tags($fatwa->question->body), 75) }}
+                                    {{ Str::limit($fatwa->title ?: strip_tags($fatwa->body), 75) }}
                                 </h6>
 
                                 <p class="fatwa-excerpt">
-                                    {{ Str::limit(strip_tags($fatwa->muftiAnswer->summary ?: $fatwa->muftiAnswer->full_answer), 95) }}
+                                    {{ Str::limit(strip_tags($fatwa->answer), 95) }}
                                 </p>
 
                                 <div class="fatwa-footer">
                                     <i class="bi bi-person-circle text-muted flex-shrink-0"></i>
-                                    <a href="{{ route('fatwa.mufti.archive', $fatwa->muftiAnswer->mufti) }}"
+                                    <a href="{{ route('fatwa.mufti.archive', $fatwa->assignedMufti) }}"
                                        class="fatwa-author text-decoration-none text-dark hover-green">
-                                        {{ $fatwa->muftiAnswer->mufti->name ?? 'Darul Ifta' }}
+                                        {{ $fatwa->assignedMufti->name ?? 'Darul Ifta' }}
                                     </a>
                                     <span class="like-count flex-shrink-0 text-danger small fw-semibold">
                                         <i class="bi bi-heart-fill me-1"></i>{{ number_format($fatwa->likes) }}

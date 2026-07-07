@@ -16,24 +16,21 @@ class MuftiManagementController extends Controller
     /** List all scholars with the 'mufti' role */
     public function index()
     {
-        $muftis = User::role('mufti')
+        $muftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
             ->withCount([
                 'assignedQuestions as total_assigned',
                 'assignedQuestions as pending_count' => fn($q) => $q->where('status', 'assigned'),
-                'assignedQuestions as answered_count' => fn($q) => $q->whereIn('status', ['answered', 'published']),
+                'assignedQuestions as answered_count' => fn($q) => $q->whereIn('status', ['answered', 'approved', 'published']),
                 'assignedQuestions as published_count' => fn($q) => $q->where('status', 'published'),
-                'muftiAnswers as total_answers',
+                'assignedQuestions as total_answers' => fn($q) => $q->whereIn('status', ['answered', 'approved', 'published']),
             ])
             ->latest()
             ->paginate(10);
 
         $muftis->getCollection()->each(function ($mufti) {
-                // Avg days from assigned_at to answer submitted_at
-                $mufti->avg_days = \App\Models\MuftiAnswer::where('mufti_id', $mufti->id)
-                    ->whereNotNull('submitted_at')
-                    ->join('questions', 'mufti_answers.question_id', '=', 'questions.id')
-                    ->whereNotNull('questions.assigned_at')
-                    ->selectRaw('AVG(DATEDIFF(mufti_answers.submitted_at, questions.assigned_at)) as avg')
+                $mufti->avg_days = \App\Models\QuestionAndAnswer::where('assigned_mufti_id', $mufti->id)
+                    ->whereIn('status', ['answered', 'approved', 'published'])
+                    ->selectRaw('AVG(DATEDIFF(updated_at, created_at)) as avg')
                     ->value('avg');
                 $mufti->avg_days = $mufti->avg_days ? round($mufti->avg_days, 1) : null;
             });
@@ -62,18 +59,16 @@ class MuftiManagementController extends Controller
 
         $user = User::create([
             'name'              => $request->name,
+            'despl_name'        => $request->name,
             'email'             => $request->email,
             'password'          => Hash::make($request->password),
             'country'           => $request->country,
+            'madhab_id'         => !empty($request->madhab) ? head($request->madhab) : null,
             'is_active'         => $request->has('is_active'),
             'can_check_approve' => $request->has('can_check_approve'),
             'profile_completed' => true,
             'mufti_sort_order'  => (int) $request->input('mufti_sort_order', 0),
         ]);
-
-        if ($request->has('madhab')) {
-            $user->madhabs()->sync($request->madhab);
-        }
 
         $user->assignRole('mufti');
 
@@ -112,16 +107,11 @@ class MuftiManagementController extends Controller
             'name'              => $request->name,
             'email'             => $request->email,
             'country'           => $request->country,
+            'madhab_id'         => !empty($request->madhab) ? head($request->madhab) : null,
             'is_active'         => $request->has('is_active'),
             'can_check_approve' => $request->has('can_check_approve'),
             'mufti_sort_order'  => (int) $request->input('mufti_sort_order', 0),
         ];
-
-        if ($request->has('madhab')) {
-            $user->madhabs()->sync($request->madhab);
-        } else {
-            $user->madhabs()->detach();
-        }
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
@@ -181,22 +171,22 @@ class MuftiManagementController extends Controller
         // 1. Questions Metrics
         $stats = [
             'assigned'   => $user->assignedQuestions()->count(),
-            'answered'   => $user->muftiAnswers()->whereIn('status', ['answered', 'published'])->count(),
-            'published'  => $user->muftiAnswers()->where('status', 'published')->count(),
-            'unassigned' => \App\Models\Question::whereNull('assigned_mufti_id')->where('status', 'pending')->count(), 
+            'answered'   => $user->assignedQuestions()->whereIn('status', ['answered', 'approved', 'published'])->count(),
+            'published'  => $user->assignedQuestions()->where('status', 'published')->count(),
+            'unassigned' => \App\Models\QuestionAndAnswer::whereNull('assigned_mufti_id')->where('status', 'pending')->count(), 
         ];
 
         // 2. Topics Covered (Categories)
         $topics_count = \App\Models\Category::whereHas('questions', function($q) use ($user) {
-            $q->whereHas('muftiAnswer', function($qa) use ($user) {
-                $qa->where('mufti_id', $user->id);
-            });
+            $q->where('assigned_mufti_id', $user->id)
+              ->whereIn('status', ['answered', 'approved', 'published']);
         })->count();
 
         // 3. Appreciation/Likes & 4. Public Reads
-        $engagement = \App\Models\Fatwa::whereHas('muftiAnswer', function($q) use ($user) {
-            $q->where('mufti_id', $user->id);
-        })->selectRaw('SUM(likes) as total_likes, SUM(views) as total_views')->first();
+        $engagement = \App\Models\QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+            ->whereIn('status', ['answered', 'approved', 'published'])
+            ->selectRaw('SUM(likes) as total_likes, SUM(views) as total_views')
+            ->first();
 
         $likes = $engagement->total_likes ?? 0;
         $views = $engagement->total_views ?? 0;
@@ -206,11 +196,9 @@ class MuftiManagementController extends Controller
 
         // 6. Ifta Work Score (Efficiency, Speed & Volume Index)
         // Formula: (Answered * 10) + (Published * 5) + (Likes * 2) - (Avg Days * 5)
-        $avg_days = \App\Models\MuftiAnswer::where('mufti_id', $user->id)
-            ->whereNotNull('submitted_at')
-            ->join('questions', 'mufti_answers.question_id', '=', 'questions.id')
-            ->whereNotNull('questions.assigned_at')
-            ->selectRaw('AVG(DATEDIFF(mufti_answers.submitted_at, questions.assigned_at)) as avg')
+        $avg_days = \App\Models\QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+            ->whereIn('status', ['answered', 'approved', 'published'])
+            ->selectRaw('AVG(DATEDIFF(updated_at, created_at)) as avg')
             ->value('avg') ?: 0;
         
         $score = ($stats['answered'] * 10) + ($stats['published'] * 5) + ($likes * 2);

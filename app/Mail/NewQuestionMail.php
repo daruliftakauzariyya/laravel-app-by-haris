@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\Question;
+use App\Models\QuestionAndAnswer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -13,7 +13,7 @@ class NewQuestionMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Question $question) {}
+    public function __construct(public QuestionAndAnswer $question) {}
 
     public function envelope(): Envelope
     {

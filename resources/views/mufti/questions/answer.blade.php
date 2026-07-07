@@ -119,37 +119,17 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold text-dark small">Question Body</label>
-                            <textarea name="question_body" rows="6" class="form-control premium-input border-0 bg-light" style="line-height: 1.8;" placeholder="Original question text...">{{ old('question_body', $question->body) }}</textarea>
+                            <textarea name="question_body" id="summernote-question" class="form-control premium-input border-0 bg-light" style="line-height: 1.8;" placeholder="Original question text...">{{ old('question_body', $question->body) }}</textarea>
                         </div>
                         
-                        @if($question->files->count())
-                        <div class="attachment-reel d-flex gap-3 overflow-auto pt-3 border-top mt-3">
-                            @foreach($question->files as $file)
-                            <div class="flex-shrink-0" style="width: 140px;">
-                                <a href="{{ route('files.view', $file) }}" target="_blank" class="text-decoration-none">
-                                    <div class="rounded-3 border overflow-hidden bg-white shadow-sm hover-shadow transition-all">
-                                        @if(str_starts_with($file->file_type, 'image/'))
-                                            <img src="{{ route('files.view', $file) }}" class="w-100" style="height: 100px; object-fit: cover;">
-                                        @else
-                                            <div class="d-flex align-items-center justify-content-center bg-light" style="height: 100px;">
-                                                <i class="bi bi-file-earmark-{{ $file->file_type == 'application/pdf' ? 'pdf text-danger' : 'text text-muted' }} fs-2"></i>
-                                            </div>
-                                        @endif
-                                        <div class="p-2 x-small fw-bold text-dark text-truncate">{{ $file->original_name }}</div>
-                                    </div>
-                                </a>
-                            </div>
-                            @endforeach
-                        </div>
-                        @endif
                     </div>
                 </div>
                 
                 {{-- Global Summary --}}
                 <div class="glass-card p-4 mb-4">
-                    <h5 class="fw-800 mb-3"><i class="bi bi-chat-left-dots-fill me-2 text-gold"></i>Scholarly Summary</h5>
-                    <input type="text" name="summary" class="form-control premium-input border-0 bg-light fw-bold" 
-                           value="{{ old('summary', $question->muftiAnswer?->summary) }}"
+                    <h5 class="fw-800 mb-3"><i class="bi bi-chat-left-dots-fill me-2 text-gold"></i>Scholarly Summary / Title</h5>
+                    <input type="text" name="question_title" class="form-control premium-input border-0 bg-light fw-bold" 
+                           value="{{ old('question_title', $question->title) }}"
                            placeholder="Enter a concise title or essence of this fatwa..." required>
                 </div>
 
@@ -159,7 +139,7 @@
                         <h5 class="fw-800 mb-0">Detailed Fatwa Breakdown</h5>
                     </div>
                     <div class="card-body p-0">
-                        <textarea name="full_answer" id="summernote" required>{{ old('full_answer', $question->muftiAnswer?->full_answer) }}</textarea>
+                        <textarea name="full_answer" id="summernote" required>{{ old('full_answer', $question->draft_answer ?? $question->answer) }}</textarea>
                     </div>
                 </div>
 
@@ -173,7 +153,13 @@
                     </div>
 
                     <div id="references-container">
-                        @php $refs = $question->muftiAnswer ? $question->muftiAnswer->supportingReferences : collect([new \App\Models\SupportingReference()]); @endphp
+                        @php 
+                            $refs = $question->references->isNotEmpty() 
+                                ? $question->references 
+                                : ($question->draftReferences->isNotEmpty() 
+                                    ? $question->draftReferences 
+                                    : collect([new \App\Models\Reference()])); 
+                        @endphp
                         @foreach($refs as $ref)
                         <div class="ref-node">
                             <div class="d-flex justify-content-between align-items-start mb-3">
@@ -203,8 +189,17 @@
                 </div>
 
                 <div class="floating-save-bar">
-                    <div class="small fw-bold text-muted">Draft Status: <span class="text-brand-gold">Unsaved</span></div>
+                    <div class="small fw-bold text-muted">Draft Status: 
+                        @if($question->draft_answer)
+                            <span class="text-success" id="draft-status-text">Saved as Draft ({{ $question->updated_at->format('H:i') }})</span>
+                        @else
+                            <span class="text-brand-gold" id="draft-status-text">Unsaved</span>
+                        @endif
+                    </div>
                     <div class="d-flex gap-2">
+                        <button type="button" id="save-draft-btn" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
+                            <i class="bi bi-save me-2"></i>Save Draft
+                        </button>
                         <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm">
                             <i class="bi bi-shield-check me-2"></i>Finalize & Submit Review
                         </button>
@@ -287,6 +282,18 @@ $(document).ready(function() {
         styleTags: ['p', 'h3', 'h4', 'h5', 'h6', 'blockquote'],
     });
 
+    $('#summernote-question').summernote({
+        height: 250,
+        placeholder: 'Original question text...',
+        dialogsInBody: true,
+        toolbar: [
+            ['font', ['bold', 'italic', 'underline', 'clear']],
+            ['fontsize', ['fontsize']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['view', ['fullscreen', 'codeview']]
+        ]
+    });
+
     // Reference Engine Logic
     let refCount = $('#references-container .ref-node').length;
     
@@ -324,6 +331,40 @@ $(document).ready(function() {
         if($('#references-container .ref-node').length > 1) {
             $(this).closest('.ref-node').slideUp(200, function() { $(this).remove(); refreshCounts(); });
         }
+    });
+
+    $('#save-draft-btn').on('click', function(e) {
+        e.preventDefault();
+        
+        const $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...');
+        
+        // sync Summernote editor values
+        $('#summernote').val($('#summernote').summernote('code'));
+        if ($('#summernote-question').length) {
+            $('#summernote-question').val($('#summernote-question').summernote('code'));
+        }
+        
+        const formData = $('#fatwaForm').serialize();
+        
+        $.ajax({
+            url: "{{ route('mufti.questions.draft', $question) }}",
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.status === 'success') {
+                    $('#draft-status-text').removeClass('text-brand-gold text-danger').addClass('text-success').html('Saved as Draft (' + response.time + ')');
+                } else {
+                    $('#draft-status-text').removeClass('text-brand-gold text-success').addClass('text-danger').text('Save Failed');
+                }
+            },
+            error: function() {
+                $('#draft-status-text').removeClass('text-brand-gold text-success').addClass('text-danger').text('Save Failed');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="bi bi-save me-2"></i>Save Draft');
+            }
+        });
     });
 
     function refreshCounts() {

@@ -44,58 +44,13 @@
             </div>
         </div>
 
-        {{-- Files --}}
-        @if($question->files->count())
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 py-2"><h6 class="mb-0 fw-bold"><i class="bi bi-paperclip me-2"></i>Attached Files</h6></div>
-            <div class="card-body">
-                <div class="row g-3">
-                    @foreach($question->files as $file)
-                    <div class="col-md-4 col-lg-3 col-6">
-                        <div class="card h-100 border shadow-none overflow-hidden" style="border-radius: 12px;">
-                            @if(str_starts_with($file->file_type, 'image/'))
-                                <a href="{{ route('files.view', $file) }}" target="_blank" class="d-block">
-                                    <div style="height: 100px; background: #eee; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                        <img src="{{ route('files.view', $file) }}" class="img-fluid w-100 h-100" style="object-fit: cover;" alt="Attachment">
-                                    </div>
-                                </a>
-                            @elseif($file->file_type == 'application/pdf')
-                                <a href="{{ route('files.view', $file) }}" target="_blank" class="d-block text-decoration-none">
-                                    <div style="height: 100px; background: #fdf2f2; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                        <i class="bi bi-file-earmark-pdf text-danger fs-2"></i>
-                                        <span class="x-small text-danger fw-bold mt-1">VIEW</span>
-                                    </div>
-                                </a>
-                            @else
-                                <div style="height: 100px; background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                    <i class="bi bi-file-earmark-text text-secondary fs-2"></i>
-                                    <span class="x-small text-muted mt-1 uppercase">{{ explode('/', $file->file_type)[1] ?? 'FILE' }}</span>
-                                </div>
-                            @endif
-                            
-                            <div class="card-footer p-2 bg-white d-flex justify-content-between align-items-center border-top-0">
-                                <div class="overflow-hidden pe-1">
-                                    <div style="font-size: 0.65rem;" class="fw-bold text-truncate" title="{{ $file->original_name }}">{{ $file->original_name }}</div>
-                                </div>
-                                <a href="{{ route('files.download', $file) }}" class="btn btn-link btn-sm p-0 text-primary" title="Download">
-                                    <i class="bi bi-download" style="font-size: 0.8rem;"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-        @endif
-
         {{-- Mufti Answer (if exists) --}}
-        @if($question->muftiAnswer)
+        @if($question->answer || $question->draft_answer)
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 fw-bold"><i class="bi bi-chat-text me-2"></i>Mufti Answer</h6>
                 <div class="d-flex gap-2">
-                    <span class="badge badge-status-{{ $question->muftiAnswer->status }} me-2">{{ ucfirst(str_replace('_',' ',$question->muftiAnswer->status)) }}</span>
+                    <span class="badge badge-status-{{ $question->status }} me-2">{{ ucfirst(str_replace('_',' ',$question->status)) }}</span>
                     @if(in_array($question->status, ['published', 'answered']))
                     <a href="{{ route('admin.questions.answer', $question) }}" class="btn btn-sm btn-outline-primary py-0">
                         <i class="bi bi-pencil me-1"></i>Edit Answer
@@ -104,16 +59,19 @@
                 </div>
             </div>
             <div class="card-body">
-                <p class="fw-semibold">Summary: {!! $question->muftiAnswer->summary !!}</p>
+                <p class="fw-semibold">Summary / Title: {!! $question->title !!}</p>
                 <div class="mufti-answer-body" style="line-height:1.8; color: #333;">
-                    {!! $question->muftiAnswer->full_answer !!}
+                    {!! $question->draft_answer ?? $question->answer !!}
                 </div>
 
                 {{-- Supporting References --}}
-                @if($question->muftiAnswer->supportingReferences->count())
+                @php
+                    $refs = $question->references->isNotEmpty() ? $question->references : $question->draftReferences;
+                @endphp
+                @if($refs->count())
                 <div class="mt-4 p-3 bg-light rounded border">
                     <h6 class="fw-bold small text-muted text-uppercase mb-3"><i class="bi bi-journal-text me-1"></i>Supporting References</h6>
-                    @foreach($question->muftiAnswer->supportingReferences as $ref)
+                    @foreach($refs as $ref)
                         <div class="mb-4 last-child-mb-0">
                             <div class="arabic-text mb-2 text-dark {{ $ref->language == 'Urdu' ? 'gulzar-font' : 'alyamama-font' }}" style="font-size: 1.15rem; line-height: 1.6;">
                                 {{ $ref->arabic_text }}

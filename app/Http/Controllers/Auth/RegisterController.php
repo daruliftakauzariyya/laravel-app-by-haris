@@ -37,6 +37,7 @@ class RegisterController extends Controller
 
         $user = User::create([
             'name'           => $request->name,
+            'despl_name'     => $request->name,
             'country_code'   => $request->country_code,
             'mobile'         => $request->mobile,
             'email'          => $request->email,

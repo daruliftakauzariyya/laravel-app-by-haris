@@ -3,13 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\MuftiAnswer;
-use App\Models\Question;
-use App\Models\SupportingReference;
+use App\Models\QuestionAndAnswer;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class MuftiApiController extends Controller
 {
@@ -21,24 +18,26 @@ class MuftiApiController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        $assignedCount = Question::where('assigned_mufti_id', $user->id)
+        $assignedCount = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
                             ->where('status', 'assigned')
                             ->count();
                             
-        $answeredCount = MuftiAnswer::where('mufti_id', $user->id)->count();
+        $answeredCount = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+                            ->whereIn('status', ['answered', 'approved', 'published'])
+                            ->count();
         
-        $recentTasks = Question::with('category', 'madhab')
+        $recentTasks = QuestionAndAnswer::with('category', 'madhab')
                             ->where('assigned_mufti_id', $user->id)
                             ->latest()
                             ->take(5)
                             ->get();
 
         // High-fidelity performance score logic
-        $totalEver = Question::where('assigned_mufti_id', $user->id)->count();
+        $totalEver = QuestionAndAnswer::where('assigned_mufti_id', $user->id)->count();
         $score = 0;
         if ($totalEver > 0) {
             $completionRate = ($answeredCount / $totalEver) * 70;
-            $speedPoints = 15; // Placeholder for now
+            $speedPoints = 15;
             $volumePoints = min(10, ($answeredCount / 5));
             $score = round($completionRate + $speedPoints + $volumePoints);
             $score = min(100, $score);
@@ -69,13 +68,13 @@ class MuftiApiController extends Controller
         $user = Auth::user();
         $status = $request->get('status', 'assigned'); // assigned, answered, etc.
 
-        $query = Question::with('user', 'category', 'madhab')
+        $query = QuestionAndAnswer::with('user', 'category', 'madhab')
                     ->where('assigned_mufti_id', $user->id);
 
         if ($status === 'assigned') {
             $query->where('status', 'assigned');
         } elseif ($status === 'answered') {
-            $query->where('status', 'answered');
+            $query->whereIn('status', ['answered', 'approved', 'published']);
         }
 
         $questions = $query->latest()->paginate(15);
@@ -89,13 +88,15 @@ class MuftiApiController extends Controller
     /**
      * Task Details
      */
-    public function showQuestion(Question $question)
+    public function showQuestion($id)
     {
+        $question = QuestionAndAnswer::findOrFail($id);
+
         if ($question->assigned_mufti_id !== Auth::id()) {
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
-        $question->load(['user', 'files', 'madhab', 'muftiAnswer.supportingReferences']);
+        $question->load(['user', 'madhab', 'references', 'draftReferences']);
 
         return response()->json([
             'status' => 'success',
@@ -106,8 +107,10 @@ class MuftiApiController extends Controller
     /**
      * Submit Fatwa Answer
      */
-    public function submitAnswer(Request $request, Question $question)
+    public function submitAnswer(Request $request, $id)
     {
+        $question = QuestionAndAnswer::findOrFail($id);
+
         if ($question->assigned_mufti_id !== Auth::id()) {
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
@@ -118,33 +121,27 @@ class MuftiApiController extends Controller
             'references'  => 'nullable|array',
         ]);
 
-        $answer = MuftiAnswer::updateOrCreate(
-            ['question_id' => $question->id, 'mufti_id' => Auth::id()],
-            [
-                'summary'      => $request->summary,
-                'full_answer'  => $request->full_answer,
-                'status'       => 'submitted',
-                'submitted_at' => now(),
-            ]
-        );
+        $question->update([
+            'title'        => $request->summary,
+            'draft_answer' => $request->full_answer,
+            'status'       => 'answered',
+        ]);
 
         // References sync
         if ($request->has('references')) {
-            $answer->supportingReferences()->delete();
+            $question->draftReferences()->delete();
             foreach ($request->references as $index => $ref) {
                 if (!empty($ref['arabic_text'])) {
-                    SupportingReference::create([
-                        'mufti_answer_id' => $answer->id,
-                        'arabic_text'     => $ref['arabic_text'],
-                        'book_name'       => $ref['book_name'] ?? '',
-                        'language'        => $ref['language'] ?? 'Arabic',
-                        'sort_order'      => $index,
+                    $question->draftReferences()->create([
+                        'arabic_text' => $ref['arabic_text'],
+                        'book_name'   => $ref['book_name'] ?? '',
+                        'language'    => $ref['language'] ?? 'Arabic',
+                        'sort_order'  => $index,
+                        'is_draft'    => true,
                     ]);
                 }
             }
         }
-
-        $question->update(['status' => 'answered']);
 
         return response()->json([
             'status' => 'success',

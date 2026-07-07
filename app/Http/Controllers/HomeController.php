@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Fatwa;
-use App\Models\Question;
+use App\Models\QuestionAndAnswer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactFormMail;
 use App\Models\User;
-use App\Models\PortalVisitorLog;
 use App\Services\FeaturedFatwaService;
 use App\Helpers\HijriHelper;
 
@@ -18,26 +16,23 @@ class HomeController extends Controller
     {
         $stats = \Illuminate\Support\Facades\Cache::remember('home_stats', 900, function () {
             return [
-                'total'     => Question::count(),
-                'published' => Fatwa::count(),
-                'muftis'    => \App\Models\User::role('mufti')->count(),
-                'visitors'  => Fatwa::sum('views') + 1250,
+                'total'     => QuestionAndAnswer::count(),
+                'published' => QuestionAndAnswer::where('status', 'published')->count(),
+                'muftis'    => User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->count(),
+                'visitors'  => QuestionAndAnswer::sum('views') + 1250,
             ];
         });
 
         $latestFatwas = \Illuminate\Support\Facades\Cache::remember('latest_fatwas', 1800, function () {
-            return Fatwa::with(['question.madhab', 'question.category', 'muftiAnswer.mufti'])
+            return QuestionAndAnswer::with(['madhab', 'category', 'assignedMufti'])
+                                 ->where('status', 'published')
                                  ->latest('published_at')
                                  ->take(6)
                                  ->get();
         });
 
-        // Detect visitor country from IP via PortalVisitorLog
-        $visitorIp      = $request->ip();
-        $visitorCountry = PortalVisitorLog::where('ip_address', $visitorIp)
-            ->whereNotNull('country_code')
-            ->latest()
-            ->value('country_code') ?? '';
+        // Detect visitor country from IP (set to default since portal_visitor_logs table is dropped)
+        $visitorCountry = '';
 
         // Get current Hijri date
         $hijriParts = explode('-', HijriHelper::now('n-j')); // month-day
@@ -79,9 +74,12 @@ class HomeController extends Controller
 
     public function team()
     {
-        $muftis = User::role('mufti')
+        $muftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
             ->where('is_active', true)
-            ->withCount(['muftiAnswers', 'publishedFatwas'])
+            ->withCount([
+                'assignedQuestions as assigned_questions_count',
+                'assignedQuestions as published_fatwas_count' => fn($q) => $q->where('status', 'published')
+            ])
             // Primary:  explicit sort_order (0 = auto, pushed to end of pinned group)
             // Secondary: most published fatwas first
             ->orderByRaw('CASE WHEN mufti_sort_order = 0 THEN 9999 ELSE mufti_sort_order END ASC')

@@ -25,13 +25,9 @@ class AppServiceProvider extends ServiceProvider
         };
 
         // Attach listeners to relevant models
-        \App\Models\Fatwa::saved($clearCache);
-        \App\Models\Fatwa::deleted($clearCache);
-        \App\Models\Question::saved($clearCache);
-        \App\Models\Question::deleted($clearCache);
+        \App\Models\QuestionAndAnswer::saved($clearCache);
+        \App\Models\QuestionAndAnswer::deleted($clearCache);
         \App\Models\Category::saved($clearCache);
         \App\Models\Category::deleted($clearCache);
-        \App\Models\FatwaFeaturedRule::saved($clearCache);
-        \App\Models\FatwaFeaturedRule::deleted($clearCache);
     }
 }

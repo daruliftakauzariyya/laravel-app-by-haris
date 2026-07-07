@@ -3,15 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Fatwa;
-use App\Models\Question;
 use App\Models\User;
 use App\Models\Category;
-use App\Models\PortalVisitorLog;
+use App\Models\QuestionAndAnswer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
 use App\Models\SiteSetting;
 use App\Helpers\HijriHelper;
 use Illuminate\Http\Request;
@@ -22,57 +19,31 @@ class DashboardController extends Controller
     {
         // Core stats
         $stats = [
-            'total'     => Question::count(),
-            'pending'   => Question::where('status', 'pending')->count(),
-            'assigned'  => Question::where('status', 'assigned')->count(),
-            'answered'  => Question::where('status', 'answered')->count(),
-            'published' => Fatwa::count(),
-            'total_reads' => (int) Fatwa::sum('views'),
+            'total'     => QuestionAndAnswer::count(),
+            'pending'   => QuestionAndAnswer::where('status', 'pending')->count(),
+            'assigned'  => QuestionAndAnswer::where('status', 'assigned')->count(),
+            'answered'  => QuestionAndAnswer::where('status', 'answered')->count(),
+            'published' => QuestionAndAnswer::where('status', 'published')->count(),
+            'total_reads' => (int) QuestionAndAnswer::sum('views'),
             'questioners' => User::whereHas('questions')->count(),
-            'live_by_ip'  => PortalVisitorLog::getLiveUsersCountByIp(),
-            'live_by_identity' => PortalVisitorLog::getLiveUsersCountByIdentity(),
+            'live_by_ip'  => 0,
+            'live_by_identity' => 0,
         ];
 
         // Most popular category (by published fatwas)
         $topCategory = Category::select('categories.*')
-            ->selectRaw('COUNT(questions.id) as q_count')
-            ->join('questions', 'categories.id', '=', 'questions.category_id')
-            ->where('questions.status', 'published')
+            ->selectRaw('COUNT(question_and_answer.id) as q_count')
+            ->join('question_and_answer', 'categories.id', '=', 'question_and_answer.category_id')
+            ->where('question_and_answer.status', 'published')
             ->groupBy('categories.id')
             ->orderByDesc('q_count')
             ->first();
 
         // Consolidated Geographic Logic for Dashboard (Top 5)
-        $topCountries = PortalVisitorLog::whereNotNull('country')
-            ->where('country', '!=', 'Unknown')
-            ->select('country', 'country_code', DB::raw('count(*) as count'))
-            ->groupBy('country', 'country_code')
-            ->orderByDesc('count')
-            ->take(5)
-            ->get();
-
         $geoReach = [];
-        foreach ($topCountries as $c) {
-            // Get top region for this country
-            $topRegion = PortalVisitorLog::where('country', $c->country)
-                ->whereNotNull('region')
-                ->where('region', '!=', '')
-                ->select('region', DB::raw('count(*) as r_count'))
-                ->groupBy('region')
-                ->orderByDesc('r_count')
-                ->first();
-
-            $geoReach[] = [
-                'country_code' => $c->country_code,
-                'country'      => $c->country,
-                'total_count'  => $c->count,
-                'top_region'   => $topRegion ? $topRegion->region : 'Unknown',
-                'region_count' => $topRegion ? $topRegion->r_count : 0
-            ];
-        }
 
         // Questions submitted per month (last 6 months)
-        $monthlyData = Question::select(
+        $monthlyData = QuestionAndAnswer::select(
                 DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
                 DB::raw('COUNT(*) as count')
             )
@@ -92,7 +63,7 @@ class DashboardController extends Controller
             $monthlyCounts[] = $monthlyData[$key]->count ?? 0;
         }
 
-        $recentQuestions = Question::with(['user', 'madhab', 'category', 'assignedMufti'])
+        $recentQuestions = QuestionAndAnswer::with(['user', 'madhab', 'category', 'assignedMufti'])
             ->latest()
             ->take(5)
             ->get();
@@ -105,32 +76,13 @@ class DashboardController extends Controller
     }
 
     /**
-     * Display a comprehensive listing of all global visitors (The Sprite Page)
+     * Display a comprehensive listing of all global visitors
      */
     public function visitorInsights()
     {
-        // Full Country List
-        $countries = PortalVisitorLog::whereNotNull('country')
-            ->select('country', 'country_code', DB::raw('count(*) as count'))
-            ->groupBy('country', 'country_code')
-            ->orderByDesc('count')
-            ->paginate(20, ['*'], 'country_page');
-
-        // Full Region/State List
-        $regions = PortalVisitorLog::whereNotNull('region')
-            ->where('region', '!=', '')
-            ->select('country', 'region', DB::raw('count(*) as count'))
-            ->groupBy('country', 'region')
-            ->orderByDesc('count')
-            ->paginate(20, ['*'], 'region_page');
-
-        // Full City List
-        $cities = PortalVisitorLog::whereNotNull('city')
-            ->where('city', '!=', '')
-            ->select('country', 'region', 'city', DB::raw('count(*) as count'))
-            ->groupBy('country', 'region', 'city')
-            ->orderByDesc('count')
-            ->paginate(20, ['*'], 'city_page');
+        $countries = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
+        $regions = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
+        $cities = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
 
         return view('admin.analytics.visitors', compact('countries', 'regions', 'cities'));
     }
@@ -184,8 +136,8 @@ class DashboardController extends Controller
     public function liveUsersApi()
     {
         return response()->json([
-            'byIp' => PortalVisitorLog::getLiveUsersCountByIp(),
-            'byIdentity' => PortalVisitorLog::getLiveUsersCountByIdentity(),
+            'byIp' => 0,
+            'byIdentity' => 0,
         ]);
     }
 

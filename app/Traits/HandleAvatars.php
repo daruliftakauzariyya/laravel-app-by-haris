@@ -16,6 +16,20 @@ trait HandleAvatars
             $data = explode(',', $base64Data);
             $decoded = base64_decode(end($data));
             
+            // Check if GD extension is enabled
+            if (!function_exists('imagecreatefromstring')) {
+                $filename = ($isPending ? "pending_" : "") . "{$userId}.jpg";
+                $finalPath = "storage/avatars/{$filename}";
+                $fullPath = public_path($finalPath);
+                
+                if (!file_exists(dirname($fullPath))) {
+                    mkdir(dirname($fullPath), 0755, true);
+                }
+                
+                file_put_contents($fullPath, $decoded);
+                return "/" . $finalPath;
+            }
+
             $img = imagecreatefromstring($decoded);
             if (!$img) return null;
 

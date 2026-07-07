@@ -210,7 +210,7 @@
                         <div class="meta-item"><span class="meta-label text-dark">Category:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->category->name ?? 'Pending' }}</span></div>
                     </div>
                     <div class="col-6">
-                        <div class="meta-item"><span class="meta-label text-dark">Published:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->fatwa?->published_at?->format('d-m-Y') ?: 'Pending' }}</span></div>
+                        <div class="meta-item"><span class="meta-label text-dark">Published:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->published_at?->format('d-m-Y') ?: 'Pending' }}</span></div>
                     </div>
                 </div>
             </div>
@@ -219,54 +219,9 @@
             <div class="content-body">
                 <span class="section-label">Question:</span>
                 <div class="body-text {{ $langClass }}">{!! $question->body !!}</div>
-
-                {{-- Attachments Section for Owner --}}
-                @if($question->files->count())
-                    <div class="mt-4 pt-3 border-top">
-                        <h6 class="fw-bold mb-3 small text-muted text-uppercase tracking-wider">
-                            <i class="bi bi-paperclip me-1"></i>Your Attachments
-                        </h6>
-                        <div class="row g-3">
-                            @foreach($question->files as $file)
-                            <div class="col-md-4 col-sm-6 col-6">
-                                <div class="card h-100 border shadow-none overflow-hidden" style="border-radius: 12px; background: #fff;">
-                                    @if(str_starts_with($file->file_type, 'image/'))
-                                        <a href="{{ route('files.view', $file) }}" target="_blank" class="d-block">
-                                            <div style="height: 100px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                                <img src="{{ route('files.view', $file) }}" class="img-fluid w-100 h-100" style="object-fit: cover;" alt="Attachment">
-                                            </div>
-                                        </a>
-                                    @elseif($file->file_type == 'application/pdf')
-                                        <a href="{{ route('files.view', $file) }}" target="_blank" class="d-block text-decoration-none">
-                                            <div style="height: 100px; background: #fff1f1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                                <i class="bi bi-file-earmark-pdf text-danger fs-2"></i>
-                                                <span class="x-small text-danger fw-bold mt-1">VIEW PDF</span>
-                                            </div>
-                                        </a>
-                                    @else
-                                        <div style="height: 100px; background: #fdfdfd; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                            <i class="bi bi-file-earmark-text text-secondary fs-2"></i>
-                                            <span class="x-small text-muted mt-1 uppercase">{{ explode('/', $file->file_type)[1] ?? 'FILE' }}</span>
-                                        </div>
-                                    @endif
-                                    
-                                    <div class="card-footer p-2 bg-white d-flex justify-content-between align-items-center border-top-0">
-                                        <div class="overflow-hidden pe-1">
-                                            <div style="font-size: 0.65rem;" class="fw-bold text-truncate" title="{{ $file->original_name }}">{{ $file->original_name }}</div>
-                                        </div>
-                                        <a href="{{ route('files.download', $file) }}" class="btn btn-link btn-sm p-0 text-brand" title="Download">
-                                            <i class="bi bi-download" style="font-size: 0.8rem;"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
             </div>
 
-            @if($question->muftiAnswer && in_array($question->status, ['answered', 'approved', 'published']))
+            @if(($question->answer || $question->draft_answer) && in_array($question->status, ['answered', 'approved', 'published']))
             <hr class="mx-4 my-2" style="opacity: 0.1;">
 
             {{-- Answer Content --}}
@@ -279,15 +234,18 @@
                 </div>
 
                 <div class="body-text {{ $langClass }} mt-3">
-                    {!! $question->muftiAnswer->full_answer !!}
+                    {!! $question->draft_answer ?? $question->answer !!}
                 </div>
             </div>
 
             {{-- Quotes / References --}}
-            @if($question->muftiAnswer->supportingReferences->count())
+            @php 
+                $refs = $question->references->isNotEmpty() ? $question->references : $question->draftReferences; 
+            @endphp
+            @if($refs->count())
             <div class="references-section">
                 <h6 class="fw-bold small mb-3 text-muted">Supporting References</h6>
-                @foreach($question->muftiAnswer->supportingReferences as $ref)
+                @foreach($refs as $ref)
                     <div class="mb-4">
                         <div class="arabic-text mb-2 text-dark {{ $ref->language == 'Urdu' ? 'gulzar-font' : 'alyamama-font' }}" style="font-size: 1.2rem; line-height: 1.7;">
                             {{ $ref->arabic_text }}
@@ -306,20 +264,13 @@
 
                 <div class="signature-item">
                     <span class="sig-label text-dark">Written by:</span>
-                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->muftiAnswer->mufti->name }}</span>
+                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->assignedMufti->name ?? 'Darul Ifta' }}</span>
                 </div>
 
-                @if($question->fatwa && $question->fatwa->verifiers->count() > 0)
+                @if($question->publisher)
                 <div class="signature-item">
-                    <span class="sig-label text-dark">Verified by:</span>
-                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->fatwa->verifiers->pluck('name')->implode(', ') }}</span>
-                </div>
-                @endif
-
-                @if($question->fatwa && $question->fatwa->checkedApprovedBy)
-                <div class="signature-item">
-                    <span class="sig-label text-dark">Checked & Approved by:</span>
-                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->fatwa->checkedApprovedBy->name }}</span>
+                    <span class="sig-label text-dark">Published & Approved by:</span>
+                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->publisher->name }}</span>
                 </div>
                 @endif
             </div>

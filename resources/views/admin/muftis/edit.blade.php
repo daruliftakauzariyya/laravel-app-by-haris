@@ -120,7 +120,7 @@
                 </div>
                 <div class="d-flex justify-content-between">
                     <span class="text-muted small">Fatwas Answered</span>
-                    <span class="badge bg-primary rounded-pill">{{ $user->muftiAnswers()->count() }}</span>
+                    <span class="badge bg-primary rounded-pill">{{ $user->assignedQuestions()->where('status', 'published')->count() }}</span>
                 </div>
             </div>
         </div>

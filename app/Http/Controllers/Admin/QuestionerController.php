@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Question;
-use App\Models\Fatwa;
+use App\Models\QuestionAndAnswer;
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
 
 class QuestionerController extends Controller
 {
@@ -40,34 +38,23 @@ class QuestionerController extends Controller
      */
     public function show(User $user)
     {
-        // Load all questions with related fatwa, and the user-view record
-        $questions = Question::where('user_id', $user->id)
-            ->with([
-                'fatwa',
-                'fatwa.userViews' => fn($q) => $q->where('user_id', $user->id),
-            ])
+        // Load all questions
+        $questions = QuestionAndAnswer::where('user_id', $user->id)
             ->latest()
             ->get()
-            ->map(function ($question) use ($user) {
-                $fatwa = $question->fatwa;
-
+            ->map(function ($qa) use ($user) {
                 // Days from question submission to publishing
                 $daysToPublish = null;
-                if ($fatwa && $fatwa->published_at) {
-                    $daysToPublish = (int) $question->created_at->diffInDays($fatwa->published_at);
+                if ($qa->status === 'published' && $qa->published_at) {
+                    $daysToPublish = (int) $qa->created_at->diffInDays($qa->published_at);
                 }
 
-                // How many times the questioner personally viewed their fatwa
-                $userViewCount = $fatwa
-                    ? ($fatwa->userViews->where('user_id', $user->id)->first()?->views ?? 0)
-                    : 0;
-
                 return [
-                    'question'       => $question,
-                    'fatwa'          => $fatwa,
+                    'question'       => $qa,
+                    'fatwa'          => $qa,
                     'days_to_publish' => $daysToPublish,
-                    'user_views'     => $userViewCount,
-                    'public_reads'   => $fatwa?->views ?? 0,
+                    'user_views'     => 0,
+                    'public_reads'   => $qa->views,
                 ];
             });
 
@@ -79,11 +66,8 @@ class QuestionerController extends Controller
             'total_reads' => $questions->sum('public_reads'),
         ];
 
-        // Fetch recent visitor logs for this user (Access history)
-        $visitorLogs = \App\Models\PortalVisitorLog::where('user_id', $user->id)
-            ->latest()
-            ->take(50)
-            ->get();
+        // Fetch recent visitor logs (Access history - stubbed out since table is deleted)
+        $visitorLogs = collect();
 
         return view('admin.questioners.show', compact('user', 'questions', 'stats', 'visitorLogs'));
     }

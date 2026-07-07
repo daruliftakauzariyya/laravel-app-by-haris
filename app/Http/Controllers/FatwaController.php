@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Fatwa;
+use App\Models\QuestionAndAnswer;
 use App\Models\FatwaActivityLog;
-use App\Models\FatwaLike;
-use App\Models\FatwaUserView;
-use App\Models\FatwaViewSnapshot;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -14,11 +11,11 @@ class FatwaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Fatwa::with(['question.category', 'muftiAnswer.mufti', 'muftiAnswer.supportingReferences']);
+        $query = QuestionAndAnswer::with(['category', 'assignedMufti', 'references'])->where('status', 'published');
 
         // Filter by Madhab
         if ($request->filled('madhab_id')) {
-            $query->whereHas('question', fn($q) => $q->where('madhab_id', $request->madhab_id));
+            $query->where('madhab_id', $request->madhab_id);
         }
 
         // Filter by Category
@@ -26,34 +23,23 @@ class FatwaController extends Controller
             $catId = $request->category;
             $childIds = \App\Models\Category::where('parent_id', $catId)->pluck('id')->toArray();
             $allCatIds = array_merge([$catId], $childIds);
-            $query->whereHas('question', fn($q) => $q->whereIn('category_id', $allCatIds));
+            $query->whereIn('category_id', $allCatIds);
         }
 
         // Universal fatwa search: Question, Answer, Category, References, Madhab
         if ($request->filled('search')) {
             $term = $request->search;
             $query->where(function ($q) use ($term) {
-                // Search in Question
-                $q->whereHas('question', function ($sq) use ($term) {
-                    $sq->where('body', 'like', "%{$term}%")
-                       ->orWhere('title', 'like', "%{$term}%")
-                       ->orWhere('question_id', 'like', "%{$term}%")
-                       ->orWhereHas('madhab', fn($mq) => $mq->where('name', 'like', "%{$term}%"));
-                });
-                // Search in Answer
-                $q->orWhereHas('muftiAnswer', function ($aq) use ($term) {
-                    $aq->where('full_answer', 'like', "%{$term}%")
-                       ->orWhere('summary', 'like', "%{$term}%");
-                });
-                // Search in Category
-                $q->orWhereHas('question.category', function ($cq) use ($term) {
-                    $cq->where('name', 'like', "%{$term}%");
-                });
-                // Search in Supporting References
-                $q->orWhereHas('muftiAnswer.supportingReferences', function ($rq) use ($term) {
-                    $rq->where('arabic_text', 'like', "%{$term}%")
-                       ->orWhere('book_name', 'like', "%{$term}%");
-                });
+                $q->where('body', 'like', "%{$term}%")
+                   ->orWhere('title', 'like', "%{$term}%")
+                   ->orWhere('question_id', 'like', "%{$term}%")
+                   ->orWhere('answer', 'like', "%{$term}%")
+                   ->orWhereHas('madhab', fn($mq) => $mq->where('name', 'like', "%{$term}%"))
+                   ->orWhereHas('category', fn($cq) => $cq->where('name', 'like', "%{$term}%"))
+                   ->orWhereHas('references', function ($rq) use ($term) {
+                       $rq->where('arabic_text', 'like', "%{$term}%")
+                          ->orWhere('book_name', 'like', "%{$term}%");
+                   });
             });
         }
 
@@ -85,42 +71,38 @@ class FatwaController extends Controller
         return view('fatwa-archive', compact('fatwas', 'allCategories', 'madhabs'));
     }
 
-    public function show(Fatwa $fatwa)
+    public function show(QuestionAndAnswer $fatwa)
     {
         $fatwa->load([
-            'question.category', 
-            'muftiAnswer.mufti', 
-            'muftiAnswer.supportingReferences', 
-            'publisher',
-            'verifiers',
-            'checkedApprovedBy'
+            'category', 
+            'assignedMufti', 
+            'references', 
+            'publisher'
         ]);
-
-        $question = $fatwa->question;
         
         // Restrict access if not published
-        if ($question->status !== 'published') {
+        if ($fatwa->status !== 'published') {
             $user = auth()->user();
             if (!$user) {
                 abort(404);
             }
-            if (!$user->hasRole(['admin', 'mufti']) && $question->user_id !== $user->id) {
+            if ($user->role?->name !== 'admin' && $user->role?->name !== 'mufti' && $fatwa->user_id !== $user->id) {
                 abort(404);
             }
         }
 
         // Fetch related fatwas from the same category
-        $relatedFatwas = Fatwa::whereHas('question', function($q) use ($question) {
-                $q->where('category_id', $question->category_id);
-            })
+        $relatedFatwas = QuestionAndAnswer::where('status', 'published')
+            ->where('category_id', $fatwa->category_id)
             ->where('id', '!=', $fatwa->id)
             ->latest('published_at')
             ->take(5)
             ->get();
 
         // New sidebar data
-        $recentFatwas = Fatwa::latest('published_at')
+        $recentFatwas = QuestionAndAnswer::where('status', 'published')
             ->where('id', '!=', $fatwa->id)
+            ->latest('published_at')
             ->take(5)
             ->get();
 
@@ -128,51 +110,47 @@ class FatwaController extends Controller
 
         $fatwa->incrementViews(); // Public reads counter
 
-        // Track questioner's own views (logged-in user only)
+        // Track questioner's own views (logged-in user only, session protected)
         if (auth()->check()) {
-            $existed = FatwaUserView::where('fatwa_id', $fatwa->id)
-                ->where('user_id', auth()->id())
-                ->exists();
+            $sessionKey = 'viewed_fatwa_' . $fatwa->id;
+            $existed = session()->has($sessionKey);
 
-            FatwaUserView::updateOrCreate(
-                ['fatwa_id' => $fatwa->id, 'user_id' => auth()->id()],
-                ['views'    => 1]
-            );
-            FatwaUserView::where('fatwa_id', $fatwa->id)
-                ->where('user_id', auth()->id())
-                ->increment('views');
-
-            // Log first read event in timeline
-            if (!$existed && $fatwa->question->user_id === auth()->id()) {
-                FatwaActivityLog::log(
-                    $fatwa->question_id, 'questioner_read', 'Questioner Read Their Fatwa (First Open)',
-                    'bi-eye', 'info',
-                    auth()->user()->name . ' opened their published fatwa for the first time.',
-                    auth()->id(), $fatwa->id
-                );
+            if (!$existed) {
+                session()->put($sessionKey, true);
+                if ($fatwa->user_id === auth()->id()) {
+                    FatwaActivityLog::log(
+                        $fatwa->id, 'questioner_read', 'Questioner Read Their Fatwa (First Open)',
+                        'bi-eye', 'info',
+                        auth()->user()->name . ' opened their published fatwa for the first time.',
+                        auth()->id(), $fatwa->id
+                    );
+                }
             }
         }
-        $hasLiked = FatwaLike::where('fatwa_id', $fatwa->id)
-            ->where('ip_address', request()->ip())
-            ->exists();
+
+        $hasLiked = session()->has('liked_fatwa_' . $fatwa->id);
 
         return view('fatwa-show', compact('fatwa', 'relatedFatwas', 'recentFatwas', 'allCategories', 'hasLiked'));
     }
 
     public function muftiArchive(User $user)
     {
-        $user->loadCount(['muftiAnswers', 'publishedFatwas']);
+        $user->loadCount([
+            'assignedQuestions as assigned_questions_count',
+            'assignedQuestions as published_fatwas_count' => fn($q) => $q->where('status', 'published')
+        ]);
         
-        // Stats calculation
-        $fatwasQuery = Fatwa::whereHas('muftiAnswer', fn($q) => $q->where('mufti_id', $user->id))
-            ->with(['question.category', 'muftiAnswer.mufti']);
+        $fatwasQuery = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+            ->where('status', 'published')
+            ->with(['category', 'assignedMufti']);
 
         $totalLikes = (clone $fatwasQuery)->sum('likes');
         $totalViews = (clone $fatwasQuery)->sum('views');
-        $totalTopics = \App\Models\Question::whereHas('muftiAnswer', fn($q) => $q->where('mufti_id', $user->id))
+        $totalTopics = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+            ->where('status', 'published')
             ->distinct('category_id')
             ->count('category_id');
-        $totalAnswers = $user->mufti_answers_count;
+        $totalAnswers = $user->published_fatwas_count;
 
         $fatwas = $fatwasQuery->latest('published_at')->paginate(12);
 
@@ -183,14 +161,9 @@ class FatwaController extends Controller
         ));
     }
 
-    public function like(Request $request, Fatwa $fatwa)
+    public function like(Request $request, QuestionAndAnswer $fatwa)
     {
-        $ip = $request->ip();
-
-        // Check if this IP has already liked this fatwa
-        $alreadyLiked = FatwaLike::where('fatwa_id', $fatwa->id)
-            ->where('ip_address', $ip)
-            ->exists();
+        $alreadyLiked = session()->has('liked_fatwa_' . $fatwa->id);
 
         if ($alreadyLiked) {
             return response()->json([
@@ -202,8 +175,8 @@ class FatwaController extends Controller
         }
 
         // Record the like and increment counter
-        FatwaLike::create(['fatwa_id' => $fatwa->id, 'ip_address' => $ip]);
         $fatwa->increment('likes');
+        session()->put('liked_fatwa_' . $fatwa->id, true);
 
         return response()->json([
             'success' => true,

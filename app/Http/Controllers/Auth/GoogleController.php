@@ -35,6 +35,7 @@ class GoogleController extends Controller
                 // Create new user
                 $user = User::create([
                     'name'              => $googleUser->getName(),
+                    'despl_name'        => $googleUser->getName(),
                     'email'             => $googleUser->getEmail(),
                     'google_id'         => $googleUser->getId(),
                     'avatar'            => $googleUser->getAvatar(),

@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\MuftiAnswer;
+use App\Models\QuestionAndAnswer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -13,11 +13,11 @@ class AnswerSubmittedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public MuftiAnswer $answer) {}
+    public function __construct(public QuestionAndAnswer $answer) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Mufti Answer Submitted for Review – ' . $this->answer->question->question_id);
+        return new Envelope(subject: 'Mufti Answer Submitted for Review – ' . $this->answer->question_id);
     }
 
     public function content(): Content

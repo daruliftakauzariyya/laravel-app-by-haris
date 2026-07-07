@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Helpers\HijriHelper;
-use App\Models\Fatwa;
+use App\Models\QuestionAndAnswer;
 use App\Models\FatwaFeaturedRule;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -95,8 +95,9 @@ class FeaturedFatwaService
         return Cache::remember($cacheKey, 1800, function () use ($rule, $limit) {
             // If specific fatwas are pinned → show ONLY those, nothing else
             if (!empty($rule->fatwa_ids)) {
-                return Fatwa::with(['question.madhab', 'question.category', 'muftiAnswer.mufti'])
+                return QuestionAndAnswer::with(['madhab', 'category', 'assignedMufti'])
                     ->whereIn('id', $rule->fatwa_ids)
+                    ->where('status', 'published')
                     ->get();
             }
 
@@ -107,15 +108,16 @@ class FeaturedFatwaService
 
     private function buildQuery(FatwaFeaturedRule $rule)
     {
-        $query = Fatwa::with(['question.madhab', 'question.category', 'muftiAnswer.mufti'])
+        $query = QuestionAndAnswer::with(['madhab', 'category', 'assignedMufti'])
+            ->where('status', 'published')
             ->orderByDesc('views');
 
         if ($rule->category_id) {
-            $query->whereHas('question', fn($q) => $q->where('category_id', $rule->category_id));
+            $query->where('category_id', $rule->category_id);
         }
 
         if ($rule->madhab_id) {
-            $query->whereHas('question', fn($q) => $q->where('madhab_id', $rule->madhab_id));
+            $query->where('madhab_id', $rule->madhab_id);
         }
 
         return $query;

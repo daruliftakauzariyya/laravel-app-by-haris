@@ -270,7 +270,7 @@
                     <div class="fw-bold text-dark small"><i class="bi bi-clock me-1"></i><span
                             id="liveClock">{{ now()->format('h:i:s A') }}</span></div>
                     @php
-                        $totalSecs = \App\Models\PortalVisitorLog::getTotalSpentTime(Auth::id());
+                        $totalSecs = 0;
                         $h = floor($totalSecs / 3600);
                         $m = floor(($totalSecs / 60) % 60);
                         $spent = ($h > 0 ? $h . 'h ' : '') . $m . 'm';

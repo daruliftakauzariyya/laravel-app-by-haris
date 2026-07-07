@@ -36,22 +36,22 @@
                 <select name="mufti_id" class="form-select @error('mufti_id') is-invalid @enderror" required>
                     <option value="">Select Mufti...</option>
                     @foreach($muftis as $m)
-                        <option value="{{ $m->id }}" {{ old('mufti_id', $question->muftiAnswer?->mufti_id ?? $question->assigned_mufti_id) == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
+                        <option value="{{ $m->id }}" {{ old('mufti_id', $question->assigned_mufti_id) == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
                     @endforeach
                 </select>
                 @error('mufti_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Question Summary <span class="text-danger">*</span></label>
-                <input type="text" name="summary" class="form-control @error('summary') is-invalid @enderror"
-                       placeholder="Brief one-line summary of the question" value="{{ old('summary', $question->muftiAnswer?->summary ?? $question->title) }}" required>
-                @error('summary')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <label class="form-label fw-semibold">Question Summary / Title <span class="text-danger">*</span></label>
+                <input type="text" name="question_title" class="form-control @error('question_title') is-invalid @enderror"
+                       placeholder="Brief one-line summary of the question" value="{{ old('question_title', $question->title) }}" required>
+                @error('question_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="mb-4">
                 <label class="form-label fw-semibold">Full Answer <span class="text-danger">*</span></label>
                 <textarea name="full_answer" rows="8" class="form-control @error('full_answer') is-invalid @enderror"
-                          placeholder="Write the full fatwa answer here..." required>{{ old('full_answer', $question->muftiAnswer?->full_answer) }}</textarea>
+                          placeholder="Write the full fatwa answer here..." required>{{ old('full_answer', $question->draft_answer ?? $question->answer) }}</textarea>
                 @error('full_answer')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
@@ -59,10 +59,10 @@
                 <label class="form-label fw-semibold"><i class="bi bi-book me-2"></i>Supporting Islamic References</label>
                 <div id="references-container">
                     @php 
-                        $refs = $question->muftiAnswer?->supportingReferences ?? [];
+                        $refs = $question->references->isNotEmpty() ? $question->references : $question->draftReferences;
                     @endphp
                     
-                    @if(count($refs) > 0)
+                    @if($refs->count() > 0)
                         @foreach($refs as $ref)
                         <div class="reference-row card border-0 bg-light p-3 mb-3">
                             <div class="mb-2">

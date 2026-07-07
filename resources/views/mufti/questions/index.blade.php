@@ -102,7 +102,7 @@
                     <td class="text-end pe-3">
                         @if($tab == 'assigned')
                             <a href="{{ route('mufti.questions.show', $q) }}" class="btn btn-sm btn-brand px-3">
-                                {{ $q->muftiAnswer ? 'Edit' : 'Answer' }}
+                                 {{ ($q->answer || $q->draft_answer) ? 'Edit' : 'Answer' }}
                             </a>
                         @else
                             <a href="{{ route('mufti.questions.history', $q) }}" class="btn btn-sm btn-outline-brand px-3">
@@ -146,7 +146,7 @@
         </div>
         @if($tab == 'assigned')
             <a href="{{ route('mufti.questions.show', $q) }}" class="btn btn-brand btn-sm w-100">
-                <i class="bi bi-pencil-square me-2"></i>{{ $q->muftiAnswer ? 'Edit Answer' : 'Submit Answer' }}
+                <i class="bi bi-pencil-square me-2"></i>{{ ($q->answer || $q->draft_answer) ? 'Edit Answer' : 'Submit Answer' }}
             </a>
         @else
             <a href="{{ route('mufti.questions.history', $q) }}" class="btn btn-outline-brand btn-sm w-100">

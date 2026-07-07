@@ -5,13 +5,11 @@ namespace App\Http\Controllers;
 use App\Mail\NewQuestionMail;
 use App\Models\Category;
 use App\Models\FatwaActivityLog;
-use App\Models\Question;
-use App\Models\QuestionFile;
+use App\Models\QuestionAndAnswer;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 
 class QuestionController extends Controller
 {
@@ -26,7 +24,7 @@ class QuestionController extends Controller
         $user = Auth::user();
 
         // Check for 5-minute patience (Throttling)
-        $lastQuestion = Question::where('user_id', Auth::id())
+        $lastQuestion = QuestionAndAnswer::where('user_id', Auth::id())
             ->latest()
             ->first();
 
@@ -40,7 +38,6 @@ class QuestionController extends Controller
             'madhab_id'   => ['required', 'exists:madhabs,id'],
             'title'       => ['required', 'string', 'max:200'],
             'category_id' => ['nullable', 'exists:categories,id'],
-            'files.*'     => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:10240'],
         ];
 
         $request->validate($rules);
@@ -61,7 +58,6 @@ class QuestionController extends Controller
                     'body'           => $request->body,
                     'madhab_id'      => $request->madhab_id,
                     'category_id'    => $request->category_id,
-                    'uploaded_files' => $request->uploaded_files,
                 ]
             ]);
 
@@ -74,7 +70,6 @@ class QuestionController extends Controller
             'body'           => $request->body,
             'madhab_id'      => $request->madhab_id,
             'category_id'    => $request->category_id,
-            'uploaded_files' => $request->uploaded_files,
         ]);
 
         return redirect()->route('home')->with('success', 'Your question has been submitted successfully! Question ID: ' . $question->question_id);
@@ -85,8 +80,8 @@ class QuestionController extends Controller
      */
     public static function saveQuestion($userId, array $data)
     {
-        $question = Question::create([
-            'question_id' => Question::generateQuestionId(),
+        $question = QuestionAndAnswer::create([
+            'question_id' => QuestionAndAnswer::generateQuestionId(),
             'user_id'     => $userId,
             'category_id' => $data['category_id'] ?? null,
             'title'       => $data['title'],
@@ -105,31 +100,8 @@ class QuestionController extends Controller
             null, $question->created_at
         );
 
-        // Handle pre-uploaded files
-        if (!empty($data['uploaded_files'])) {
-            foreach ($data['uploaded_files'] as $fileJson) {
-                $fileData = is_array($fileJson) ? $fileJson : json_decode($fileJson, true);
-                if ($fileData && isset($fileData['path'])) {
-                    $oldPath = $fileData['path'];
-                    $newPath = str_replace('question_files/temp/', 'question_files/', $oldPath);
-                    
-                    if (Storage::disk('local')->exists($oldPath)) {
-                        Storage::disk('local')->move($oldPath, $newPath);
-                        
-                        QuestionFile::create([
-                            'question_id'   => $question->id,
-                            'original_name' => $fileData['name'],
-                            'file_path'     => $newPath,
-                            'file_type'     => $fileData['type'],
-                            'file_size'     => $fileData['size'],
-                        ]);
-                    }
-                }
-            }
-        }
-
         // Email admin
-        $admin = User::role('admin')->first();
+        $admin = User::whereHas('role', fn($q) => $q->where('name', 'admin'))->first();
         if ($admin) {
             try {
                 Mail::to($admin->email)->send(new \App\Mail\NewQuestionMail($question));

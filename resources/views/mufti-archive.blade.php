@@ -76,20 +76,20 @@
                             <div class="fatwa-card h-100">
                                 <div class="fatwa-thumb">
                                     <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}" alt="Fatwa" onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
-                                    <span class="madhab-badge">{{ $fatwa->question->madhab?->name == 'Shafii' ? "Shafi'i" : ($fatwa->question->madhab?->name ?? 'General/Other') }}</span>
+                                    <span class="madhab-badge">{{ $fatwa->madhab?->name == 'Shafii' ? "Shafi'i" : ($fatwa->madhab?->name ?? 'General/Other') }}</span>
                                 </div>
                                 <div class="fatwa-body">
                                     <div class="fatwa-meta small mb-2 d-flex justify-content-between">
-                                        <span class="text-primary fw-bold">{{ $fatwa->question->category->name ?? 'General' }}</span>
+                                        <span class="text-primary fw-bold">{{ $fatwa->category->name ?? 'General' }}</span>
                                         <span class="text-warning small">
-                                            @for($i=0; $i<($fatwa->question->category->stars ?? 5); $i++)
+                                            @for($i=0; $i<($fatwa->category->stars ?? 5); $i++)
                                                 <i class="bi bi-star-fill"></i>
                                             @endfor
                                         </span>
                                         <span class="text-muted">{{ $fatwa->published_at?->format('d M Y') }}</span>
                                     </div>
-                                    <h6 class="fw-bold mb-2 line-clamp-2">{{ Str::limit($fatwa->question->title ?: strip_tags($fatwa->question->body), 60) }}</h6>
-                                    <p class="text-muted x-small mb-3 line-clamp-2">{{ Str::limit(strip_tags($fatwa->muftiAnswer->summary ?: $fatwa->muftiAnswer->full_answer), 80) }}</p>
+                                    <h6 class="fw-bold mb-2 line-clamp-2">{{ Str::limit($fatwa->title ?: strip_tags($fatwa->body), 60) }}</h6>
+                                    <p class="text-muted x-small mb-3 line-clamp-2">{{ Str::limit(strip_tags($fatwa->answer), 80) }}</p>
                                     <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-2">
                                         <span class="x-small text-muted"><i class="bi bi-eye me-1"></i>{{ number_format($fatwa->views) }} views</span>
                                         <span class="x-small text-muted"><i class="bi bi-heart-fill text-danger me-1"></i>{{ number_format($fatwa->likes) }}</span>

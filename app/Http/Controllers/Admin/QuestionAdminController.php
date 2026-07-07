@@ -3,16 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Mail\AnswerSubmittedMail;
 use App\Mail\FatwaPublishedMail;
 use App\Mail\QuestionAssignedMail;
 use App\Models\Category;
-use App\Models\Fatwa;
+use App\Models\QuestionAndAnswer;
+use App\Models\Reference;
 use App\Models\FatwaActivityLog;
-use App\Models\MuftiAnswer;
-use App\Models\Question;
-use App\Models\SupportingReference;
 use App\Models\User;
+use App\Models\QuestionStatusHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -24,7 +22,7 @@ class QuestionAdminController extends Controller
     /** List all questions with filters */
     public function index(Request $request)
     {
-        $query = Question::with('user', 'category', 'assignedMufti', 'madhab')->latest();
+        $query = QuestionAndAnswer::with('user', 'category', 'assignedMufti', 'madhab')->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -40,27 +38,24 @@ class QuestionAdminController extends Controller
         }
 
         $questions = $query->paginate(20)->withQueryString();
-        // Return all muftis for general filtering if needed, but usually limited by Madhab in specific contexts
-        $muftis    = User::role('mufti')->get();
+        $muftis    = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->get();
         return view('admin.questions.index', compact('questions', 'muftis'));
     }
 
-    public function show(Question $question)
+    public function show(QuestionAndAnswer $question)
     {
         $question->load([
-            'user', 'category', 'files', 'assignedMufti', 
-            'muftiAnswer.supportingReferences',
-            'activityLogs' => fn($q) => $q->with('actor')->orderBy('event_at', 'desc')
+            'user', 'category', 'assignedMufti', 
+            'references',
+            'statusHistory' => fn($q) => $q->with('actor')->orderBy('created_at', 'desc')
         ]);
 
-        // Only Muftis who are eligible for the selected Madhab of the question
-        // (If the question is General/Other or common, all active Muftis can be assigned; if specific, strictly match the pivot relation madhabs)
         $madhab = $question->madhab;
         $isGeneral = !$madhab || in_array(strtolower($madhab->slug), ['general-other', 'common', 'general', 'other']);
 
-        $muftisQuery = User::role('mufti')->where('is_active', true);
+        $muftisQuery = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->where('is_active', true);
         if (!$isGeneral) {
-            $muftisQuery->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id));
+            $muftisQuery->where('madhab_id', $question->madhab_id);
         }
         $muftis = $muftisQuery->get();
 
@@ -68,41 +63,24 @@ class QuestionAdminController extends Controller
     }
 
     /** Full fatwa history / timeline */
-    public function history(Question $question)
+    public function history(QuestionAndAnswer $question)
     {
         $question->load([
             'user', 'category', 'assignedMufti',
-            'muftiAnswer.mufti',
-            'fatwa.publisher', 'fatwa.verifiers', 'fatwa.checkedApprovedBy',
-            'fatwa.userViews.user',
+            'publisher', 'statusHistory.actor'
         ]);
 
         // DB activity logs
-        $logs = \App\Models\FatwaActivityLog::where('question_id', $question->id)
+        $logs = FatwaActivityLog::where('question_id', $question->id)
             ->with('actor')
-            ->orderBy('event_at')
+            ->orderBy('created_at')
             ->get();
 
-        // 45-day view snapshots (if fatwa exists)
-        $snapshots = [];
-        if ($question->fatwa) {
-            $snapshots = \App\Models\FatwaViewSnapshot::where('fatwa_id', $question->fatwa->id)
-                ->orderBy('snapshot_date')
-                ->get();
-        }
-
-        // Questioner's personal view history from fatwa_user_views
-        $userViews = $question->fatwa
-            ? \App\Models\FatwaUserView::where('fatwa_id', $question->fatwa->id)
-                ->where('user_id', $question->user_id)
-                ->first()
-            : null;
-
-        return view('admin.questions.history', compact('question', 'logs', 'snapshots', 'userViews'));
+        return view('admin.questions.history', compact('question', 'logs'));
     }
 
     /** Show Accept Question Form Page */
-    public function showAcceptForm(Question $question)
+    public function showAcceptForm(QuestionAndAnswer $question)
     {
         if ($question->status !== 'pending') {
             return redirect()->route('admin.questions.show', $question)->with('error', 'This question has already been accepted or processed.');
@@ -115,7 +93,7 @@ class QuestionAdminController extends Controller
     }
 
     /** Accept and update question details */
-    public function accept(Request $request, Question $question)
+    public function accept(Request $request, QuestionAndAnswer $question)
     {
         $request->validate([
             'title'       => ['required', 'string', 'max:200'],
@@ -123,12 +101,13 @@ class QuestionAdminController extends Controller
             'category_id' => ['required', 'exists:categories,id'],
         ]);
 
+        $previousStatus = $question->status;
+
         $question->update([
             'status'      => 'accepted',
             'title'       => $request->title,
             'language'    => $request->language,
             'category_id' => $request->category_id,
-            'accepted_at' => now(),
         ]);
 
         FatwaActivityLog::log(
@@ -137,21 +116,30 @@ class QuestionAdminController extends Controller
             'Categorised under: ' . optional($question->fresh()->category)->name, Auth::id()
         );
 
+        QuestionStatusHistory::create([
+            'question_and_answer_id' => $question->id,
+            'previous_status'        => $previousStatus,
+            'new_status'             => 'accepted',
+            'user_id'                => Auth::id(),
+            'remarks'                => 'Question accepted and categorized under: ' . optional($question->fresh()->category)->name,
+        ]);
+
         return redirect()->route('admin.questions.show', $question)->with('success', 'Question accepted and categorized successfully.');
     }
 
     /** Assign question to a Mufti */
-    public function assign(Request $request, Question $question)
+    public function assign(Request $request, QuestionAndAnswer $question)
     {
         $request->validate([
             'mufti_id' => ['required', 'exists:users,id'],
         ]);
 
         $mufti = User::findOrFail($request->mufti_id);
+        $previousStatus = $question->status;
+
         $question->update([
             'assigned_mufti_id' => $mufti->id,
             'status'            => 'assigned',
-            'assigned_at'       => now(),
         ]);
 
         FatwaActivityLog::log(
@@ -160,35 +148,45 @@ class QuestionAdminController extends Controller
             'Assigned to: ' . $mufti->name, Auth::id()
         );
 
-        Mail::to($mufti->email)->send(new QuestionAssignedMail($question));
+        QuestionStatusHistory::create([
+            'question_and_answer_id' => $question->id,
+            'previous_status'        => $previousStatus,
+            'new_status'             => 'assigned',
+            'new_assigned_mufti_id'  => $mufti->id,
+            'user_id'                => Auth::id(),
+            'remarks'                => 'Assigned to: ' . $mufti->name,
+        ]);
+
+        try {
+            Mail::to($mufti->email)->send(new QuestionAssignedMail($question));
+        } catch (\Exception $e) {
+            // Fail silently if mail server is not configured
+        }
 
         return redirect()->route('admin.questions.show', $question)->with('success', 'Question assigned to ' . $mufti->name);
     }
 
     /** Admin writes or edits answer on behalf of Mufti */
-    public function createAnswer(Question $question)
+    public function createAnswer(QuestionAndAnswer $question)
     {
-        $question->load('user', 'files', 'muftiAnswer.supportingReferences');
+        $question->load('user', 'references');
         
-        // Only Muftis who are eligible for the selected Madhab of the question
-        // (If the question is General/Other or common, all active Muftis can be assigned; if specific, strictly match the pivot relation madhabs)
         $madhab = $question->madhab;
         $isGeneral = !$madhab || in_array(strtolower($madhab->slug), ['general-other', 'common', 'general', 'other']);
 
-        $muftisQuery = User::role('mufti')->where('is_active', true);
+        $muftisQuery = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->where('is_active', true);
         if (!$isGeneral) {
-            $muftisQuery->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id));
+            $muftisQuery->where('madhab_id', $question->madhab_id);
         }
         $muftis = $muftisQuery->get();
 
         return view('admin.questions.answer', compact('question', 'muftis'));
     }
 
-    public function storeAnswer(Request $request, Question $question)
+    public function storeAnswer(Request $request, QuestionAndAnswer $question)
     {
         $request->validate([
             'mufti_id'         => ['required', 'exists:users,id'],
-            'summary'          => ['required', 'string'],
             'full_answer'      => ['required', 'string'],
             'language'         => ['nullable', 'string', 'in:English,Arabic,Urdu,Malayalam,Hindi'],
             'arabic_text.*'    => ['nullable', 'string'],
@@ -211,57 +209,63 @@ class QuestionAdminController extends Controller
             $question->update(['body' => $request->question_body]);
         }
 
-        // Find existing answer or create new one
-        $answer = MuftiAnswer::updateOrCreate(
-            ['question_id' => $question->id],
-            [
-                'mufti_id'     => $request->mufti_id,
-                'summary'      => $request->summary,
-                'full_answer'  => $request->full_answer,
-                'status'       => $question->status === 'published' ? 'submitted' : 'submitted', // Keep as submitted for review if not already published
-                'submitted_at' => now(),
-            ]
-        );
+        $isPublished = $question->status === 'published';
+        $previousStatus = $question->status;
 
-        // If it was already published, we keep it approved but update the answer
-        if ($question->status === 'published') {
-            $answer->update(['status' => 'approved']);
-            
+        if ($isPublished) {
+            $question->update([
+                'answer'            => $request->full_answer,
+                'assigned_mufti_id' => $request->mufti_id,
+            ]);
+            $question->references()->delete();
+
             // Handle featured image update for published fatwa
             if ($request->filled('featured_image_cropped')) {
                 $imagePath = $this->saveCroppedImage($request->featured_image_cropped);
-                if ($imagePath && $question->fatwa) {
-                    $question->fatwa->update(['featured_image' => $imagePath]);
+                if ($imagePath) {
+                    $question->update(['featured_image' => $imagePath]);
                 }
             }
+        } else {
+            $question->update([
+                'draft_answer'      => $request->full_answer,
+                'status'            => 'answered',
+                'assigned_mufti_id' => $request->mufti_id,
+            ]);
+            $question->draftReferences()->delete();
         }
 
-        // Save supporting references (clean and recreate for simplicity)
-        $answer->supportingReferences()->delete();
-        
+        // Save supporting references
         if ($request->filled('arabic_text')) {
             foreach ($request->arabic_text as $i => $text) {
                 if ($text) {
-                    SupportingReference::create([
-                        'mufti_answer_id' => $answer->id,
-                        'arabic_text'     => $text,
-                        'book_name'       => $request->book_name[$i] ?? '',
-                        'language'        => $request->ref_language[$i] ?? 'Arabic',
-                        'sort_order'      => $i,
+                    Reference::create([
+                        'question_and_answer_id' => $question->id,
+                        'arabic_text'            => $text,
+                        'book_name'              => $request->book_name[$i] ?? '',
+                        'language'               => $request->ref_language[$i] ?? 'Arabic',
+                        'sort_order'             => $i,
+                        'is_draft'               => !$isPublished,
                     ]);
                 }
             }
         }
 
-        if ($question->status !== 'published') {
-            $question->update(['status' => 'answered']);
-
+        if (!$isPublished) {
             FatwaActivityLog::log(
                 $question->id, 'answer_submitted', 'Answer Written & Submitted for Review',
                 'bi-pencil-square', 'info',
                 'Written by: ' . (User::find($request->mufti_id)?->name ?? 'Admin'),
                 Auth::id()
             );
+
+            QuestionStatusHistory::create([
+                'question_and_answer_id' => $question->id,
+                'previous_status'        => $previousStatus,
+                'new_status'             => 'answered',
+                'user_id'                => Auth::id(),
+                'remarks'                => 'Answer written & submitted by: ' . (User::find($request->mufti_id)?->name ?? 'Admin'),
+            ]);
 
             return redirect()->route('admin.questions.verify', $question)->with('success', 'Answer saved. Now verify and publish.');
         }
@@ -272,57 +276,54 @@ class QuestionAdminController extends Controller
             'Answer edited after publishing.', Auth::id()
         );
 
+        QuestionStatusHistory::create([
+            'question_and_answer_id' => $question->id,
+            'previous_status'        => $previousStatus,
+            'new_status'             => 'published',
+            'user_id'                => Auth::id(),
+            'remarks'                => 'Published answer updated by Admin.',
+        ]);
+
         return redirect()->route('admin.questions.show', $question)->with('success', 'Published answer updated successfully.');
     }
 
     /** Admin verifies Mufti's answer */
-    public function verify(Question $question)
+    public function verify(QuestionAndAnswer $question)
     {
-        $question->load('muftiAnswer.mufti', 'muftiAnswer.supportingReferences', 'user');
+        $question->load('references', 'user');
 
-        $writtenByMuftiId = $question->muftiAnswer->mufti_id;
-
-        // Verifiers: Muftis who are eligible for the selected Madhab of the question (excluding the author)
-        // (If the question is General/Other or common, all active Muftis can verify; if specific, strictly match the pivot relation madhabs)
+        $writtenByMuftiId = $question->assigned_mufti_id;
         $madhab = $question->madhab;
         $isGeneral = !$madhab || in_array(strtolower($madhab->slug), ['general-other', 'common', 'general', 'other']);
 
-        $verifierQuery = User::role('mufti')
+        $verifierQuery = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
             ->where('is_active', true)
             ->where('id', '!=', $writtenByMuftiId);
 
         if (!$isGeneral) {
-            $verifierQuery->whereHas('madhabs', fn($q) => $q->where('madhabs.id', $question->madhab_id));
+            $verifierQuery->where('madhab_id', $question->madhab_id);
         }
         $verifierMuftis = $verifierQuery->get();
 
-        // Approvers: Muftis with can_check_approve permission (No Madhab filter required here)
-        $approverMuftis = User::role('mufti')
+        $approverMuftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
             ->where('can_check_approve', true)
             ->get();
 
         return view('admin.fatwas.verify', compact('question', 'verifierMuftis', 'approverMuftis'));
     }
 
-    public function approve(Request $request, Question $question)
+    public function approve(Request $request, QuestionAndAnswer $question)
     {
         $request->validate([
-            'verified_by'          => ['required', 'array'], // Now an array of IDs
+            'verified_by'          => ['required', 'array'],
             'verified_by.*'        => ['exists:users,id'],
             'checked_approved_by'  => ['nullable', 'exists:users,id'],
         ]);
 
-        // Ensure Question Title (Summary) is present before publishing
+        // Ensure Question Title is present before publishing
         if (!$question->title || strlen($question->title) > 200) {
             return redirect()->back()->withErrors(['title' => 'A Question Summary (max 200 chars) is mandatory for publishing. Please edit the question details first.']);
         }
-
-        $answer = $question->muftiAnswer;
-        $answer->update([
-            'status'      => 'approved',
-            'reviewed_by' => Auth::id(),
-            'reviewed_at' => now(),
-        ]);
 
         $featuredImagePath = null;
         if ($request->filled('featured_image_cropped')) {
@@ -334,19 +335,26 @@ class QuestionAdminController extends Controller
             $featuredImagePath = 'uploads/fatwas/' . $filename;
         }
 
-        $fatwa = Fatwa::create([
-            'question_id'         => $question->id,
-            'mufti_answer_id'     => $answer->id,
+        $previousStatus = $question->status;
+
+        $updateData = [
+            'status'              => 'published',
+            'answer'              => $question->draft_answer ?? $question->answer,
+            'draft_answer'        => null,
             'published_by'        => Auth::id(),
-            'checked_approved_by' => $request->checked_approved_by,
-            'featured_image'      => $featuredImagePath,
             'published_at'        => now(),
-        ]);
+            'verified_by'         => $request->verified_by,
+            'checked_approved_by' => $request->checked_approved_by ?: null,
+        ];
+        if ($featuredImagePath) {
+            $updateData['featured_image'] = $featuredImagePath;
+        }
 
-        // Sync multiple verifiers
-        $fatwa->verifiers()->sync($request->verified_by);
+        $question->update($updateData);
 
-        $question->update(['status' => 'published']);
+        // Convert draft references to live references
+        $question->references()->delete(); // Clear existing live ones
+        $question->draftReferences()->update(['is_draft' => false]); // Make draft references live
 
         FatwaActivityLog::log(
             $question->id, 'published', 'Fatwa Published Publicly',
@@ -354,24 +362,34 @@ class QuestionAdminController extends Controller
             'Published by: ' . Auth::user()->name .
             (count($request->verified_by) > 0 ? ' | Verified by: ' . User::whereIn('id', $request->verified_by)->pluck('name')->implode(', ') : '') .
             ($request->checked_approved_by ? ' | Approved by: ' . optional(User::find($request->checked_approved_by))->name : ''),
-            Auth::id(), $fatwa->id
+            Auth::id()
         );
 
+        QuestionStatusHistory::create([
+            'question_and_answer_id' => $question->id,
+            'previous_status'        => $previousStatus,
+            'new_status'             => 'published',
+            'user_id'                => Auth::id(),
+            'remarks'                => 'Fatwa published publicly. Published by: ' . Auth::user()->name . 
+                                       (count($request->verified_by) > 0 ? ' | Verified by: ' . User::whereIn('id', $request->verified_by)->pluck('name')->implode(', ') : '') . 
+                                       ($request->checked_approved_by ? ' | Approved by: ' . optional(User::find($request->checked_approved_by))->name : ''),
+        ]);
+
         // Notify questioner
-        Mail::to($question->user->email)->send(new FatwaPublishedMail($fatwa));
+        try {
+            Mail::to($question->user->email)->send(new FatwaPublishedMail($question));
+        } catch (\Exception $e) {
+            // Fail silently if mail server is not configured
+        }
 
         return redirect()->route('admin.questions.index')->with('success', 'Fatwa published successfully!');
     }
 
-    public function reject(Request $request, Question $question)
+    public function reject(Request $request, QuestionAndAnswer $question)
     {
         $request->validate(['admin_notes' => 'required|string']);
-        $question->muftiAnswer->update([
-            'status'      => 'rejected',
-            'admin_notes' => $request->admin_notes,
-            'reviewed_by' => Auth::id(),
-            'reviewed_at' => now(),
-        ]);
+        $previousStatus = $question->status;
+
         $question->update(['status' => 'under_review']);
 
         FatwaActivityLog::log(
@@ -380,16 +398,22 @@ class QuestionAdminController extends Controller
             'Admin notes: ' . $request->admin_notes, Auth::id()
         );
 
+        QuestionStatusHistory::create([
+            'question_and_answer_id' => $question->id,
+            'previous_status'        => $previousStatus,
+            'new_status'             => 'under_review',
+            'user_id'                => Auth::id(),
+            'remarks'                => 'Answer rejected. Admin notes: ' . $request->admin_notes,
+        ]);
+
         return redirect()->back()->with('success', 'Answer rejected with notes.');
     }
 
-    public function requestCorrection(Request $request, Question $question)
+    public function requestCorrection(Request $request, QuestionAndAnswer $question)
     {
         $request->validate(['admin_notes' => 'required|string']);
-        $question->muftiAnswer->update([
-            'status'      => 'correction_requested',
-            'admin_notes' => $request->admin_notes,
-        ]);
+        $previousStatus = $question->status;
+
         $question->update(['status' => 'under_review']);
 
         FatwaActivityLog::log(
@@ -398,67 +422,44 @@ class QuestionAdminController extends Controller
             'Admin notes: ' . $request->admin_notes, Auth::id()
         );
 
+        QuestionStatusHistory::create([
+            'question_and_answer_id' => $question->id,
+            'previous_status'        => $previousStatus,
+            'new_status'             => 'under_review',
+            'user_id'                => Auth::id(),
+            'remarks'                => 'Correction requested from Mufti. Admin notes: ' . $request->admin_notes,
+        ]);
+
         return redirect()->back()->with('success', 'Correction requested from Mufti.');
     }
 
-    /** Download question file */
-    public function downloadFile(\App\Models\QuestionFile $file)
-    {
-        // Resolve the physical path regardless of storage disk
-        if (str_starts_with($file->file_path, 'public/')) {
-            $physicalPath = storage_path('app/' . $file->file_path);
-        } elseif (str_starts_with($file->file_path, 'uploads/')) {
-            $physicalPath = public_path($file->file_path);
-        } else {
-            $physicalPath = storage_path('app/' . $file->file_path);
-        }
-
-        if (!file_exists($physicalPath)) {
-            abort(404, 'File not found.');
-        }
-
-        return response()->download($physicalPath, $file->original_name);
-    }
-
-    /** View file inline (for images/PDFs) */
-    public function viewFile(\App\Models\QuestionFile $file)
-    {
-        if (str_starts_with($file->file_path, 'public/')) {
-            $physicalPath = storage_path('app/' . $file->file_path);
-        } elseif (str_starts_with($file->file_path, 'uploads/')) {
-            $physicalPath = public_path($file->file_path);
-        } else {
-            $physicalPath = storage_path('app/' . $file->file_path);
-        }
-
-        if (!file_exists($physicalPath)) {
-            abort(404, 'File not found.');
-        }
-
-        // Return file contents inline
-        return response()->file($physicalPath, [
-            'Content-Disposition' => 'inline; filename="' . $file->original_name . '"'
-        ]);
-    }
-
     /** Add private scholarly comment to history */
-    public function addHistoryComment(Request $request, Question $question)
+    public function addHistoryComment(Request $request, QuestionAndAnswer $question)
     {
         $request->validate(['comment' => 'required|string|max:1000']);
+        $isAdmin = Auth::user()->role?->name === 'admin';
 
         FatwaActivityLog::log(
             $question->id,
             'scholarly_comment',
-            Auth::user()->hasRole('admin') ? 'Admin Note / Feedback' : 'Mufti Message / Comment',
+            $isAdmin ? 'Admin Note / Feedback' : 'Mufti Message / Comment',
             'bi-chat-dots-fill',
-            Auth::user()->hasRole('admin') ? 'danger' : 'warning',
+            $isAdmin ? 'danger' : 'warning',
             $request->comment,
-            Auth::id(),
-            $question->fatwa?->id
+            Auth::id()
         );
+
+        QuestionStatusHistory::create([
+            'question_and_answer_id' => $question->id,
+            'previous_status'        => $question->status,
+            'new_status'             => $question->status,
+            'user_id'                => Auth::id(),
+            'remarks'                => ($isAdmin ? 'Admin Note: ' : 'Mufti Note: ') . $request->comment,
+        ]);
 
         return redirect()->back()->with('success', 'Comment added to history.');
     }
+
     /** Helper to decode base64 cropped image and save to disk */
     private function saveCroppedImage($base64Data)
     {
@@ -470,7 +471,7 @@ class QuestionAdminController extends Controller
 
                 if ($data === false) return null;
 
-                $filename = 'fatwa_' . time() . '_' . \Illuminate\Support\Str::random(5) . '.' . $type;
+                $filename = 'fatwa_' . time() . '_' . Str::random(5) . '.' . $type;
                 $directory = public_path('uploads/fatwas');
                 
                 if (!file_exists($directory)) {

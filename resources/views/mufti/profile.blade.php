@@ -41,12 +41,12 @@
                     </div>
                 </div>
                 <div class="mb-0">
-                    <label class="small text-muted fw-semibold d-block mb-1">Scholar Madhhab(s)</label>
-                    @forelse($user->madhabs as $m)
-                        <span class="badge bg-light text-dark border me-1">{{ $m->name }}</span>
-                    @empty
+                    <label class="small text-muted fw-semibold d-block mb-1">Scholar Madhhab</label>
+                    @if($user->madhab)
+                        <span class="badge bg-light text-dark border me-1">{{ $user->madhab->name }}</span>
+                    @else
                         <span class="text-muted small">Not specified</span>
-                    @endforelse
+                    @endif
                 </div>
             </div>
         </div>

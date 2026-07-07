@@ -39,7 +39,7 @@
                                     </button>
                                 </form>
                             </li>
-                            @if(!$mufti->muftiAnswers()->exists() && !$mufti->assignedQuestions()->exists())
+                            @if(!$mufti->assignedQuestions()->exists())
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form method="POST" action="{{ route('admin.muftis.destroy', $mufti) }}" onsubmit="return confirm('Delete Scholar?');">

@@ -130,24 +130,6 @@
                         </div>
                     </div>
                     @endforeach
-
-                    {{-- 45-day view snapshots injected into timeline --}}
-                    @foreach($snapshots as $snap)
-                    <div class="tl-event">
-                        <div class="tl-icon" style="background:#6f42c1;">
-                            <i class="bi bi-graph-up"></i>
-                        </div>
-                        <div class="tl-card">
-                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-1">
-                                <div class="tl-title">📊 45-Day Read Count Snapshot</div>
-                                <div class="tl-time"><i class="bi bi-calendar me-1"></i>{{ \Carbon\Carbon::parse($snap->snapshot_date)->format('d M Y') }}</div>
-                            </div>
-                            <div class="tl-notes">
-                                Total public reads on this date: <strong>{{ number_format($snap->views) }}</strong> reads
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
                 </div>
                 @endif
             </div>
@@ -164,6 +146,10 @@
             </div>
             <div class="card-body py-2">
                 @php
+                    $acceptedAt = $question->statusHistory->where('new_status', 'accepted')->first()?->created_at;
+                    $assignedAt = $question->statusHistory->where('new_status', 'assigned')->first()?->created_at;
+                    $submittedAt = $question->statusHistory->where('new_status', 'answered')->first()?->created_at;
+
                     $rows = [
                         ['Questioner', $question->user->name ?? '—'],
                         ['Question ID', $question->question_id],
@@ -173,10 +159,10 @@
                         ['Status', ucfirst($question->status)],
                         ['Submitted', $question->created_at->format('d M Y, h:i A')],
                     ];
-                    if ($question->accepted_at) $rows[] = ['Accepted', $question->accepted_at->format('d M Y, h:i A')];
-                    if ($question->assigned_at) $rows[] = ['Assigned', $question->assigned_at->format('d M Y, h:i A')];
-                    if ($question->muftiAnswer?->submitted_at) $rows[] = ['Answer Submitted', $question->muftiAnswer->submitted_at->format('d M Y, h:i A')];
-                    if ($question->fatwa?->published_at) $rows[] = ['Published', $question->fatwa->published_at->format('d M Y, h:i A')];
+                    if ($acceptedAt) $rows[] = ['Accepted', $acceptedAt->format('d M Y, h:i A')];
+                    if ($assignedAt) $rows[] = ['Assigned', $assignedAt->format('d M Y, h:i A')];
+                    if ($submittedAt) $rows[] = ['Answer Submitted', $submittedAt->format('d M Y, h:i A')];
+                    if ($question->published_at) $rows[] = ['Published', $question->published_at->format('d M Y, h:i A')];
                 @endphp
                 @foreach($rows as [$label, $val])
                 <div class="d-flex justify-content-between py-2 border-bottom">
@@ -188,9 +174,9 @@
         </div>
 
         {{-- Publishing Timeline summary --}}
-        @if($question->fatwa)
+        @if($question->published_at)
         @php
-            $daysToPublish = $question->created_at->diffInDays($question->fatwa->published_at);
+            $daysToPublish = $question->created_at->diffInDays($question->published_at);
         @endphp
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-0 py-3">
@@ -203,8 +189,8 @@
                         {{ $daysToPublish }} days
                     </span>
                 </div>
-                @if($question->assigned_at && $question->muftiAnswer?->submitted_at)
-                @php $muftiDays = $question->assigned_at->diffInDays($question->muftiAnswer->submitted_at); @endphp
+                @if($assignedAt && $submittedAt)
+                @php $muftiDays = $assignedAt->diffInDays($submittedAt); @endphp
                 <div class="d-flex justify-content-between py-2 border-bottom">
                     <small class="text-muted">Mufti Response Time</small>
                     <span class="badge {{ $muftiDays <= 2 ? 'bg-success' : ($muftiDays <= 5 ? 'bg-warning text-dark' : 'bg-danger') }}">{{ $muftiDays }} days</span>
@@ -212,100 +198,19 @@
                 @endif
                 <div class="d-flex justify-content-between py-2 border-bottom">
                     <small class="text-muted">Total Public Reads</small>
-                    <span class="badge bg-info text-dark">{{ number_format($question->fatwa->views) }}</span>
+                    <span class="badge bg-info text-dark">{{ number_format($question->views) }}</span>
                 </div>
                 <div class="d-flex justify-content-between py-2">
                     <small class="text-muted">Published by</small>
-                    <small class="fw-semibold">{{ $question->fatwa->publisher?->name ?? '—' }}</small>
+                    <small class="fw-semibold">{{ $question->publisher?->name ?? '—' }}</small>
                 </div>
             </div>
         </div>
         @endif
 
-        {{-- Questioner Read Status --}}
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 py-3">
-                <h6 class="fw-bold mb-0"><i class="bi bi-eye me-2"></i>Questioner Reads</h6>
-            </div>
-            <div class="card-body">
-                @if($userViews)
-                    <div class="text-center py-2">
-                        <div class="reads-pill mb-2">{{ $userViews->views }}× opened</div>
-                        <small class="text-muted d-block">{{ $question->user->name }} has read their fatwa {{ $userViews->views }} time(s)</small>
-                        <small class="text-muted d-block mt-1">Last updated: {{ $userViews->updated_at->format('d M Y') }}</small>
-                    </div>
-                @else
-                    <div class="text-center py-3 text-muted">
-                        <i class="bi bi-eye-slash" style="font-size:1.5rem;"></i>
-                        <p class="small mt-2 mb-0">Questioner has not yet read<br>their published fatwa.</p>
-                    </div>
-                @endif
-            </div>
-        </div>
 
-        {{-- 45-day Read Snapshots Table --}}
-        @if(count($snapshots) > 0)
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-3">
-                <h6 class="fw-bold mb-0"><i class="bi bi-graph-up me-2"></i>Read Count History (45-day)</h6>
-            </div>
-            <div class="card-body p-0">
-                <table class="table snaps-table mb-0">
-                    <thead class="table-light">
-                        <tr><th>Date</th><th class="text-end">Total Reads</th></tr>
-                    </thead>
-                    <tbody>
-                        @foreach($snapshots as $snap)
-                        <tr>
-                            <td>{{ \Carbon\Carbon::parse($snap->snapshot_date)->format('d M Y') }}</td>
-                            <td class="text-end"><strong>{{ number_format($snap->views) }}</strong></td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        @endif
 
     </div>
 </div>
 
-{{-- Scholarly Feedback / Admin Messaging --}}
-@auth
-@if(Auth::user()->hasRole(['admin', 'mufti']))
-<div class="card border-0 shadow-sm mt-4 no-print">
-    <div class="card-header bg-white border-0 py-3">
-        <h6 class="fw-bold mb-0">
-            <i class="bi bi-chat-left-dots me-2 text-warning"></i>
-            Internal Scholarly Feedback
-        </h6>
-    </div>
-    <div class="card-body">
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show small" role="alert">
-                <i class="bi bi-check-circle me-1"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-
-        <form action="{{ Auth::user()->hasRole('admin')
-            ? route('admin.history.comment', $question)
-            : route('mufti.questions.history.comment', $question) }}" method="POST">
-            @csrf
-            <div class="mb-3">
-                <textarea name="comment" rows="3" class="form-control" placeholder="Add a private technical note or message for the Admin..." required></textarea>
-            </div>
-            <div class="text-end">
-                <button type="submit" class="btn btn-brand btn-sm px-4 rounded-pill">
-                    <i class="bi bi-send me-2"></i>Send Internal Message
-                </button>
-            </div>
-        </form>
-        <div class="mt-3 x-small text-muted">
-            <i class="bi bi-info-circle me-1"></i>These comments are internal and strictly invisible to the public and the general questioner.
-        </div>
-    </div>
-</div>
-@endif
-@endauth
 @endsection

@@ -300,25 +300,25 @@
 
                     {{-- 2. Editorial Info --}}
                     <div class="editorial-meta">
-                        By <b><a href="{{ route('fatwa.mufti.archive', $fatwa->muftiAnswer->mufti) }}"
-                                class="text-decoration-none text-dark hover-green">{{ $fatwa->muftiAnswer->mufti->name }}</a></b>
-                        in <b>{{ $fatwa->question->category->name }}</b>
+                        By <b><a href="{{ route('fatwa.mufti.archive', $fatwa->assignedMufti) }}"
+                                class="text-decoration-none text-dark hover-green">{{ $fatwa->assignedMufti->name ?? 'Darul Ifta' }}</a></b>
+                        in <b>{{ $fatwa->category->name ?? 'General' }}</b>
                     </div>
 
                     {{-- 3. Header Section --}}
                     <div class="header-section">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h1 class="{{ $langClass }} mb-0">{{ $fatwa->question->title ?: 'Islamic Query Detail' }}</h1>
+                            <h1 class="{{ $langClass }} mb-0">{{ $fatwa->title ?: 'Islamic Query Detail' }}</h1>
                         </div>
 
                         <div class="meta-row">
                             <div class="meta-unit">
                                 <span class="label">Qu-Id:</span>
-                                <span class="value">{{ $fatwa->question->question_id }}</span>
+                                <span class="value">{{ $fatwa->question_id }}</span>
                             </div>
                             <div class="meta-unit">
                                 <span class="label">Madhab:</span>
-                                <span class="value">{{ $fatwa->question->madhab?->name ?? '—' }}</span>
+                                <span class="value">{{ $fatwa->madhab?->name ?? '—' }}</span>
                             </div>
                             <div class="meta-unit">
                                 <span class="label">Date:</span>
@@ -337,7 +337,7 @@
                         <div class="content-block">
                             <span class="block-h">Question:</span>
                             <div class="block-text {{ $langClass }}">
-                                {!! $fatwa->question->body !!}
+                                {!! $fatwa->body !!}
                             </div>
                         </div>
 
@@ -353,13 +353,13 @@
                             </div>
 
                             <div class="block-text {{ $langClass }}">
-                                {!! $fatwa->muftiAnswer->full_answer !!}
+                                {!! $fatwa->answer !!}
                             </div>
 
                             {{-- Supporting References — BEFORE closing phrase --}}
-                            @if($fatwa->muftiAnswer->supportingReferences->count())
+                            @if($fatwa->references->count())
                                 <div class="mt-4">
-                                    @foreach($fatwa->muftiAnswer->supportingReferences as $ref)
+                                    @foreach($fatwa->references as $ref)
                                         <div class="ref-card">
                                             <div class="arabic-text mb-2 {{ $ref->language == 'Urdu' ? 'gulzar-font' : 'alyamama-font' }}"
                                                 style="font-size: 1.25rem; line-height: 1.8; color: #000;">
@@ -396,16 +396,27 @@
                         {{-- Signatures --}}
                         <div class="signature-box">
                             <div class="sig-row">
-                                <b>Written by:</b> <span>{{ $fatwa->muftiAnswer->mufti->name }}</span>
+                                <b>Written by:</b> <span>{{ $fatwa->assignedMufti->name ?? 'Darul Ifta' }}</span>
                             </div>
-                            @if($fatwa->verifiers->count() > 0)
+                            @php
+                                $verifiersList = [];
+                                if (is_array($fatwa->verified_by) && count($fatwa->verified_by) > 0) {
+                                    $verifiersList = \App\Models\User::whereIn('id', $fatwa->verified_by)->pluck('name')->toArray();
+                                }
+                            @endphp
+                            @if(count($verifiersList) > 0)
                                 <div class="sig-row">
-                                    <b>Verified by:</b> <span>{{ $fatwa->verifiers->pluck('name')->implode(', ') }}</span>
+                                    <b>Verified by:</b> <span>{{ implode(', ', $verifiersList) }}</span>
                                 </div>
                             @endif
-                            @if($fatwa->checkedApprovedBy)
+                            @if($fatwa->checked_approved_by && $fatwa->approver)
                                 <div class="sig-row">
-                                    <b>Checked & Approved by:</b> <span>{{ $fatwa->checkedApprovedBy->name }}</span>
+                                    <b>Checked & Approved by:</b> <span>{{ $fatwa->approver->name }}</span>
+                                </div>
+                            @endif
+                            @if($fatwa->publisher)
+                                <div class="sig-row">
+                                    <b>Published by:</b> <span>{{ $fatwa->publisher->name }}</span>
                                 </div>
                             @endif
                         </div>

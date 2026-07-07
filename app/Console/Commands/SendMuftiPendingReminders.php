@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Mail\MuftiPendingReminderMail;
 use App\Models\User;
-use App\Models\Question;
+use App\Models\QuestionAndAnswer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 
@@ -15,13 +15,13 @@ class SendMuftiPendingReminders extends Command
 
     public function handle(): void
     {
-        $muftis = User::role('mufti')->where('is_active', true)->get();
+        $muftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->where('is_active', true)->get();
 
         $sent = 0;
 
         foreach ($muftis as $mufti) {
             // Find all questions assigned to this mufti that are still 'assigned' (not yet answered)
-            $pendingQuestions = Question::where('assigned_mufti_id', $mufti->id)
+            $pendingQuestions = QuestionAndAnswer::where('assigned_mufti_id', $mufti->id)
                 ->where('status', 'assigned')
                 ->get();
 

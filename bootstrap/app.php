@@ -20,9 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register alias middleware
         $middleware->alias([
             'profile.completed' => \App\Http\Middleware\ProfileCompleted::class,
-            'role'              => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'permission'        => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'role'              => \App\Http\Middleware\RoleMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

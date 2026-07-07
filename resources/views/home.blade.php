@@ -13,7 +13,6 @@
 
     <div class="container hero-content-container">
         <div class="text-center mb-4 hero-text-block">
-            <p class="hero-bismillah font-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
             <h1 class="hero-main-title display-4">
                 Darul Ifta <span class="text-brand-gold">Kauzariyya</span>
             </h1>
@@ -122,14 +121,14 @@
                         <div class="card-top-half p-4">
                             <div class="card-text-side pe-2">
                                 <span class="badge-custom-category">
-                                    {{ $fatwa->question->category?->name ?? 'General / Other' }}
+                                    {{ $fatwa->category?->name ?? 'General / Other' }}
                                 </span>
                                 <h5 class="recent-fatwa-title-v2 mt-3 ml-text">
-                                    {{ Str::limit(strip_tags($fatwa->question->title ?: $fatwa->question->body), 85) }}
+                                    {{ Str::limit(strip_tags($fatwa->title ?: $fatwa->body), 85) }}
                                 </h5>
                             </div>
                             <div class="card-image-side" style="background-image: url('{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}');">
-                                <span class="card-madhab-badge">{{ $fatwa->question->madhab?->name ?? 'General' }}</span>
+                                <span class="card-madhab-badge">{{ $fatwa->madhab?->name ?? 'General' }}</span>
                             </div>
                         </div>
 
@@ -225,23 +224,23 @@
                         <div class="featured-thumb-v2">
                             <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}" alt="Fatwa" loading="lazy"
                                  onerror="this.src='https://placehold.co/400x180/295a75/fff?text=Fatwa'">
-                            <span class="featured-madhab-badge">{{ $fatwa->question->madhab?->name ?? 'General' }}</span>
+                            <span class="featured-madhab-badge">{{ $fatwa->madhab?->name ?? 'General' }}</span>
                             @if($fatwa->views > 50)
                             <span class="featured-hot-badge"><i class="bi bi-fire me-1"></i>Popular</span>
                             @endif
                         </div>
                         <div class="featured-body-v2">
                             <div class="featured-meta-v2">
-                                <span class="category"><i class="bi bi-folder2 me-1"></i>{{ $fatwa->question->category?->name ?? 'General' }}</span>
+                                <span class="category"><i class="bi bi-folder2 me-1"></i>{{ $fatwa->category?->name ?? 'General' }}</span>
                                 <span class="views"><i class="bi bi-eye me-1"></i>{{ number_format($fatwa->views) }}</span>
                             </div>
-                            <h5 class="featured-title-v2 ml-text">{{ Str::limit(strip_tags($fatwa->question->title ?: $fatwa->question->body), 75) }}</h5>
-                            <p class="featured-excerpt-v2 text-muted">{{ Str::limit(strip_tags($fatwa->muftiAnswer?->summary ?: $fatwa->muftiAnswer?->full_answer ?? ''), 95) }}</p>
+                            <h5 class="featured-title-v2 ml-text">{{ Str::limit(strip_tags($fatwa->title ?: $fatwa->body), 75) }}</h5>
+                            <p class="featured-excerpt-v2 text-muted">{{ Str::limit(strip_tags($fatwa->answer ?? ''), 95) }}</p>
                             
                             <div class="featured-footer-v2">
                                 <div class="author-info">
                                     <i class="bi bi-person-circle"></i>
-                                    <span>{{ $fatwa->muftiAnswer?->mufti?->name ?? 'Darul Ifta' }}</span>
+                                    <span>{{ $fatwa->assignedMufti?->name ?? 'Darul Ifta' }}</span>
                                 </div>
                                 <span class="read-more">Read Fatwa <i class="bi bi-chevron-right"></i></span>
                             </div>

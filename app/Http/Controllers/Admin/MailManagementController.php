@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Mail\MuftiPendingReminderMail;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Question;
+use App\Models\QuestionAndAnswer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -17,7 +17,7 @@ class MailManagementController extends Controller
     public function index()
     {
         // Get all active muftis
-        $muftis = User::role('mufti')
+        $muftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
             ->where('is_active', true)
             ->withCount(['assignedQuestions as pending_count' => function ($query) {
                 $query->whereIn('status', ['assigned', 'under_review']);
@@ -32,9 +32,9 @@ class MailManagementController extends Controller
      */
     public function show(User $mufti)
     {
-        $pendingQuestions = Question::where('assigned_mufti_id', $mufti->id)
+        $pendingQuestions = QuestionAndAnswer::where('assigned_mufti_id', $mufti->id)
             ->whereIn('status', ['assigned', 'under_review'])
-            ->orderBy('assigned_at', 'asc')
+            ->orderBy('updated_at', 'asc')
             ->get();
 
         return view('admin.mail-management.show', compact('mufti', 'pendingQuestions'));
@@ -45,7 +45,7 @@ class MailManagementController extends Controller
      */
     public function sendNow(User $mufti)
     {
-        $pendingQuestions = Question::where('assigned_mufti_id', $mufti->id)
+        $pendingQuestions = QuestionAndAnswer::where('assigned_mufti_id', $mufti->id)
             ->whereIn('status', ['assigned', 'under_review'])
             ->get();
 

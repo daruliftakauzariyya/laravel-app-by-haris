@@ -179,6 +179,7 @@ Route::middleware(['auth', 'role:mufti'])->prefix('mufti')->name('mufti.')->grou
     Route::get('/questions/pending', [MuftiController::class, 'pendingQuestions'])->name('questions.pending');
     Route::get('/questions/{question}', [MuftiController::class, 'showQuestion'])->name('questions.show');
     Route::post('/questions/{question}/answer', [MuftiController::class, 'submitAnswer'])->name('questions.answer');
+    Route::post('/questions/{question}/draft', [MuftiController::class, 'saveDraft'])->name('questions.draft');
     Route::get('/profile', [MuftiController::class, 'profile'])->name('profile');
     Route::put('/profile', [MuftiController::class, 'updateProfile'])->name('profile.update');
 

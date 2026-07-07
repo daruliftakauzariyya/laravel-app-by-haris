@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
-use App\Models\Fatwa;
+use App\Models\QuestionAndAnswer;
 use App\Models\FatwaFeaturedRule;
 use App\Models\Madhab;
 use Illuminate\Http\Request;
@@ -23,7 +23,7 @@ class FeaturedRuleController extends Controller
     {
         $categories = Category::whereNull('parent_id')->get();
         $madhabs    = Madhab::all();
-        $fatwas     = Fatwa::with('question')->latest('published_at')->take(50)->get();
+        $fatwas     = QuestionAndAnswer::where('status', 'published')->latest('published_at')->take(50)->get();
         return view('admin.featured-rules.create', compact('categories', 'madhabs', 'fatwas'));
     }
 
@@ -39,7 +39,7 @@ class FeaturedRuleController extends Controller
             'category_id'     => 'nullable|exists:categories,id',
             'madhab_id'       => 'nullable|exists:madhabs,id',
             'fatwa_ids'       => 'required|array|min:1',
-            'fatwa_ids.*'     => 'exists:fatwas,id',
+            'fatwa_ids.*'     => 'exists:question_and_answer,id',
             'section_label'   => 'required|string|max:120',
             'section_sub'     => 'nullable|string|max:300',
             'limit'           => 'required|integer|min:3|max:12',
@@ -58,7 +58,7 @@ class FeaturedRuleController extends Controller
     {
         $categories = Category::whereNull('parent_id')->get();
         $madhabs    = Madhab::all();
-        $fatwas     = Fatwa::with('question')->latest('published_at')->take(50)->get();
+        $fatwas     = QuestionAndAnswer::where('status', 'published')->latest('published_at')->take(50)->get();
         return view('admin.featured-rules.edit', compact('featuredRule', 'categories', 'madhabs', 'fatwas'));
     }
 
@@ -74,7 +74,7 @@ class FeaturedRuleController extends Controller
             'category_id'     => 'nullable|exists:categories,id',
             'madhab_id'       => 'nullable|exists:madhabs,id',
             'fatwa_ids'       => 'required|array|min:1',
-            'fatwa_ids.*'     => 'exists:fatwas,id',
+            'fatwa_ids.*'     => 'exists:question_and_answer,id',
             'section_label'   => 'required|string|max:120',
             'section_sub'     => 'nullable|string|max:300',
             'limit'           => 'required|integer|min:3|max:12',
