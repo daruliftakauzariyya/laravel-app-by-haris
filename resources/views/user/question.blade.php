@@ -4,12 +4,19 @@
 
 @section('content')
 @php
-    $langClass = '';
-    if($question->language == 'Urdu') $langClass = 'gulzar-font ur-text';
-    elseif($question->language == 'Arabic') $langClass = 'alyamama-font ar-text';
-    elseif($question->language == 'Hindi') $langClass = 'inter-font';
-    elseif($question->language == 'Malayalam') $langClass = 'noto-serif-malayalam-font';
-    else $langClass = 'inter-font';
+    $textToCheck = ($question->title ?? '') . ' ' . ($question->body ?? '') . ' ' . ($question->answer ?? '') . ' ' . ($question->draft_answer ?? '');
+    $isMalayalam = $question->language == 'Malayalam' || preg_match('/[\x{0D00}-\x{0D7F}]/u', $textToCheck);
+    $isArabic = $question->language == 'Arabic' || (!$isMalayalam && preg_match('/[\x{0600}-\x{06FF}]/u', $textToCheck));
+    $isUrdu = $question->language == 'Urdu';
+
+    $langClass = 'inter-font font-eng';
+    if ($isUrdu) {
+        $langClass = 'gulzar-font ur-text font-urdu';
+    } elseif ($isArabic) {
+        $langClass = 'alyamama-font ar-text font-arabic';
+    } elseif ($isMalayalam) {
+        $langClass = 'noto-serif-malayalam-font ml-text font-malayalam';
+    }
 @endphp
 
 <style>
@@ -81,23 +88,87 @@
     }
     .section-label {
         font-weight: 700;
-        font-size: 1.1rem;
+        font-size: 1.25rem;
         color: #000;
-        margin-bottom: 15px;
+        margin-bottom: 16px;
         display: block;
     }
     .body-text {
-        font-size: 1.05rem;
-        line-height: 1.8;
+        font-size: 1.18rem;
+        line-height: 2.0;
         color: #333;
     }
-    .arabic-block {
-        font-family: 'Amiri', 'Alyamama', serif;
-        font-size: 1.4rem;
-        text-align: center;
+    .body-text.noto-serif-malayalam-font,
+    .body-text.noto-serif-malayalam-font *,
+    .body-text.ml-text,
+    .body-text.ml-text *,
+    .body-text.font-malayalam,
+    .body-text.font-malayalam * {
+        font-family: 'Noto Serif Malayalam', serif !important;
+        font-size: 1.18rem !important;
+        line-height: 2.1 !important;
+    }
+    .body-text.ur-text,
+    .body-text.ur-text *,
+    .body-text.font-urdu,
+    .body-text.font-urdu * {
+        font-family: 'Noto Nastaliq Urdu', serif !important;
+        font-size: 1.25rem !important;
         direction: rtl;
-        margin: 20px 0;
+        text-align: right;
+        line-height: 2.4 !important;
+    }
+    .body-text.ar-text,
+    .body-text.ar-text *,
+    .body-text.font-arabic,
+    .body-text.font-arabic * {
+        font-family: 'Noto Naskh Arabic', 'Amiri', serif !important;
+        font-size: 1.28rem !important;
+        direction: rtl;
+        text-align: right;
+        line-height: 2.2 !important;
+    }
+    .body-text.inter-font,
+    .body-text.inter-font * {
+        font-family: 'Google Sans Eng', 'Inter', sans-serif !important;
+        font-size: 1.15rem !important;
+        line-height: 1.95 !important;
+    }
+    .arabic-block {
+        font-family: 'Noto Naskh Arabic', 'Amiri', serif !important;
+        font-size: 1.65rem;
+        text-align: right;
+        direction: rtl;
+        margin: 22px 0;
         color: #000;
+        line-height: 2.2;
+    }
+    .fatwa-tag-pill {
+        display: inline-flex;
+        align-items: center;
+        background: #ecfdf5;
+        color: #047857 !important;
+        border: 1px solid #a7f3d0;
+        padding: 2px 9px;
+        border-radius: 6px;
+        font-size: 0.9em;
+        font-weight: 600;
+        text-decoration: none !important;
+        margin: 0 3px;
+        transition: all 0.2s ease;
+        vertical-align: middle;
+    }
+    .fatwa-tag-pill:hover {
+        background: #d1fae5;
+        border-color: #059669;
+        color: #065f46 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+    }
+    .fatwa-tag-pill.not-found {
+        background: #f1f5f9;
+        color: #475569 !important;
+        border-color: #cbd5e1;
     }
     .signature-section {
         padding: 0 25px 25px;
@@ -218,7 +289,7 @@
             {{-- Question Content --}}
             <div class="content-body">
                 <span class="section-label">Question:</span>
-                <div class="body-text {{ $langClass }}">{!! $question->body !!}</div>
+                <div class="body-text {{ $langClass }}">{!! $question->formatted_body !!}</div>
             </div>
 
             @if(($question->answer || $question->draft_answer) && in_array($question->status, ['answered', 'approved', 'published']))
@@ -228,13 +299,13 @@
             <div class="content-body">
                 <span class="section-label">Answer:</span>
                 
-                <div class="arabic-block">
-                    بسم الله الرحمن الرحيم <br>
-                    الجواب وبالله التوفيق والنجاح
+                <div class="arabic-block text-end" dir="rtl" style="margin: 15px 0 25px 0;">
+                    <div style="font-size: 1.85rem; font-weight: 700; line-height: 2.1;">بسم الله الرحمن الرحيم</div>
+                    <div style="font-size: 1.55rem; font-weight: 600; line-height: 2.1; color: #374151;">الجواب وبالله التوفيق والنجاح</div>
                 </div>
 
                 <div class="body-text {{ $langClass }} mt-3">
-                    {!! $question->draft_answer ?? $question->answer !!}
+                    {!! $question->formatted_answer !!}
                 </div>
             </div>
 
@@ -243,14 +314,14 @@
                 $refs = $question->references->isNotEmpty() ? $question->references : $question->draftReferences; 
             @endphp
             @if($refs->count())
-            <div class="references-section">
+            <div class="references-section px-4 pb-2">
                 <h6 class="fw-bold small mb-3 text-muted">Supporting References</h6>
                 @foreach($refs as $ref)
-                    <div class="mb-4">
-                        <div class="arabic-text mb-2 text-dark {{ $ref->language == 'Urdu' ? 'gulzar-font' : 'alyamama-font' }}" style="font-size: 1.2rem; line-height: 1.7;">
+                    <div class="p-3 mb-3 bg-light rounded border-start border-4 border-success">
+                        <div class="arabic-text mb-2 text-dark {{ $ref->language == 'Urdu' ? 'gulzar-font font-urdu' : 'alyamama-font font-arabic' }}" style="font-size: 1.35rem; line-height: 2.2;">
                             {{ $ref->arabic_text }}
                         </div>
-                        <div class="small text-muted"><i class="bi bi-book me-1"></i>{{ $ref->book_name }}</div>
+                        <div class="small text-muted fw-semibold"><i class="bi bi-book me-1 text-success"></i>{{ $ref->book_name }}</div>
                     </div>
                 @endforeach
             </div>
@@ -258,7 +329,7 @@
 
             {{-- Closing & Signatures --}}
             <div class="signature-section">
-                <div class="arabic-block" style="text-align: right; margin-bottom: 25px; border-top: 1px solid #f0f0f0; padding-top: 20px;">
+                <div class="arabic-block" style="text-align: right; margin-bottom: 25px; border-top: 1px solid #f0f0f0; padding-top: 20px; font-size: 1.7rem; font-weight: 700;">
                     والله أعلم بالصواب
                 </div>
 

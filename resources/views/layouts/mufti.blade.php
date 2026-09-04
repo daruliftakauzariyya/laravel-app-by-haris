@@ -1,321 +1,459 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html class="h-full bg-surface text-on-surface antialiased" lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SZG3N3VKYE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'G-SZG3N3VKYE');
-    </script>
-    <!-- Google Tag Manager -->
-    <script>(function (w, d, s, l, i) {
-            w[l] = w[l] || []; w[l].push({
-                'gtm.start':
-                    new Date().getTime(), event: 'gtm.js'
-            }); var f = d.getElementsByTagName(s)[0],
-                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
-                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-NBPW3VHH');</script>
-    <!-- End Google Tag Manager -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script type="text/javascript">
-        (function (c, l, a, r, i, t, y) {
-            c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
-            t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
-            y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-        })(window, document, "clarity", "script", "w8gk6uy65v");
-    </script>
-    <title>@yield('title', 'Mufti Panel') — Darul Ifta</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/css/app-fonts.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/variables.css') }}">
+    <title>@yield('title', 'Dashboard') | Mufti Panel — Darul Ifta</title>
 
-    {{-- Favicon --}}
+    <!-- Microsoft Clarity -->
+    <script type="text/javascript">
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "ycju085szi");
+    </script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Serif+Malayalam:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+    <!-- Material Symbols & Bootstrap Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+    <!-- Bootstrap 5 CSS (for Summernote & Modals Compatibility) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('assets/logo/fevi.png') }}">
 
-    {{-- PWA Meta --}}
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#043975ff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="{{ asset('assets/logo/fevi.png') }}">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          corePlugins: {
+            preflight: false,
+          },
+          theme: {
+            extend: {
+              "colors": {
+                "tertiary-container": "#193927",
+                "on-surface": "#1d1b19",
+                "on-secondary-fixed": "#261900",
+                "inverse-surface": "#32302e",
+                "tertiary": "#022313",
+                "secondary-fixed-dim": "#e4c283",
+                "surface-container-high": "#ede7e4",
+                "outline-variant": "#c2c8c2",
+                "tertiary-fixed": "#c6ebd1",
+                "on-secondary": "#ffffff",
+                "inverse-on-surface": "#f5f0ec",
+                "primary-fixed": "#ccead6",
+                "secondary-container": "#ffdb9a",
+                "on-surface-variant": "#424844",
+                "background": "#fef8f5",
+                "on-tertiary-container": "#80a38c",
+                "on-secondary-container": "#795f2a",
+                "inverse-primary": "#b1cdbb",
+                "on-tertiary": "#ffffff",
+                "surface": "#fef8f5",
+                "secondary": "#745a26",
+                "surface-variant": "#e7e1de",
+                "surface-container-highest": "#e7e1de",
+                "on-primary-fixed-variant": "#334c3e",
+                "outline": "#727973",
+                "surface-container": "#f2ede9",
+                "primary-fixed-dim": "#b1cdbb",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-low": "#f8f2ef",
+                "on-background": "#1d1b19",
+                "error": "#ba1a1a",
+                "primary-container": "#1f382b",
+                "on-secondary-fixed-variant": "#5a4310",
+                "on-error-container": "#93000a",
+                "on-primary-fixed": "#062014",
+                "surface-dim": "#ded9d6",
+                "on-tertiary-fixed": "#002111",
+                "on-primary-container": "#86a291",
+                "primary": "#092217",
+                "surface-tint": "#4a6455",
+                "secondary-fixed": "#ffdea4",
+                "on-primary": "#ffffff",
+                "error-container": "#ffdad6",
+                "on-tertiary-fixed-variant": "#2d4d3a",
+                "tertiary-fixed-dim": "#abcfb6",
+                "surface-bright": "#fef8f5",
+                "on-error": "#ffffff"
+              },
+              "fontFamily": {
+                "headline-md": ["\"Source Serif 4\"", "serif"],
+                "display-mobile": ["\"Source Serif 4\"", "serif"],
+                "body-lg": ["Literata", "serif"],
+                "body-md": ["Literata", "serif"],
+                "headline-lg-mobile": ["\"Source Serif 4\"", "serif"],
+                "label-md": ["Inter", "sans-serif"],
+                "title-md": ["Literata", "serif"],
+                "headline-lg": ["\"Source Serif 4\"", "serif"],
+                "display": ["\"Source Serif 4\"", "serif"],
+                "headline-sm": ["\"Source Serif 4\"", "serif"],
+                "label-lg": ["Inter", "sans-serif"],
+                "body-sm": ["Literata", "serif"],
+                "label-sm": ["Inter", "sans-serif"]
+              }
+            }
+          }
+        }
+    </script>
 
     <style>
-        :root {
-            --sidebar-w: 220px;
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+            vertical-align: middle;
         }
-
         body {
-            font-family: 'Inter', sans-serif;
-            background: #f4f6f9;
-            color: var(--text-main);
+            background-color: #fef8f5;
+            color: #1d1b19;
+            font-family: 'Literata', serif;
+            overflow-x: hidden;
         }
-
-        .sidebar {
-            width: var(--sidebar-w);
-            min-height: 100vh;
-            background: var(--brand-blue-dark);
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1060;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.3s ease;
+        a {
+            text-decoration: none;
         }
-
-        .sidebar-brand {
-            padding: 1.25rem 1rem;
-            background: rgba(0, 0, 0, .15);
-            border-bottom: 5px solid var(--brand-gold);
-        }
-
-        .sidebar-brand h6 {
-            color: #fff;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .sidebar-brand small {
-            color: rgba(255, 255, 255, .5);
-            font-size: .75rem;
-        }
-
-        .sidebar-nav .nav-link {
-            color: rgba(255, 255, 255, .7);
-            padding: .7rem 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: .6rem;
-            font-size: .88rem;
-            border-left: 4px solid transparent;
-            transition: var(--transition-base);
-        }
-
-        .sidebar-nav .nav-link:hover,
-        .sidebar-nav .nav-link.active {
-            color: #fff;
-            background: rgba(255, 255, 255, .05);
-            border-left-color: var(--brand-gold);
-        }
-
-        .main-content {
-            margin-left: var(--sidebar-w);
-            transition: margin-left 0.3s ease;
-            min-height: 100vh;
-        }
-
-        .topbar {
-            background: #fff;
-            border-bottom: 1px solid #e5e7eb;
-            padding: .75rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .page-content {
-            padding: 1.5rem;
-        }
-
         .arabic-text {
-            font-family: 'Amiri', serif;
-            font-size: 1.2rem;
+            font-family: 'Amiri', 'Noto Naskh Arabic', serif;
             direction: rtl;
-            text-align: right;
         }
-
-        /* Sidebar Responsive Logic */
-        @media (max-width: 991px) {
-            :root {
-                --sidebar-w: 240px;
-            }
-
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            body.sidebar-open .sidebar {
-                transform: translateX(0);
-            }
-
-            body.sidebar-open {
-                overflow: hidden;
-            }
-
-            .sidebar-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 1050;
-                display: none;
-            }
-
-            body.sidebar-open .sidebar-overlay {
-                display: block;
-            }
-
-            .topbar {
-                padding: 0.75rem 1rem;
-            }
+        .urdu-text {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            direction: rtl;
         }
-
-        .sidebar-nav .bg-white {
-            background: rgba(255, 255, 255, 0.05) !important;
-        }
-
-        .sidebar-nav .nav-link-sub {
-            font-size: 0.8rem;
-            padding-left: 3.25rem;
+        .malayalam-text {
+            font-family: 'Noto Serif Malayalam', serif;
         }
     </style>
     @stack('styles')
 </head>
 
-<body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBPW3VHH" height="0" width="0"
-            style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
+<body class="bg-surface text-on-surface min-h-screen flex flex-col font-body-md text-body-md selection:bg-surface-variant selection:text-primary">
 
-    {{-- Sidebar Overlay --}}
-    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
-
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <h6><i class="bi bi-person-badge me-2"></i>Mufti Panel</h6>
-            <small>{{ Auth::user()->name }}</small>
-        </div>
-        <nav class="sidebar-nav mt-2">
-            <a href="{{ route('mufti.dashboard') }}"
-                class="nav-link {{ request()->routeIs('mufti.dashboard') ? 'active' : '' }}">
-                <i class="bi bi-speedometer2"></i> Dashboard
-            </a>
-            <div class="nav-item">
-                <a href="{{ route('mufti.questions') }}"
-                    class="nav-link {{ request()->routeIs('mufti.questions*') && !request()->has('tab') ? 'active' : '' }}"
-                    data-bs-toggle="collapse" data-bs-target="#questionsSub">
-                    <i class="bi bi-question-circle"></i> My Questions <i class="bi bi-chevron-down ms-auto small"></i>
-                </a>
-                <div class="collapse {{ request()->routeIs('mufti.questions*') ? 'show' : '' }}" id="questionsSub">
-                    <a href="{{ route('mufti.questions', ['tab' => 'assigned']) }}"
-                        class="nav-link nav-link-sub {{ request()->get('tab') == 'assigned' ? 'active' : '' }}">
-                        <i class="bi bi-journal-text small"></i> Assigned
+    <!-- Top Navigation Header -->
+    <header class="w-full bg-surface border-b border-surface-variant z-40 sticky top-0 shadow-sm backdrop-blur-md bg-opacity-95">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 lg:py-4">
+            <!-- Upper Header Bar: Brand Logo & Scholar Metadata + Mobile Menu Button -->
+            <div class="flex items-center justify-between gap-4 pb-2.5 border-b border-surface-variant/40">
+                <!-- Brand Logo & Identity -->
+                <div class="flex items-center gap-3 sm:gap-4">
+                    <a href="{{ route('mufti.dashboard') }}" class="flex items-center gap-2.5">
+                        <img src="{{ asset('assets/logo/logoblueNew.svg') }}" alt="Darul Ifta Kauzariyya Logo" class="h-8 sm:h-10 w-auto object-contain" onerror="this.src='{{ asset('assets/logo/Darul-Ifta-Logo.png') }}'">
                     </a>
-                    <a href="{{ route('mufti.questions', ['tab' => 'verified']) }}"
-                        class="nav-link nav-link-sub {{ request()->get('tab') == 'verified' ? 'active' : '' }}">
-                        <i class="bi bi-shield-check small"></i> Verified by Me
-                    </a>
-                    @if(Auth::user()->can_check_approve)
-                        <a href="{{ route('mufti.questions', ['tab' => 'approved']) }}"
-                            class="nav-link nav-link-sub {{ request()->get('tab') == 'approved' ? 'active' : '' }}">
-                            <i class="bi bi-patch-check small"></i> Approved by Me
+                    <div class="h-8 w-[1px] bg-outline-variant/60 hidden sm:block"></div>
+                    
+                    <!-- Scholar Avatar & Identity -->
+                    <div class="flex items-center gap-2.5 sm:gap-3">
+                        <a href="{{ route('mufti.profile') }}" class="relative group block flex-shrink-0" title="Profile Settings">
+                            <img src="{{ Auth::user()->avatar ? asset(ltrim(Auth::user()->avatar, '/')) : 'https://ui-avatars.com/api/?name='.urlencode(Auth::user()->name).'&background=092217&color=fff' }}" 
+                                 alt="{{ Auth::user()->name }}" 
+                                 class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-outline-variant/80 shadow-sm group-hover:border-primary group-hover:scale-105 transition-all">
+                            <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full {{ Auth::user()->is_active ? 'bg-emerald-500' : 'bg-stone-400' }} border-2 border-surface" title="{{ Auth::user()->is_active ? 'Active Jurisconsult' : 'Inactive' }}"></span>
                         </a>
-                    @endif
-                </div>
-            </div>
-            <a href="{{ route('mufti.questions.pending') }}"
-                class="nav-link {{ request()->routeIs('mufti.questions.pending') ? 'active' : '' }}">
-                <i class="bi bi-clock-history"></i> Pending Tasks
-            </a>
-            <a href="{{ route('mufti.profile') }}"
-                class="nav-link {{ request()->routeIs('mufti.profile') ? 'active' : '' }}">
-                <i class="bi bi-person-gear"></i> Profile
-            </a>
-            <a href="{{ route('home') }}" class="nav-link"><i class="bi bi-globe"></i> Public Site</a>
-            <div class="px-2 mt-3">
-                <form method="POST" action="{{ route('logout') }}">@csrf
-                    <button class="btn btn-sm btn-outline-light w-100"><i
-                            class="bi bi-box-arrow-right me-1"></i>Logout</button>
-                </form>
-            </div>
-        </nav>
-    </div>
-    <div class="main-content">
-        <div class="topbar">
-            <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-sm btn-brand d-lg-none" onclick="toggleSidebar()">
-                    <i class="bi bi-list"></i>
-                </button>
-                <h6 class="mb-0 fw-bold text-muted">@yield('topbar-title', 'Mufti Panel')</h6>
-            </div>
 
-            <div class="d-none d-md-flex align-items-center gap-4">
-                <div class="text-end line-height-1">
-                    <div class="fw-bold text-primary small"><i
-                            class="bi bi-calendar3 me-1"></i>{{ \App\Helpers\HijriHelper::now() }}</div>
-                    <div class="text-muted x-small">{{ now()->format('l, d F Y') }}</div>
-                </div>
-                <div class="border-start ps-4 text-end line-height-1">
-                    <div class="fw-bold text-dark small"><i class="bi bi-clock me-1"></i><span
-                            id="liveClock">{{ now()->format('h:i:s A') }}</span></div>
-                    @php
-                        $totalSecs = 0;
-                        $h = floor($totalSecs / 3600);
-                        $m = floor(($totalSecs / 60) % 60);
-                        $spent = ($h > 0 ? $h . 'h ' : '') . $m . 'm';
-                    @endphp
-                    <div class="text-muted x-small">Spent: <span class="fw-semibold text-success">{{ $spent }}</span>
+                        <div class="flex flex-col">
+                            <div class="flex items-baseline gap-1.5 flex-wrap">
+                                <span class="font-headline-md text-[17px] sm:text-[20px] font-semibold text-primary tracking-tight">Mufti Panel</span>
+                                <span class="text-label-md text-outline">/</span>
+                                <a href="{{ route('mufti.profile') }}" class="font-body-md text-body-md text-secondary italic font-semibold hover:text-primary transition-colors">
+                                    {{ Auth::user()->name }}
+                                </a>
+                                @if(Auth::user()->can_check_approve)
+                                    <span class="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.2 rounded border border-primary/20 uppercase tracking-wider hidden sm:inline-block">Verifier</span>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Desktop Trailing Session & Realtime Timestamp -->
+                <div class="hidden md:flex flex-wrap items-center gap-2 text-on-surface-variant text-[12px] font-label-md">
+                    <div class="flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container border border-outline-variant/50 text-secondary">
+                        <span class="material-symbols-outlined text-[15px]">timer</span>
+                        <span id="sessionTimerText">Spent: 0m</span>
+                    </div>
+                    <span class="text-outline-variant">•</span>
+                    <div class="flex items-center gap-1.5 text-on-surface-variant font-medium">
+                        <span class="material-symbols-outlined text-[16px] text-outline">event_upcoming</span>
+                        <span id="liveClockDisplay">{{ \Carbon\Carbon::now()->format('l, d M Y • h:i:s A') }}</span>
+                    </div>
+                </div>
+
+                <!-- Mobile Hamburger Button -->
+                <button type="button" id="mobileMenuToggle" class="lg:hidden p-2 rounded-lg text-primary bg-surface-container hover:bg-surface-container-high border border-outline-variant transition-colors flex items-center justify-center focus:outline-none" aria-label="Toggle Navigation">
+                    <span class="material-symbols-outlined text-[24px]" id="menuIcon">menu</span>
+                </button>
+            </div>
+
+            <!-- Lower Header Bar: Desktop Navigation (Visible on lg+) -->
+            <nav class="hidden lg:flex items-center justify-between pt-2.5">
+                <ul class="flex items-center gap-6 list-none m-0 p-0 text-nowrap">
+                    <!-- Dashboard -->
+                    <li>
+                        <a class="{{ request()->routeIs('mufti.dashboard') ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary font-medium' }} text-[14px] inline-flex items-center gap-1.5 transition-all"
+                           href="{{ route('mufti.dashboard') }}">
+                            <span class="material-symbols-outlined text-[17px]">dashboard</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+
+                    <!-- My Questions (Dropdown) -->
+                    <li class="relative group">
+                        <a href="{{ route('mufti.questions') }}"
+                           class="{{ request()->routeIs('mufti.questions') && !request('status') ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary font-medium' }} text-[14px] inline-flex items-center gap-1 py-1">
+                            <span class="material-symbols-outlined text-[17px]">assignment</span>
+                            <span>My Questions</span>
+                            <span class="material-symbols-outlined text-[16px] transition-transform duration-150 group-hover:rotate-180">expand_more</span>
+                        </a>
+                        <!-- Dropdown Menu -->
+                        <div class="absolute left-0 top-full mt-1 w-48 bg-white border border-outline-variant rounded-lg shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 z-50 py-1.5">
+                            <a class="block px-4 py-2 text-[13px] text-on-surface hover:bg-surface-container hover:text-primary transition-colors duration-150 {{ request('tab') == 'assigned' || (!request('tab') && request()->routeIs('mufti.questions')) ? 'font-bold text-primary bg-surface-container' : '' }}"
+                               href="{{ route('mufti.questions', ['tab' => 'assigned']) }}">
+                                Assigned Inquiries
+                            </a>
+                            <a class="block px-4 py-2 text-[13px] text-on-surface hover:bg-surface-container hover:text-primary transition-colors duration-150 {{ request('tab') == 'verified' ? 'font-bold text-primary bg-surface-container' : '' }}"
+                               href="{{ route('mufti.questions', ['tab' => 'verified']) }}">
+                                Verified by Me
+                            </a>
+                            @if(Auth::user()->can_check_approve)
+                            <a class="block px-4 py-2 text-[13px] text-on-surface hover:bg-surface-container hover:text-primary transition-colors duration-150 {{ request('tab') == 'approved' ? 'font-bold text-primary bg-surface-container' : '' }}"
+                               href="{{ route('mufti.questions', ['tab' => 'approved']) }}">
+                                Approved by Me
+                            </a>
+                            @endif
+                        </div>
+                    </li>
+
+                    <!-- Pending Tasks -->
+                    <li>
+                        <a class="{{ request()->routeIs('mufti.questions.pending') ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary font-medium' }} text-[14px] inline-flex items-center gap-1.5"
+                           href="{{ route('mufti.questions.pending') }}">
+                            <span class="material-symbols-outlined text-[17px]">hourglass_top</span>
+                            <span>Pending Tasks</span>
+                        </a>
+                    </li>
+
+                    <!-- Profile -->
+                    <li>
+                        <a class="{{ request()->routeIs('mufti.profile') ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary font-medium' }} text-[14px] inline-flex items-center gap-1.5"
+                           href="{{ route('mufti.profile') }}">
+                            <span class="material-symbols-outlined text-[17px]">badge</span>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+
+                    <!-- Reports & Analytics -->
+                    <li>
+                        <a class="{{ request()->routeIs('mufti.reports*') ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary font-medium' }} text-[14px] inline-flex items-center gap-1.5"
+                           href="{{ route('mufti.reports') }}">
+                            <span class="material-symbols-outlined text-[17px]">bar_chart</span>
+                            <span>Reports</span>
+                        </a>
+                    </li>
+
+                    <!-- Public Site -->
+                    <li>
+                        <a class="text-on-surface-variant hover:text-primary text-[14px] font-medium inline-flex items-center gap-1"
+                           href="{{ route('home') }}" target="_blank">
+                            <span>Public Site</span>
+                            <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                        </a>
+                    </li>
+
+                    <!-- Logout -->
+                    <li>
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="text-on-surface-variant hover:text-red-700 text-[14px] font-medium inline-flex items-center gap-1 bg-transparent border-0 p-0 cursor-pointer">
+                                <span>Logout</span>
+                                <span class="material-symbols-outlined text-[15px]">logout</span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+
+                <!-- Status Pill -->
+                <div class="flex items-center gap-2 text-[12px] font-label-md text-outline">
+                    <span class="flex h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                    <span>Jurisconsult: <strong class="text-primary">Active</strong></span>
+                </div>
+            </nav>
+
+            <!-- Mobile Drawer Navigation (Visible on mobile/tablet when toggled) -->
+            <div id="mobileDrawer" class="lg:hidden hidden pt-3 mt-2 border-t border-surface-variant/80 transition-all duration-200">
+                <!-- Mobile Session & Scholar Profile Box -->
+                <div class="flex items-center justify-between bg-surface-container p-3 rounded-lg border border-outline-variant/50 mb-3 text-[12px]">
+                    <div class="flex items-center gap-2.5">
+                        <img src="{{ Auth::user()->avatar ? asset(ltrim(Auth::user()->avatar, '/')) : 'https://ui-avatars.com/api/?name='.urlencode(Auth::user()->name).'&background=092217&color=fff' }}" 
+                             alt="{{ Auth::user()->name }}" 
+                             class="w-9 h-9 rounded-full object-cover border border-outline-variant/80">
+                        <div>
+                            <div class="font-bold text-on-surface text-[13px] leading-tight">{{ Auth::user()->name }}</div>
+                            <div class="text-[11px] text-outline flex items-center gap-1 mt-0.5">
+                                <span class="material-symbols-outlined text-[13px]">timer</span>
+                                <span id="sessionTimerTextMobile">Spent: 0m</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 text-emerald-800 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                        <span>Active</span>
+                    </div>
+                </div>
+
+                <ul class="flex flex-col gap-1 list-none m-0 p-0 text-[15px]">
+                    <li>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('mufti.dashboard') ? 'bg-primary text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container' }}"
+                           href="{{ route('mufti.dashboard') }}">
+                            <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg {{ request()->routeIs('mufti.questions') ? 'bg-primary text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container' }}"
+                           href="{{ route('mufti.questions') }}">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-[20px]">assignment</span>
+                                <span>My Questions</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg {{ request()->routeIs('mufti.questions.pending') ? 'bg-primary text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container' }}"
+                           href="{{ route('mufti.questions.pending') }}">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-[20px]">hourglass_top</span>
+                                <span>Pending Tasks</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('mufti.profile') ? 'bg-primary text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container' }}"
+                           href="{{ route('mufti.profile') }}">
+                            <span class="material-symbols-outlined text-[20px]">badge</span>
+                            <span>Profile Settings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('mufti.reports*') ? 'bg-primary text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container' }}"
+                           href="{{ route('mufti.reports') }}">
+                            <span class="material-symbols-outlined text-[20px]">bar_chart</span>
+                            <span>Reports & Analytics</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg text-on-surface hover:bg-surface-container"
+                           href="{{ route('home') }}" target="_blank">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-[20px]">open_in_new</span>
+                                <span>Public Website</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[16px] text-outline">arrow_outward</span>
+                        </a>
+                    </li>
+                    <li class="pt-2 border-t border-surface-variant/60 mt-1">
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-700 hover:bg-red-50 font-medium text-left border-0 bg-transparent cursor-pointer">
+                                <span class="material-symbols-outlined text-[20px]">logout</span>
+                                <span>Logout ({{ Auth::user()->name }})</span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
             </div>
         </div>
-        <div class="px-3 pt-3">
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show py-2">
-                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-        </div>
-        <div class="page-content">@yield('content')</div>
+    </header>
+
+    <!-- Global Toast / Notifications -->
+    <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        @if(session('success'))
+            <div class="bg-emerald-50 border border-emerald-300 text-emerald-900 px-4 py-3 rounded-lg flex items-center gap-2 text-sm shadow-sm mb-4">
+                <span class="material-symbols-outlined text-emerald-600">check_circle</span>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="bg-red-50 border border-red-300 text-red-900 px-4 py-3 rounded-lg flex items-center gap-2 text-sm shadow-sm mb-4">
+                <span class="material-symbols-outlined text-red-600">error</span>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
     </div>
+
+    <!-- Main Content Canvas with Standard Max-Width & Matching Padding -->
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 flex flex-col gap-6">
+        @yield('content')
+    </main>
+
+    <!-- Clean Footer Bar -->
+    <footer class="w-full border-t border-surface-variant bg-surface py-5 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-outline font-label-md text-center sm:text-left">
+            <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+                <img src="{{ asset('assets/logo/fevi.png') }}" class="h-4 w-4" alt="Darul Ifta Icon">
+                <span class="text-primary font-medium">Mufti Panel</span>
+                <span>— Verified Islamic Jurisprudence Environment</span>
+            </div>
+            <div>
+                <span>Logged in: <strong class="text-on-surface font-medium">{{ Auth::user()->name }}</strong> ({{ Auth::user()->email }})</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // PWA Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('SW Registered', reg))
-                    .catch(err => console.log('SW Failed', err));
+        // Mobile Drawer Toggle
+        const toggleBtn = document.getElementById('mobileMenuToggle');
+        const drawer = document.getElementById('mobileDrawer');
+        const menuIcon = document.getElementById('menuIcon');
+        if (toggleBtn && drawer) {
+            toggleBtn.addEventListener('click', function() {
+                drawer.classList.toggle('hidden');
+                if (drawer.classList.contains('hidden')) {
+                    menuIcon.textContent = 'menu';
+                } else {
+                    menuIcon.textContent = 'close';
+                }
             });
         }
 
-        function toggleSidebar() {
-            document.body.classList.toggle('sidebar-open');
+        // Session Time Tracker
+        const sessionStartTime = Date.now();
+        function updateSessionTimer() {
+            const elapsedMins = Math.floor((Date.now() - sessionStartTime) / 60000);
+            const timerEl = document.getElementById('sessionTimerText');
+            const timerMobileEl = document.getElementById('sessionTimerTextMobile');
+            if (timerEl) timerEl.textContent = `Spent: ${elapsedMins}m`;
+            if (timerMobileEl) timerMobileEl.textContent = `Spent: ${elapsedMins}m`;
         }
+        setInterval(updateSessionTimer, 30000);
 
-        // Live Clock
-        function updateClock() {
+        // Realtime Clock
+        function updateLiveClock() {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-            const clockEl = document.getElementById('liveClock');
-            if (clockEl) clockEl.innerText = timeStr;
+            const clockEl = document.getElementById('liveClockDisplay');
+            if (clockEl) {
+                const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                clockEl.textContent = now.toLocaleDateString('en-GB', options);
+            }
         }
-        setInterval(updateClock, 1000);
-        updateClock();
+        setInterval(updateLiveClock, 1000);
     </script>
     @stack('scripts')
 </body>
-
 </html>

@@ -122,7 +122,7 @@
                                     <div class="fw-black text-dark">{{ $ct->city }}</div>
                                 </td>
                                 <td>
-                                    <div class="text-muted small">{{ $ct->region }}, {{ $ct->country }}</div>
+                                    <div class="text-muted small">{{ $ct->region ?? '' }}{{ (!empty($ct->region) && !empty($ct->country)) ? ', ' : '' }}{{ $ct->country ?? ($ct->location ?? '') }}</div>
                                 </td>
                                 <td class="text-end pe-4">
                                     <span class="text-green fw-black">{{ number_format($ct->count) }}</span>

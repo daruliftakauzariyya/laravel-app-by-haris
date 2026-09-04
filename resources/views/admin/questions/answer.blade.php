@@ -49,10 +49,21 @@
             </div>
 
             <div class="mb-4">
-                <label class="form-label fw-semibold">Full Answer <span class="text-danger">*</span></label>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-semibold mb-0">Full Answer <span class="text-danger">*</span></label>
+                    <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-3"
+                            onclick="window.openFatwaMentionPicker($('textarea[name=full_answer]'), '', true)">
+                        <i class="bi bi-at me-1"></i> Reference Published Fatwa
+                    </button>
+                </div>
                 <textarea name="full_answer" rows="8" class="form-control @error('full_answer') is-invalid @enderror"
-                          placeholder="Write the full fatwa answer here..." required>{{ old('full_answer', $question->draft_answer ?? $question->answer) }}</textarea>
+                          placeholder="Write the full fatwa answer here... (Type @ to search and reference published fatwas)" required>{{ old('full_answer', $question->draft_answer ?? $question->answer) }}</textarea>
                 @error('full_answer')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="form-text small mt-1 text-muted">
+                    <span class="badge bg-success-subtle text-success me-1"><i class="bi bi-tag-fill me-1"></i>Cross-reference Tag:</span>
+                    Type <code>@{Question-ID}</code> (e.g. <code>@{A0001}</code>) or press <code>@</code> to search and link an existing published fatwa.
+                    <span class="text-danger fw-semibold d-block mt-1"><i class="bi bi-exclamation-circle me-1"></i>Must contain at least <strong>30 characters</strong> before saving/publishing.</span>
+                </div>
             </div>
 
             <div class="mb-4">
@@ -174,14 +185,53 @@
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
 <script>
 $(document).ready(function() {
+    // Mention Button for Summernote
+    const MentionButton = function (context) {
+        const ui = $.summernote.ui;
+        const button = ui.button({
+            contents: '<i class="bi bi-at text-success fw-bold"></i> Ref Fatwa',
+            tooltip: 'Insert Published Fatwa Reference (@ID)',
+            click: function () {
+                window.openFatwaMentionPicker($('textarea[name="full_answer"]'), '', true);
+            }
+        });
+        return button.render();
+    };
+
     $('textarea[name="full_answer"]').summernote({
         height: 300,
+        placeholder: 'Write the full fatwa answer here... (Type @ to search and reference published fatwas)',
         toolbar: [
             ['style', ['style']],
             ['font', ['bold', 'italic', 'underline', 'clear']],
             ['para', ['ul', 'ol', 'paragraph']],
+            ['custom', ['mentionRef']],
             ['view', ['fullscreen', 'codeview', 'help']]
-        ]
+        ],
+        buttons: {
+            mentionRef: MentionButton
+        },
+        hint: {
+            match: /@([a-zA-Z0-9_-]*)$/,
+            search: function (keyword, callback) {
+                $.ajax({
+                    url: '{{ route("fatwa.mention.search") }}',
+                    data: { q: keyword },
+                    success: function (data) {
+                        callback(data);
+                    }
+                });
+            },
+            template: function (item) {
+                return '<div class="d-flex justify-content-between align-items-center gap-2 p-1">' +
+                       '<div><span class="badge bg-success me-1">' + item.question_id + '</span> <strong class="text-dark">' + item.title + '</strong></div>' +
+                       '<small class="text-muted text-nowrap ms-2"><i class="bi bi-calendar3 me-1"></i>' + item.published_date + '</small>' +
+                       '</div>';
+            },
+            content: function (item) {
+                return '@{' + item.question_id + '} ';
+            }
+        }
     });
 });
 document.getElementById('add-reference').addEventListener('click', function() {
@@ -262,5 +312,6 @@ if (imageInput) {
     });
 }
 </script>
+@include('partials.fatwa-mention-modal')
 @endpush
 @endsection

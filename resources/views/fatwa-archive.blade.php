@@ -147,12 +147,13 @@
                 <ul class="cat-list" style="padding-left: 0; list-style: none;">
                     @foreach($allCategories as $cat)
                     @php
-                        $isCurrentOrChildSelected = (request('category') == $cat->id || $cat->children->pluck('id')->contains(request('category')));
+                        $isCurrentOrChildSelected = (request('category') == $cat->slug || request('category') == $cat->id || $cat->children->pluck('slug')->contains(request('category')) || $cat->children->pluck('id')->contains(request('category')));
+                        $catSlug = $cat->slug ?: $cat->id;
                     @endphp
                     <li class="mb-3">
                         <div class="d-flex justify-content-between align-items-center w-100">
-                            <a href="{{ route('fatwa.archive', ['category' => $cat->id]) }}" 
-                               class="flex-grow-1 d-flex justify-content-between align-items-center text-decoration-none {{ request('category') == $cat->id ? 'active text-success fw-bold' : 'text-dark' }}" style="font-weight: 600; font-size: 0.95rem;">
+                            <a href="{{ route('fatwa.archive', ['category' => $catSlug]) }}" 
+                               class="flex-grow-1 d-flex justify-content-between align-items-center text-decoration-none {{ (request('category') == $cat->slug || request('category') == $cat->id) ? 'active text-success fw-bold' : 'text-dark' }}" style="font-weight: 600; font-size: 0.95rem;">
                                 <span>
                                     @if($cat->children->isNotEmpty())
                                         <i class="bi bi-chevron-{{ $isCurrentOrChildSelected ? 'down' : 'right' }} me-1 small text-muted"></i>
@@ -170,9 +171,12 @@
                         @if($cat->children->isNotEmpty())
                             <ul class="sub-cat-list ps-3 mt-2 {{ $isCurrentOrChildSelected ? 'd-block' : 'd-none' }}" style="list-style: none; padding-left: 1rem;">
                                 @foreach($cat->children as $child)
+                                @php
+                                    $childSlug = $child->slug ?: $child->id;
+                                @endphp
                                 <li class="py-1">
-                                    <a href="{{ route('fatwa.archive', ['category' => $child->id]) }}" 
-                                       class="d-flex justify-content-between align-items-center text-decoration-none {{ request('category') == $child->id ? 'active text-success fw-bold' : 'text-muted' }}" style="font-size: 0.85rem; font-weight: 500;">
+                                    <a href="{{ route('fatwa.archive', ['category' => $childSlug]) }}" 
+                                       class="d-flex justify-content-between align-items-center text-decoration-none {{ (request('category') == $child->slug || request('category') == $child->id) ? 'active text-success fw-bold' : 'text-muted' }}" style="font-size: 0.85rem; font-weight: 500;">
                                         <span>
                                             <i class="bi bi-arrow-return-right me-1 text-muted" style="font-size: 0.75rem;"></i>
                                             {{ $child->name }}

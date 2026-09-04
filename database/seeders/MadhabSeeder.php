@@ -12,9 +12,6 @@ class MadhabSeeder extends Seeder
         $madhabs = [
             'Hanafi',
             'Shafii',
-            'Maliki',
-            'Hanbali',
-            'General/Other',
         ];
 
         foreach ($madhabs as $name) {

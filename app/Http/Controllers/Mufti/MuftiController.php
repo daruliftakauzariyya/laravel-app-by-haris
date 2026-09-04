@@ -90,7 +90,7 @@ class MuftiController extends Controller
     public function pendingQuestions()
     {
         $user = Auth::user();
-        $questions = QuestionAndAnswer::with('user', 'category')
+        $questions = QuestionAndAnswer::with(['user', 'category', 'statusHistory'])
             ->where('assigned_mufti_id', $user->id)
             ->where('status', 'assigned')
             ->latest()
@@ -132,6 +132,13 @@ class MuftiController extends Controller
             'question_title' => ['nullable', 'string', 'max:200'],
             'question_body'  => ['nullable', 'string'],
         ]);
+
+        $plainAnswer = trim(strip_tags($request->full_answer ?? ''));
+        if (mb_strlen($plainAnswer) < 30) {
+            return back()->withErrors([
+                'full_answer' => 'The answer must contain at least 30 characters before submitting (currently ' . mb_strlen($plainAnswer) . ' characters).',
+            ])->withInput();
+        }
 
         // Update the question title and body if provided
         if ($request->has('question_title')) {
@@ -303,5 +310,141 @@ class MuftiController extends Controller
         $user->save();
 
         return redirect()->route('mufti.profile')->with('success', $msg);
+    }
+
+    public function reports(Request $request)
+    {
+        $user = Auth::user();
+        $dateRange = $request->get('date_range', 'all');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $baseQuery = QuestionAndAnswer::where('assigned_mufti_id', $user->id);
+
+        if ($dateRange === 'today') {
+            $baseQuery->whereDate('created_at', \Carbon\Carbon::today());
+        } elseif ($dateRange === 'this_week') {
+            $baseQuery->whereBetween('created_at', [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
+        } elseif ($dateRange === 'this_month') {
+            $baseQuery->whereMonth('created_at', \Carbon\Carbon::now()->month)->whereYear('created_at', \Carbon\Carbon::now()->year);
+        } elseif ($dateRange === 'last_30_days') {
+            $baseQuery->where('created_at', '>=', \Carbon\Carbon::now()->subDays(30));
+        } elseif ($dateRange === 'this_year') {
+            $baseQuery->whereYear('created_at', \Carbon\Carbon::now()->year);
+        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
+            $baseQuery->whereBetween('created_at', [\Carbon\Carbon::parse($startDate)->startOfDay(), \Carbon\Carbon::parse($endDate)->endOfDay()]);
+        }
+
+        $totalAssigned = (clone $baseQuery)->count();
+        $totalAnswered = (clone $baseQuery)->whereNotNull('answer')->count();
+        $totalPublished = (clone $baseQuery)->where('status', 'published')->count();
+        $totalPending = (clone $baseQuery)->where('status', 'assigned')->count();
+        $totalViews = (clone $baseQuery)->where('status', 'published')->sum('views');
+        $totalLikes = (clone $baseQuery)->where('status', 'published')->sum('likes');
+
+        $completionRate = $totalAssigned > 0 ? round(($totalAnswered / $totalAssigned) * 100, 1) : ($totalAnswered > 0 ? 100 : 0);
+        
+        $avgDays = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+            ->whereIn('status', ['answered', 'approved', 'published'])
+            ->selectRaw('AVG(DATEDIFF(updated_at, created_at)) as avg')
+            ->value('avg');
+        $avgDays = $avgDays ? round($avgDays, 1) : null;
+
+        // 12-Month Performance Trend
+        $monthlyTrends = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+            ->selectRaw("DATE_FORMAT(created_at, '%b %Y') as month_year, DATE_FORMAT(created_at, '%Y-%m') as sort_key, count(*) as assigned, sum(case when answer is not null then 1 else 0 end) as answered, sum(case when status = 'published' then 1 else 0 end) as published")
+            ->where('created_at', '>=', \Carbon\Carbon::now()->subMonths(11)->startOfMonth())
+            ->groupBy('month_year', 'sort_key')
+            ->orderBy('sort_key', 'asc')
+            ->get();
+
+        // Category Specialization Breakdown
+        $categoryBreakdown = \App\Models\Category::whereHas('questions', function ($q) use ($user) {
+            $q->where('assigned_mufti_id', $user->id)->whereNotNull('answer');
+        })->withCount(['questions' => function ($q) use ($user) {
+            $q->where('assigned_mufti_id', $user->id)->whereNotNull('answer');
+        }])->orderByDesc('questions_count')->take(6)->get();
+
+        // Top Most-Read Fatwas by this Scholar
+        $topFatwas = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+            ->where('status', 'published')
+            ->with(['category', 'madhab'])
+            ->orderByDesc('views')
+            ->take(5)
+            ->get();
+
+        // Recent Inquiries Table
+        $recentInquiries = (clone $baseQuery)
+            ->with(['category', 'madhab'])
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('mufti.reports', compact(
+            'dateRange', 'startDate', 'endDate',
+            'totalAssigned', 'totalAnswered', 'totalPublished', 'totalPending',
+            'totalViews', 'totalLikes', 'completionRate', 'avgDays',
+            'monthlyTrends', 'categoryBreakdown', 'topFatwas', 'recentInquiries'
+        ));
+    }
+
+    public function exportReports(Request $request)
+    {
+        $user = Auth::user();
+        $dateRange = $request->get('date_range', 'all');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $query = QuestionAndAnswer::where('assigned_mufti_id', $user->id)->with(['category', 'madhab']);
+
+        if ($dateRange === 'today') {
+            $query->whereDate('created_at', \Carbon\Carbon::today());
+        } elseif ($dateRange === 'this_month') {
+            $query->whereMonth('created_at', \Carbon\Carbon::now()->month)->whereYear('created_at', \Carbon\Carbon::now()->year);
+        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('created_at', [\Carbon\Carbon::parse($startDate)->startOfDay(), \Carbon\Carbon::parse($endDate)->endOfDay()]);
+        }
+
+        $records = $query->latest()->get();
+        $filename = 'scholar-report-' . str_replace(' ', '-', strtolower($user->name)) . '-' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0',
+        ];
+
+        $callback = function () use ($records, $user) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($handle, ['DARUL IFTA KAUZARIYYA — SCHOLAR FATWA DOSSIER']);
+            fputcsv($handle, ['Scholar Name', $user->name]);
+            fputcsv($handle, ['Export Date', date('Y-m-d H:i:s')]);
+            fputcsv($handle, ['Total Records', $records->count()]);
+            fputcsv($handle, []);
+
+            fputcsv($handle, ['Question ID', 'Title', 'Category', 'Madhab', 'Status', 'Views', 'Likes', 'Assigned Date', 'Published Date']);
+
+            foreach ($records as $r) {
+                fputcsv($handle, [
+                    $r->question_id,
+                    $r->title ?: strip_tags(substr($r->body, 0, 70)),
+                    $r->category->name ?? 'General',
+                    $r->madhab->name ?? 'General',
+                    ucfirst($r->status),
+                    $r->views,
+                    $r->likes,
+                    $r->created_at ? $r->created_at->format('Y-m-d H:i') : '',
+                    $r->published_at ? $r->published_at->format('Y-m-d H:i') : '',
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

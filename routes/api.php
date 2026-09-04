@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+// Include Dedicated Mufti Mobile App API Routes
+require __DIR__ . '/mufti_mobile_app_api.php';
+
 // Public: List published fatwas with optional search
 Route::get('/fatwas', function (Request $request) {
     $page = $request->get('page', 1);
@@ -57,7 +60,7 @@ Route::get('/categories', function () {
     return response()->json(['status' => 'success', 'data' => $categories]);
 });
 
-// Public: Get single fatwa (optimized with ID lookup to bypass model binding DB queries)
+// Public: Get single fatwa
 Route::get('/fatwas/{fatwaId}', function ($fatwaId) {
     $fatwa = \Illuminate\Support\Facades\Cache::remember("api_fatwa_{$fatwaId}", 3600, function () use ($fatwaId) {
         $item = \App\Models\Fatwa::find($fatwaId);
@@ -74,7 +77,7 @@ Route::get('/fatwas/{fatwaId}', function ($fatwaId) {
     return response()->json(['status' => 'success', 'data' => $fatwa]);
 });
 
-// Auth: Login
+// Auth: Public Login
 Route::post('/auth/login', function (Request $request) {
     $request->validate(['email' => 'required|email', 'password' => 'required']);
     $user = User::where('email', $request->email)->first();
@@ -82,66 +85,24 @@ Route::post('/auth/login', function (Request $request) {
         return response()->json(['status' => 'error', 'message' => 'Invalid credentials'], 401);
     }
     $token = $user->createToken('api-token')->plainTextToken;
-    return response()->json(['status' => 'success', 'token' => $token, 'user' => $user]);
-});
-
-// Auth: Register
-Route::post('/auth/register', function (Request $request) {
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users',
-        'password' => 'required|min:8',
+    return response()->json([
+        'status' => 'success', 
+        'token'  => $token, 
+        'user'   => [
+            'id'                 => $user->id,
+            'name'               => $user->name,
+            'email'              => $user->email,
+            'mobile'             => $user->mobile,
+            'role'               => $user->role ?? 'mufti',
+            'can_check_approve'  => (bool)($user->can_check_approve ?? false),
+            'avatar'             => $user->avatar ? asset($user->avatar) : null,
+            'country'            => $user->country ?? 'Global Scholar',
+            'is_active'          => (bool)($user->is_active ?? true),
+        ]
     ]);
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-    ]);
-    $user->assignRole('questioner');
-    $token = $user->createToken('api-token')->plainTextToken;
-    return response()->json(['status' => 'success', 'token' => $token, 'user' => $user], 201);
 });
 
 // Protected API routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $request) => $request->user());
-
-    // Submit question via API
-    Route::post('/questions', function (Request $request) {
-        $request->validate([
-            'body' => 'required|min:20',
-            'madhab' => 'required|in:Hanafi,Shafii,Maliki,Hanbali,Other',
-        ]);
-        $question = \App\Models\Question::create([
-            'question_id' => \App\Models\Question::generateQuestionId(),
-            'user_id' => $request->user()->id,
-            'body' => $request->body,
-            'title' => $request->title,
-            'madhab' => $request->madhab,
-            'status' => 'pending',
-        ]);
-        return response()->json(['status' => 'success', 'question_id' => $question->question_id], 201);
-    });
-
-    // List my questions
-    Route::get('/questions', function (Request $request) {
-        $questions = \App\Models\Question::where('user_id', $request->user()->id)->latest()->paginate(20);
-        return response()->json(['status' => 'success', 'data' => $questions]);
-    });
-
-    // Admin (Management) Routes
-    Route::middleware('role:admin')->prefix('admin')->group(function () {
-        Route::get('/pending-call', [\App\Http\Controllers\Api\AdminApiController::class, 'pendingCall']);
-        Route::get('/dashboard-stats', [\App\Http\Controllers\Api\AdminApiController::class, 'dashboardStats']);
-        Route::post('/questions/{question}/accept', [\App\Http\Controllers\Api\AdminApiController::class, 'acceptQuestion']);
-    });
-
-    // Scholar (Mufti) Routes
-    Route::middleware('role:mufti')->prefix('mufti')->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\Api\MuftiApiController::class, 'dashboard']);
-        Route::get('/questions', [\App\Http\Controllers\Api\MuftiApiController::class, 'questions']);
-        Route::get('/questions/{question}', [\App\Http\Controllers\Api\MuftiApiController::class, 'showQuestion']);
-        Route::post('/questions/{question}/answer', [\App\Http\Controllers\Api\MuftiApiController::class, 'submitAnswer']);
-        Route::get('/profile', [\App\Http\Controllers\Api\MuftiApiController::class, 'profile']);
-    });
 });

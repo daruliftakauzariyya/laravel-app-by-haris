@@ -1,169 +1,227 @@
 @extends('layouts.mufti')
 @section('title', 'My Scholarly Work')
-@section('topbar-title', 'Work Repository')
+
 @section('content')
-
-@push('styles')
-<style>
-    .work-tabs { border-bottom: 2px solid #edf2f7; margin-bottom: 28px; }
-    .work-tabs .nav-link {
-        border: none; color: #64748b; font-weight: 600;
-        padding: 12px 24px; border-radius: 0; position: relative; transition: 0.2s;
-    }
-    .work-tabs .nav-link.active { color: #1a7a4a; background: transparent; }
-    .work-tabs .nav-link.active::after {
-        content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
-        height: 2.5px; background: #1a7a4a; border-radius: 2px;
-    }
-    .work-tabs .nav-link:hover { color: #1a7a4a; }
-    .work-tabs .tab-count {
-        font-size: 0.7rem; background: #e2e8f0; color: #64748b;
-        border-radius: 50px; padding: 1px 8px; margin-left: 5px; font-weight: 700;
-    }
-    .work-tabs .nav-link.active .tab-count { background: #d1fae5; color: #1a7a4a; }
-
-    /* Mobile Cards */
-    @media (max-width: 767.98px) {
-        .work-card {
-            background: #fff; border-radius: 14px; padding: 18px; margin-bottom: 14px;
-            border-left: 4px solid #1a7a4a;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .work-card[data-tab="verified"] { border-left-color: #2c5f8a; }
-        .work-card[data-tab="approved"] { border-left-color: #c9a84c; }
-        .work-card-id { font-size: 0.72rem; font-weight: 800; color: #94a3b8; }
-        .work-card-title { font-size: 0.97rem; font-weight: 700; color: #1e293b; margin: 6px 0 4px; }
-        .work-card-meta { font-size: 0.78rem; color: #64748b; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-    }
-</style>
-@endpush
+<!-- Page Header Sub-bar -->
+<section class="border-b border-outline-variant/60 pb-3 flex flex-wrap items-baseline justify-between gap-2">
+    <div>
+        <h1 class="font-headline-lg text-[28px] text-primary tracking-tight font-medium">My Scholarly Work</h1>
+        <p class="font-body-sm text-[13px] text-on-surface-variant mt-0.5">Assigned inquiries, scholarly responses, and verified jurisprudence records.</p>
+    </div>
+    <div class="flex items-center gap-1 text-[12px] font-label-md text-outline">
+        <span class="material-symbols-outlined text-[16px]">folder_special</span>
+        <span>Repository Active</span>
+    </div>
+</section>
 
 {{-- Tab Navigation --}}
-<ul class="nav work-tabs">
-    <li class="nav-item">
-        <a class="nav-link {{ $tab == 'assigned' ? 'active' : '' }}"
-           href="{{ route('mufti.questions', ['tab' => 'assigned']) }}">
-            <i class="bi bi-journal-text me-1"></i>Assigned
-            <span class="tab-count">{{ $counts['assigned'] }}</span>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link {{ $tab == 'verified' ? 'active' : '' }}"
-           href="{{ route('mufti.questions', ['tab' => 'verified']) }}">
-            <i class="bi bi-shield-check me-1"></i>Verified by Me
-            <span class="tab-count">{{ $counts['verified'] }}</span>
-        </a>
-    </li>
-    @if(Auth::user()->can_check_approve)
-    <li class="nav-item">
-        <a class="nav-link {{ $tab == 'approved' ? 'active' : '' }}"
-           href="{{ route('mufti.questions', ['tab' => 'approved']) }}">
-            <i class="bi bi-patch-check me-1"></i>Approved by Me
-            <span class="tab-count">{{ $counts['approved'] }}</span>
-        </a>
-    </li>
-    @endif
-</ul>
+<div class="border-b border-surface-variant/80 flex items-center gap-6 overflow-x-auto text-nowrap">
+    <a href="{{ route('mufti.questions', ['tab' => 'assigned']) }}"
+       class="pb-3 text-[14px] font-medium inline-flex items-center gap-2 transition-all {{ $tab == 'assigned' ? 'text-primary font-bold border-b-2 border-primary' : 'text-on-surface-variant hover:text-primary' }}">
+        <span class="material-symbols-outlined text-[18px]">assignment</span>
+        <span>Assigned Inquiries</span>
+        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $tab == 'assigned' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant' }}">
+            {{ $counts['assigned'] }}
+        </span>
+    </a>
 
-{{-- Desktop Table --}}
-<div class="card border-0 shadow-sm overflow-hidden d-none d-md-block">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 small">
-            <thead class="table-light">
-                <tr>
-                    <th class="ps-3">ID</th>
-                    <th>Questioner</th>
-                    <th>Inquiry</th>
-                    <th>Madhab</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th class="text-end pe-3">Action</th>
+    <a href="{{ route('mufti.questions', ['tab' => 'verified']) }}"
+       class="pb-3 text-[14px] font-medium inline-flex items-center gap-2 transition-all {{ $tab == 'verified' ? 'text-primary font-bold border-b-2 border-primary' : 'text-on-surface-variant hover:text-primary' }}">
+        <span class="material-symbols-outlined text-[18px]">verified_user</span>
+        <span>Verified by Me</span>
+        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $tab == 'verified' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant' }}">
+            {{ $counts['verified'] }}
+        </span>
+    </a>
+
+    @if(Auth::user()->can_check_approve)
+    <a href="{{ route('mufti.questions', ['tab' => 'approved']) }}"
+       class="pb-3 text-[14px] font-medium inline-flex items-center gap-2 transition-all {{ $tab == 'approved' ? 'text-primary font-bold border-b-2 border-primary' : 'text-on-surface-variant hover:text-primary' }}">
+        <span class="material-symbols-outlined text-[18px]">approval_delegation</span>
+        <span>Approved by Me</span>
+        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $tab == 'approved' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant' }}">
+            {{ $counts['approved'] }}
+        </span>
+    </a>
+    @endif
+</div>
+
+{{-- Main Table Container --}}
+<section class="bg-surface-container-lowest border border-outline-variant/80 rounded-lg overflow-hidden shadow-sm">
+    <!-- Mobile Cards View (Visible on Mobile) -->
+    <div class="block md:hidden divide-y divide-surface-variant/60">
+        @forelse($questions as $q)
+        <div class="p-4 flex flex-col gap-2.5">
+            <div class="flex items-center justify-between">
+                <span class="font-mono text-[12px] font-bold text-primary bg-surface-container px-2 py-0.5 rounded border border-outline-variant">
+                    {{ $q->question_id }}
+                </span>
+                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-surface-container border border-outline-variant/60 text-secondary">
+                    {{ $q->madhab?->name ?? 'General' }}
+                </span>
+            </div>
+
+            <div>
+                <h4 class="font-semibold text-on-surface text-[14px] line-clamp-2 mb-1">
+                    {{ $q->title ?: strip_tags(substr($q->body, 0, 70)) }}
+                </h4>
+                <div class="text-[12px] text-on-surface-variant line-clamp-2 mb-1">
+                    {{ strip_tags($q->body) }}
+                </div>
+                <div class="text-[11px] text-outline">
+                    Questioner: <strong class="text-on-surface-variant">{{ $q->user->name }}</strong> ({{ $q->user->country ?? '—' }})
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1 text-[11px] text-on-surface-variant">
+                <span>{{ $q->created_at ? $q->created_at->format('d M Y') : '—' }}</span>
+                @if($q->status === 'assigned')
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        Assigned
+                    </span>
+                @elseif($q->status === 'answered')
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        Answered
+                    </span>
+                @elseif($q->status === 'published')
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Published
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-100 text-stone-700">
+                        {{ ucfirst($q->status) }}
+                    </span>
+                @endif
+            </div>
+
+            <div class="pt-1">
+                @if($tab == 'assigned')
+                    <a href="{{ route('mufti.questions.show', $q) }}" class="w-full py-2 rounded bg-primary text-on-primary text-[13px] font-medium hover:bg-primary/90 transition-all shadow-sm flex items-center justify-center gap-1.5">
+                        <span>{{ ($q->answer || $q->draft_answer) ? 'Continue Draft' : 'Write Fatwa' }}</span>
+                        <span class="material-symbols-outlined text-[15px]">edit_note</span>
+                    </a>
+                @else
+                    <a href="{{ route('mufti.questions.history', $q) }}" class="w-full py-2 rounded bg-surface-container border border-outline-variant text-on-surface text-[13px] font-medium hover:bg-surface-container-high transition-all flex items-center justify-center gap-1.5">
+                        <span>View History</span>
+                        <span class="material-symbols-outlined text-[15px]">history</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+        @empty
+        <div class="p-8 text-center text-on-surface-variant text-[13px]">
+            There are no inquiries in this category repository.
+        </div>
+        @endforelse
+    </div>
+
+    <!-- Desktop Table (Hidden on Mobile) -->
+    <div class="hidden md:block w-full overflow-x-auto">
+        <table class="w-full text-left border-collapse text-[14px]">
+            <thead>
+                <tr class="border-b border-surface-variant bg-surface-container-low text-on-surface-variant font-label-md text-[12px] uppercase tracking-wider">
+                    <th class="py-3 px-6 font-semibold text-left" scope="col">ID</th>
+                    <th class="py-3 px-6 font-semibold text-left" scope="col">Questioner</th>
+                    <th class="py-3 px-6 font-semibold text-left" scope="col">Inquiry Details</th>
+                    <th class="py-3 px-6 font-semibold text-left" scope="col">Madhab</th>
+                    <th class="py-3 px-6 font-semibold text-left" scope="col">Date</th>
+                    <th class="py-3 px-6 font-semibold text-left" scope="col">Status</th>
+                    <th class="py-3 px-6 font-semibold text-right" scope="col">Action</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-surface-variant/50">
                 @forelse($questions as $q)
-                <tr>
-                    <td class="ps-3"><span class="badge bg-light text-dark border fw-monospace">{{ $q->question_id }}</span></td>
-                    <td>
-                        <div class="fw-bold small">{{ $q->user->name }}</div>
-                        <div class="x-small text-muted">{{ $q->user->country ?? '—' }}</div>
+                <tr class="hover:bg-surface-container-low/60 transition-colors">
+                    <td class="py-3 px-6 font-mono text-[13px] font-bold text-primary">
+                        {{ $q->question_id }}
                     </td>
-                    <td>
-                        <div class="fw-bold text-dark small">{{ Str::limit(strip_tags($q->title ?: $q->body), 55) }}</div>
-                        <div class="x-small text-muted">{{ Str::limit(strip_tags($q->body), 80) }}</div>
+                    <td class="py-3 px-6 whitespace-nowrap">
+                        <div class="font-semibold text-on-surface text-[13px]">{{ $q->user->name }}</div>
+                        <div class="text-[11px] text-on-surface-variant">{{ $q->user->country ?? '—' }}</div>
                     </td>
-                    <td><small class="text-muted">{{ $q->madhab?->name ?? '—' }}</small></td>
-                    <td><small class="text-muted">{{ $q->created_at->format('d M Y') }}</small></td>
-                    <td>
-                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2">
-                            {{ ucfirst(str_replace('_', ' ', $q->status)) }}
+                    <td class="py-3 px-6 max-w-sm">
+                        <div class="font-semibold text-on-surface text-[14px] line-clamp-1">
+                            {{ $q->title ?: strip_tags(substr($q->body, 0, 70)) }}
+                        </div>
+                        <div class="text-[12px] text-on-surface-variant line-clamp-1 mt-0.5">
+                            {{ strip_tags($q->body) }}
+                        </div>
+                    </td>
+                    <td class="py-3 px-6 text-[12px] whitespace-nowrap">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container border border-outline-variant/60 text-secondary">
+                            {{ $q->madhab?->name ?? 'General' }}
                         </span>
                     </td>
-                    <td class="text-end pe-3">
+                    <td class="py-3 px-6 text-[12px] text-on-surface-variant whitespace-nowrap">
+                        {{ $q->created_at ? $q->created_at->format('d M Y') : '—' }}
+                    </td>
+                    <td class="py-3 px-6 text-[12px] whitespace-nowrap">
+                        @if($q->status === 'assigned')
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                Assigned
+                            </span>
+                        @elseif($q->status === 'answered')
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                Answered
+                            </span>
+                        @elseif($q->status === 'published')
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                Published
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-stone-100 text-stone-700">
+                                {{ ucfirst($q->status) }}
+                            </span>
+                        @endif
+                    </td>
+                    <td class="py-3 px-6 text-right whitespace-nowrap">
                         @if($tab == 'assigned')
-                            <a href="{{ route('mufti.questions.show', $q) }}" class="btn btn-sm btn-brand px-3">
-                                 {{ ($q->answer || $q->draft_answer) ? 'Edit' : 'Answer' }}
+                            <a href="{{ route('mufti.questions.show', $q) }}" class="inline-flex items-center gap-1 px-3.5 py-1.5 rounded bg-primary text-on-primary text-[12px] font-medium hover:bg-primary/90 transition-all shadow-sm">
+                                <span>{{ ($q->answer || $q->draft_answer) ? 'Continue Draft' : 'Write Fatwa' }}</span>
+                                <span class="material-symbols-outlined text-[14px]">edit_note</span>
                             </a>
                         @else
-                            <a href="{{ route('mufti.questions.history', $q) }}" class="btn btn-sm btn-outline-brand px-3">
-                                <i class="bi bi-clock-history me-1"></i>History
+                            <a href="{{ route('mufti.questions.history', $q) }}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-surface-container border border-outline-variant text-on-surface text-[12px] font-medium hover:bg-surface-container-high transition-all">
+                                <span>History</span>
+                                <span class="material-symbols-outlined text-[14px]">history</span>
                             </a>
                         @endif
                     </td>
                 </tr>
                 @empty
+                <!-- Empty State -->
                 <tr>
-                    <td colspan="7" class="text-center text-muted py-5">
-                        <i class="bi bi-inbox" style="font-size:2rem; opacity:.3;"></i>
-                        <p class="mt-2 mb-0 small">No inquiries in this category.</p>
+                    <td class="py-16 px-6 text-center bg-surface-container-lowest" colspan="7">
+                        <div class="max-w-sm mx-auto flex flex-col items-center justify-center">
+                            <div class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center text-outline mb-3 border border-outline-variant/50">
+                                <span class="material-symbols-outlined text-[28px]">inventory_2</span>
+                            </div>
+                            <h3 class="font-title-md text-[17px] text-primary mb-1 font-semibold">No Inquiries Found</h3>
+                            <p class="font-body-sm text-[13px] text-on-surface-variant leading-relaxed">
+                                There are no inquiries in this category repository.
+                            </p>
+                        </div>
                     </td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-    @if($questions->hasPages())
-    <div class="card-footer bg-white d-flex justify-content-center py-3">
-        {{ $questions->links() }}
-    </div>
-    @endif
-</div>
 
-{{-- Mobile Cards --}}
-<div class="d-md-none">
-    @forelse($questions as $q)
-    <div class="work-card" data-tab="{{ $tab }}">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-            <span class="work-card-id">{{ $q->question_id }}</span>
-            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 x-small">
-                {{ ucfirst(str_replace('_', ' ', $q->status)) }}
-            </span>
+    <!-- Minimal Table Footer & Pagination -->
+    <div class="px-6 py-3 bg-surface-container-low/50 border-t border-surface-variant flex flex-wrap items-center justify-between gap-2 text-[12px] font-label-md text-outline">
+        <div>
+            Showing {{ $questions->firstItem() ?? 0 }} to {{ $questions->lastItem() ?? 0 }} of {{ $questions->total() }} entries
         </div>
-        <div class="work-card-title">{{ Str::limit(strip_tags($q->title ?: $q->body), 70) }}</div>
-        <div class="work-card-meta">
-            <span><i class="bi bi-person me-1"></i>{{ $q->user->name }}</span>
-            <span><i class="bi bi-calendar3 me-1"></i>{{ $q->created_at->format('d M Y') }}</span>
+        <div>
+            {{ $questions->links() }}
         </div>
-        @if($tab == 'assigned')
-            <a href="{{ route('mufti.questions.show', $q) }}" class="btn btn-brand btn-sm w-100">
-                <i class="bi bi-pencil-square me-2"></i>{{ ($q->answer || $q->draft_answer) ? 'Edit Answer' : 'Submit Answer' }}
-            </a>
-        @else
-            <a href="{{ route('mufti.questions.history', $q) }}" class="btn btn-outline-brand btn-sm w-100">
-                <i class="bi bi-clock-history me-2"></i>View History & Add Comment
-            </a>
-        @endif
     </div>
-    @empty
-    <div class="text-center py-5 text-muted">
-        <i class="bi bi-inbox" style="font-size:2.5rem; opacity:.3;"></i>
-        <p class="mt-3 mb-0 small">No inquiries found.</p>
-    </div>
-    @endforelse
-
-    @if($questions->hasPages())
-    <div class="d-flex justify-content-center mt-3">{{ $questions->links() }}</div>
-    @endif
-</div>
-
+</section>
 @endsection

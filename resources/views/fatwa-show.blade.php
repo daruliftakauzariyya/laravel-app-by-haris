@@ -1,20 +1,124 @@
 @extends('layouts.public')
 
-@section('title', $fatwa->question->question_id . ' — Fatwa Detail')
+@php
+    $pageTitle = ($fatwa->title ?: 'Fatwa #' . $fatwa->question_id) . ' | Darul Ifta Kauzariyya';
+    $rawSummary = trim(strip_tags($fatwa->body . ' — ' . $fatwa->answer));
+    $metaDescription = \Illuminate\Support\Str::limit(preg_replace('/\s+/', ' ', $rawSummary), 160);
+    $canonicalUrl = route('fatwa.show', $fatwa);
+    $featuredImg = $fatwa->featured_image ? asset('storage/' . $fatwa->featured_image) : asset('assets/img/slider/center.png');
+
+    // Structured QAPage Schema
+    $qaSchema = [
+        "@context" => "https://schema.org",
+        "@type" => "QAPage",
+        "mainEntity" => [
+            "@type" => "Question",
+            "name" => $fatwa->title ?: 'Islamic Ruling: ' . \Illuminate\Support\Str::limit(strip_tags($fatwa->body), 80),
+            "text" => strip_tags($fatwa->body),
+            "answerCount" => 1,
+            "dateCreated" => $fatwa->created_at ? $fatwa->created_at->toIso8601String() : now()->toIso8601String(),
+            "author" => [
+                "@type" => "Person",
+                "name" => "Anonymous Questioner",
+            ],
+            "acceptedAnswer" => [
+                "@type" => "Answer",
+                "text" => strip_tags($fatwa->answer),
+                "dateCreated" => $fatwa->published_at ? $fatwa->published_at->toIso8601String() : now()->toIso8601String(),
+                "upvoteCount" => (int) $fatwa->likes,
+                "url" => $canonicalUrl,
+                "citation" => $fatwa->references->map(fn($r) => $r->book_name . ($r->arabic_text ? ': ' . strip_tags($r->arabic_text) : ''))->values()->toArray(),
+                "author" => [
+                    "@type" => "Person",
+                    "name" => $fatwa->assignedMufti?->name ?? 'Mufti of Darul Ifta Kauzariyya',
+                    "jobTitle" => "Islamic Jurisconsult / Mufti",
+                    "worksFor" => [
+                        "@type" => "Organization",
+                        "name" => "Darul Ifta Kauzariyya",
+                        "url" => url('/'),
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    // Structured Breadcrumbs Schema
+    $breadcrumbItems = [
+        [
+            "@type" => "ListItem",
+            "position" => 1,
+            "name" => "Home",
+            "item" => route('home'),
+        ],
+        [
+            "@type" => "ListItem",
+            "position" => 2,
+            "name" => "Fatwa Archive",
+            "item" => route('fatwa.archive'),
+        ],
+    ];
+
+    if ($fatwa->category) {
+        $catSlug = $fatwa->category->slug ?: $fatwa->category->id;
+        $breadcrumbItems[] = [
+            "@type" => "ListItem",
+            "position" => 3,
+            "name" => $fatwa->category->name,
+            "item" => route('fatwa.archive', ['category' => $catSlug]),
+        ];
+        $breadcrumbItems[] = [
+            "@type" => "ListItem",
+            "position" => 4,
+            "name" => $fatwa->title ?: 'Fatwa #' . $fatwa->question_id,
+            "item" => $canonicalUrl,
+        ];
+    } else {
+        $breadcrumbItems[] = [
+            "@type" => "ListItem",
+            "position" => 3,
+            "name" => $fatwa->title ?: 'Fatwa #' . $fatwa->question_id,
+            "item" => $canonicalUrl,
+        ];
+    }
+
+    $breadcrumbSchema = [
+        "@context" => "https://schema.org",
+        "@type" => "BreadcrumbList",
+        "itemListElement" => $breadcrumbItems,
+    ];
+@endphp
+
+@section('title', $pageTitle)
+@section('meta_description', $metaDescription)
+@section('canonical_url', $canonicalUrl)
+@section('og_type', 'article')
+@section('og_title', $pageTitle)
+@section('og_image', $featuredImg)
+
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode($qaSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+</script>
+<script type="application/ld+json">
+{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+</script>
+@endpush
 
 @section('content')
     @php
-        $langClass = '';
-        if ($fatwa->question->language == 'Urdu')
-            $langClass = 'gulzar-font ur-text';
-        elseif ($fatwa->question->language == 'Arabic')
-            $langClass = 'alyamama-font ar-text';
-        elseif ($fatwa->question->language == 'Hindi')
-            $langClass = 'inter-font';
-        elseif ($fatwa->question->language == 'Malayalam')
-            $langClass = 'noto-serif-malayalam-font';
-        else
-            $langClass = 'inter-font';
+        $textToCheck = ($fatwa->title ?? '') . ' ' . ($fatwa->body ?? '') . ' ' . ($fatwa->answer ?? '');
+        $isMalayalam = $fatwa->language == 'Malayalam' || preg_match('/[\x{0D00}-\x{0D7F}]/u', $textToCheck);
+        $isArabic = $fatwa->language == 'Arabic' || (!$isMalayalam && preg_match('/[\x{0600}-\x{06FF}]/u', $textToCheck));
+        $isUrdu = $fatwa->language == 'Urdu';
+
+        $langClass = 'inter-font font-eng';
+        if ($isUrdu) {
+            $langClass = 'gulzar-font ur-text font-urdu';
+        } elseif ($isArabic) {
+            $langClass = 'alyamama-font ar-text font-arabic';
+        } elseif ($isMalayalam) {
+            $langClass = 'noto-serif-malayalam-font ml-text font-malayalam';
+        }
     @endphp
 
     <style>
@@ -119,32 +223,73 @@
 
         .block-h {
             font-weight: 800;
-            font-size: 1.15rem;
+            font-size: 1.25rem;
             color: #000;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
             display: block;
             border-left: 4px solid var(--brand-green);
             padding-left: 12px;
         }
 
         .block-text {
-            font-size: 1.05rem;
-            line-height: 1.85;
+            font-size: 1.18rem;
+            line-height: 2.0;
             color: #2d3748;
         }
 
         .block-text p {
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
+        }
+
+        /* Enforce font family & increased size across entire content hierarchy */
+        .block-text.noto-serif-malayalam-font,
+        .block-text.noto-serif-malayalam-font *,
+        .block-text.ml-text,
+        .block-text.ml-text *,
+        .block-text.font-malayalam,
+        .block-text.font-malayalam * {
+            font-family: 'Noto Serif Malayalam', serif !important;
+            font-size: 1.18rem !important;
+            line-height: 2.1 !important;
+        }
+
+        .block-text.ur-text,
+        .block-text.ur-text *,
+        .block-text.font-urdu,
+        .block-text.font-urdu * {
+            font-family: 'Noto Nastaliq Urdu', serif !important;
+            font-size: 1.25rem !important;
+            direction: rtl;
+            text-align: right;
+            line-height: 2.4 !important;
+        }
+
+        .block-text.ar-text,
+        .block-text.ar-text *,
+        .block-text.font-arabic,
+        .block-text.font-arabic * {
+            font-family: 'Noto Naskh Arabic', 'Amiri', serif !important;
+            font-size: 1.28rem !important;
+            direction: rtl;
+            text-align: right;
+            line-height: 2.2 !important;
+        }
+
+        .block-text.inter-font,
+        .block-text.inter-font * {
+            font-family: 'Google Sans Eng', 'Inter', sans-serif !important;
+            font-size: 1.15rem !important;
+            line-height: 1.95 !important;
         }
 
         .arabic-quote {
-            font-family: 'Amiri', 'Alyamama', serif;
-            font-size: 1.5rem;
-            text-align: center;
+            font-family: 'Noto Naskh Arabic', 'Amiri', serif !important;
+            font-size: 1.65rem;
+            text-align: right;
             direction: rtl;
-            margin: 25px 0;
+            margin: 22px 0;
             color: #1a202c;
-            line-height: 2;
+            line-height: 2.2;
         }
 
         /* Sidebar Styles */
@@ -277,12 +422,115 @@
         }
 
         .ref-card {
-            background: #fff;
+            background: #fbfcfd;
             border: 1px solid #e2e8f0;
-            border-left: 4px solid var(--brand-green);
-            padding: 15px;
-            border-radius: 0 8px 8px 0;
-            margin-bottom: 15px;
+            border-left: 5px solid var(--brand-green);
+            padding: 20px 22px;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .ref-card .arabic-text {
+            font-family: 'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif !important;
+            font-size: 1.4rem !important;
+            line-height: 2.2 !important;
+            color: #111827 !important;
+            direction: rtl !important;
+            text-align: right !important;
+            margin-bottom: 12px;
+        }
+
+        .ref-card .arabic-text.gulzar-font,
+        .ref-card .arabic-text.font-urdu {
+            font-family: 'Noto Nastaliq Urdu', 'Gulzar', serif !important;
+            font-size: 1.35rem !important;
+            line-height: 2.5 !important;
+        }
+
+        .ref-card .ref-book-meta {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #4b5563;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .ref-card .ref-book-meta .book-name {
+            font-size: 1.05rem;
+            color: #1f2937;
+        }
+
+        /* Bismillah & Opening Phrase */
+        .arabic-bismillah-box {
+            text-align: right;
+            direction: rtl;
+            margin: 15px 0 25px 0;
+            padding: 10px 0;
+        }
+
+        .arabic-bismillah-box .bismillah-text {
+            font-family: 'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif !important;
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: #1a202c;
+            line-height: 2.1;
+        }
+
+        .arabic-bismillah-box .jawab-text {
+            font-family: 'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif !important;
+            font-size: 1.55rem;
+            font-weight: 600;
+            color: #2d3748;
+            line-height: 2.1;
+        }
+
+        /* Closing Phrase */
+        .arabic-closing-box {
+            text-align: right;
+            direction: rtl;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 20px;
+            margin-top: 30px;
+        }
+
+        .arabic-closing-box .closing-text {
+            font-family: 'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif !important;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #1a202c;
+            line-height: 2.1;
+        }
+        /* Fatwa Tag Pill for @{Question-ID} references */
+        .fatwa-tag-pill {
+            display: inline-flex;
+            align-items: center;
+            background: #ecfdf5;
+            color: #047857 !important;
+            border: 1px solid #a7f3d0;
+            padding: 2px 9px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+            text-decoration: none !important;
+            margin: 0 3px;
+            transition: all 0.2s ease;
+            vertical-align: middle;
+        }
+
+        .fatwa-tag-pill:hover {
+            background: #d1fae5;
+            border-color: #059669;
+            color: #065f46 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+        }
+
+        .fatwa-tag-pill.not-found {
+            background: #f1f5f9;
+            color: #475569 !important;
+            border-color: #cbd5e1;
         }
     </style>
 
@@ -299,10 +547,39 @@
                     @endif
 
                     {{-- 2. Editorial Info --}}
-                    <div class="editorial-meta">
-                        By <b><a href="{{ route('fatwa.mufti.archive', $fatwa->assignedMufti) }}"
-                                class="text-decoration-none text-dark hover-green">{{ $fatwa->assignedMufti->name ?? 'Darul Ifta' }}</a></b>
-                        in <b>{{ $fatwa->category->name ?? 'General' }}</b>
+                    <div class="editorial-meta d-flex align-items-center flex-wrap gap-2">
+                        <span class="text-muted">By</span>
+                        @if($fatwa->assignedMufti)
+                            <a href="{{ route('fatwa.mufti.archive', $fatwa->assignedMufti) }}"
+                               class="text-decoration-none text-dark fw-bold d-inline-flex align-items-center gap-1 hover-green">
+                                @if($fatwa->assignedMufti->avatar)
+                                    <img src="{{ asset($fatwa->assignedMufti->avatar) }}" alt="{{ $fatwa->assignedMufti->name }}"
+                                         class="rounded-circle border border-2 border-white shadow-sm" style="width: 26px; height: 26px; object-fit: cover;">
+                                @else
+                                    <span class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center fw-bold"
+                                          style="width: 26px; height: 26px; font-size: 0.75rem;">
+                                        <i class="bi bi-person-fill"></i>
+                                    </span>
+                                @endif
+                                <span>{{ $fatwa->assignedMufti->name }}</span>
+                                <i class="bi bi-patch-check-fill text-primary" style="font-size: 0.95em;" title="Verified Scholar"></i>
+                            </a>
+                        @else
+                            <b>Darul Ifta Scholars</b>
+                        @endif
+
+                        <span class="text-muted">in</span>
+                        @if($fatwa->category)
+                            @php $catSlug = $fatwa->category->slug ?: $fatwa->category->id; @endphp
+                            <a href="{{ route('fatwa.archive', ['category' => $catSlug]) }}" class="text-decoration-none text-dark fw-bold hover-green">
+                                {{ $fatwa->category->name }}
+                            </a>
+                            <span class="badge bg-light text-muted border rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.75rem;">
+                                {{ number_format($categoryFatwaCount ?? ($fatwa->category->questions()->where('status', 'published')->count() ?? 0)) }} {{ Str::plural('Fatwa', $categoryFatwaCount ?? 1) }}
+                            </span>
+                        @else
+                            <b class="text-dark">General</b>
+                        @endif
                     </div>
 
                     {{-- 3. Header Section --}}
@@ -337,7 +614,7 @@
                         <div class="content-block">
                             <span class="block-h">Question:</span>
                             <div class="block-text {{ $langClass }}">
-                                {!! $fatwa->body !!}
+                                {!! $fatwa->formatted_body !!}
                             </div>
                         </div>
 
@@ -347,13 +624,13 @@
                         <div class="content-block">
                             <span class="block-h">Answer:</span>
 
-                            <div class="arabic-quote" style="text-align: right; direction: rtl;">
-                                بسم الله الرحمن الرحيم <br>
-                                الجواب وبالله التوفيق والنجاح
+                            <div class="arabic-bismillah-box">
+                                <div class="bismillah-text">بسم الله الرحمن الرحيم</div>
+                                <div class="jawab-text">الجواب وبالله التوفيق والنجاح</div>
                             </div>
 
                             <div class="block-text {{ $langClass }}">
-                                {!! $fatwa->answer !!}
+                                {!! $fatwa->formatted_answer !!}
                             </div>
 
                             {{-- Supporting References — BEFORE closing phrase --}}
@@ -361,28 +638,30 @@
                                 <div class="mt-4">
                                     @foreach($fatwa->references as $ref)
                                         <div class="ref-card">
-                                            <div class="arabic-text mb-2 {{ $ref->language == 'Urdu' ? 'gulzar-font' : 'alyamama-font' }}"
-                                                style="font-size: 1.25rem; line-height: 1.8; color: #000;">
+                                            <div class="arabic-text {{ $ref->language == 'Urdu' ? 'gulzar-font font-urdu' : 'alyamama-font font-arabic' }}">
                                                 {{ $ref->arabic_text }}
                                             </div>
-                                            <div class="small text-muted fw-bold"><i
-                                                    class="bi bi-book me-1"></i>{{ $ref->book_name }}</div>
+                                            <div class="ref-book-meta d-flex align-items-center gap-2">
+                                                <i class="bi bi-book text-success"></i>
+                                                <span class="book-name {{ $ref->language == 'Urdu' ? 'gulzar-font font-urdu' : ($ref->language == 'Arabic' ? 'alyamama-font font-arabic' : '') }}">
+                                                    {{ $ref->book_name }}
+                                                </span>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
                             @endif
 
-                            <div class="arabic-quote"
-                                style="text-align: right; direction: rtl; border-top: 1px solid #f1f5f9; padding-top: 15px; margin-top: 25px;">
-                                والله أعلم بالصواب
+                            <div class="arabic-closing-box">
+                                <div class="closing-text">والله أعلم بالصواب</div>
                             </div>
 
                             <div class="mt-3 no-print d-flex align-items-center gap-2">
                                 <button id="likeBtn"
-                                    class="btn {{ $hasLiked ? 'btn-danger' : 'btn-outline-danger' }} px-3 rounded-pill"
-                                    onclick="handleLike({{ $fatwa->id }})" {{ $hasLiked ? 'disabled' : '' }}
-                                    title="{{ $hasLiked ? 'You already liked this!' : 'Like this Fatwa' }}">
-                                    <i class="bi bi-heart-fill me-1"></i>{{ $hasLiked ? 'Liked' : 'Like' }} <span
+                                    class="btn {{ ($hasLiked ?? false) ? 'btn-danger' : 'btn-outline-danger' }} px-3 rounded-pill"
+                                    onclick="handleLike({{ $fatwa->id }})" {{ ($hasLiked ?? false) ? 'disabled' : '' }}
+                                    title="{{ ($hasLiked ?? false) ? 'You already liked this!' : 'Like this Fatwa' }}">
+                                    <i class="bi bi-heart-fill me-1"></i>{{ ($hasLiked ?? false) ? 'Liked' : 'Like' }} <span
                                         id="likeCount" class="badge bg-danger ms-1">{{ $fatwa->likes }}</span>
                                 </button>
                                 <button class="btn btn-outline-secondary px-3 rounded-pill" id="shareBtn"
@@ -449,7 +728,7 @@
                                     <img src="{{ asset($rf->featured_image ?: 'assets/img/placeholder.jpg') }}" alt="Fatwa">
                                 </div>
                                 <div class="recent-info">
-                                    <h6>{{ Str::limit($rf->question->title ?: strip_tags($rf->question->body), 50) }}</h6>
+                                    <h6>{{ Str::limit($rf->title ?: strip_tags($rf->body), 50) }}</h6>
                                     <span class="date">{{ $rf->published_at?->format('M d, Y') }}</span>
                                 </div>
                             </a>
@@ -469,7 +748,7 @@
                                         <img src="{{ asset($rf->featured_image ?: 'assets/img/placeholder.jpg') }}" alt="Fatwa">
                                     </div>
                                     <div class="recent-info">
-                                        <h6>{{ Str::limit($rf->question->title ?: strip_tags($rf->question->body), 50) }}</h6>
+                                        <h6>{{ Str::limit($rf->title ?: strip_tags($rf->body), 50) }}</h6>
                                         <span class="date text-success">Related Question</span>
                                     </div>
                                 </a>
@@ -485,12 +764,13 @@
                         <ul class="cat-list" style="padding-left: 0; list-style: none;">
                             @foreach($allCategories as $cat)
                             @php
-                                $isCurrentOrChildSelected = (request('category') == $cat->id || $cat->children->pluck('id')->contains(request('category')));
+                                $isCurrentOrChildSelected = (request('category') == $cat->slug || request('category') == $cat->id || $cat->children->pluck('slug')->contains(request('category')) || $cat->children->pluck('id')->contains(request('category')));
+                                $catSlug = $cat->slug ?: $cat->id;
                             @endphp
                             <li class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center w-100">
-                                    <a href="{{ route('fatwa.archive', ['category' => $cat->id]) }}" 
-                                       class="flex-grow-1 d-flex justify-content-between align-items-center text-decoration-none {{ request('category') == $cat->id ? 'active text-success fw-bold' : 'text-dark' }}" style="font-weight: 600; font-size: 0.95rem;">
+                                    <a href="{{ route('fatwa.archive', ['category' => $catSlug]) }}" 
+                                       class="flex-grow-1 d-flex justify-content-between align-items-center text-decoration-none {{ (request('category') == $cat->slug || request('category') == $cat->id) ? 'active text-success fw-bold' : 'text-dark' }}" style="font-weight: 600; font-size: 0.95rem;">
                                         <span>
                                             @if($cat->children->isNotEmpty())
                                                 <i class="bi bi-chevron-{{ $isCurrentOrChildSelected ? 'down' : 'right' }} me-1 small text-muted"></i>
@@ -508,9 +788,12 @@
                                 @if($cat->children->isNotEmpty())
                                     <ul class="sub-cat-list ps-3 mt-2 {{ $isCurrentOrChildSelected ? 'd-block' : 'd-none' }}" style="list-style: none; padding-left: 1rem;">
                                         @foreach($cat->children as $child)
+                                        @php
+                                            $childSlug = $child->slug ?: $child->id;
+                                        @endphp
                                         <li class="py-1">
-                                            <a href="{{ route('fatwa.archive', ['category' => $child->id]) }}" 
-                                               class="d-flex justify-content-between align-items-center text-decoration-none {{ request('category') == $child->id ? 'active text-success fw-bold' : 'text-muted' }}" style="font-size: 0.85rem; font-weight: 500;">
+                                            <a href="{{ route('fatwa.archive', ['category' => $childSlug]) }}" 
+                                               class="d-flex justify-content-between align-items-center text-decoration-none {{ (request('category') == $child->slug || request('category') == $child->id) ? 'active text-success fw-bold' : 'text-muted' }}" style="font-size: 0.85rem; font-weight: 500;">
                                                 <span>
                                                     <i class="bi bi-arrow-return-right me-1 text-muted" style="font-size: 0.75rem;"></i>
                                                     {{ $child->name }}

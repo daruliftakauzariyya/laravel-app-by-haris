@@ -24,14 +24,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- SEO Meta Tags -->
+    <title>@yield('title', 'Darul Ifta Portal') — Kauzariyya</title>
+    <meta name="description" content="@yield('meta_description', 'Darul Ifta Kauzariyya is an authoritative Islamic jurisprudence and fatwa archive platform providing authentic scholarly rulings according to the Quran and Sunnah.')">
+    <meta name="keywords" content="@yield('meta_keywords', 'Darul Ifta, Kauzariyya, Islamic Fatwa, Fiqh, Hanafi, Shafi, Islamic Jurisprudence, Ask Mufti, Islamic Rulings, Sharia')">
+    <meta name="author" content="@yield('meta_author', 'Darul Ifta Kauzariyya')">
+    <meta name="robots" content="@yield('meta_robots', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1')">
+    <link rel="canonical" href="@yield('canonical_url', url()->current())">
+
+    <!-- Open Graph (Facebook, WhatsApp, LinkedIn, AI Preview) -->
+    <meta property="og:locale" content="en_US">
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:site_name" content="Darul Ifta Kauzariyya">
+    <meta property="og:title" content="@yield('og_title', View::hasSection('title') ? View::getSection('title') . ' — Kauzariyya' : 'Darul Ifta Portal — Kauzariyya')">
+    <meta property="og:description" content="@yield('meta_description', 'Darul Ifta Kauzariyya is an authoritative Islamic jurisprudence and fatwa archive platform.')">
+    <meta property="og:url" content="@yield('canonical_url', url()->current())">
+    <meta property="og:image" content="@yield('og_image', asset('assets/img/slider/center.png'))">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@DarulIftaKz">
+    <meta name="twitter:title" content="@yield('og_title', View::hasSection('title') ? View::getSection('title') . ' — Kauzariyya' : 'Darul Ifta Portal — Kauzariyya')">
+    <meta name="twitter:description" content="@yield('meta_description', 'Darul Ifta Kauzariyya is an authoritative Islamic jurisprudence and fatwa archive platform.')">
+    <meta name="twitter:image" content="@yield('og_image', asset('assets/img/slider/center.png'))">
+
+    @stack('meta')
+    @stack('schema')
+
     <script type="text/javascript">
         (function (c, l, a, r, i, t, y) {
             c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
             t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
             y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-        })(window, document, "clarity", "script", "w8gk6uy65v");
+        })(window, document, "clarity", "script", "ycju085szi");
     </script>
-    <title>@yield('title', 'Darul Ifta Portal') — Kauzariyya</title>
     
     {{-- High-Priority Preloads --}}
     @if(request()->routeIs('home'))
@@ -43,7 +70,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Amiri:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Scheherazade+New:wght@400;700&family=Gulzar&family=Noto+Naskh+Arabic:wght@400;600;700&family=Noto+Serif+Malayalam:wght@400;600;700&display=swap"
         rel="stylesheet">
     
     {{-- Inline Critical CSS (Variables & Fonts) --}}
@@ -103,15 +130,17 @@
 
         /* Typography Utilities */
         .font-eng       { font-family: 'Google Sans Eng', 'Inter', sans-serif !important; }
-        .font-arabic    { font-family: 'Noto Naskh Arabic', serif !important; direction: rtl; text-align: right; }
-        .font-urdu      { font-family: 'Noto Nastaliq Urdu', serif !important; direction: rtl; text-align: right; }
+        .font-arabic    { font-family: 'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif !important; direction: rtl; text-align: right; }
+        .font-urdu      { font-family: 'Noto Nastaliq Urdu', 'Gulzar', serif !important; direction: rtl; text-align: right; }
         .font-malayalam { font-family: 'Noto Serif Malayalam', serif !important; }
-        .ar-text        { font-family: 'Noto Naskh Arabic', serif !important; direction: rtl; text-align: right; }
-        .ur-text        { font-family: 'Noto Nastaliq Urdu', serif !important; direction: rtl; text-align: right; line-height: 2.2; }
-        .ml-text        { font-family: 'Noto Serif Malayalam', serif !important; }
+        .ar-text        { font-family: 'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif !important; direction: rtl; text-align: right; line-height: 2; }
+        .ur-text        { font-family: 'Noto Nastaliq Urdu', 'Gulzar', serif !important; direction: rtl; text-align: right; line-height: 2.4; }
+        .ml-text        { font-family: 'Noto Serif Malayalam', serif !important; line-height: 1.95; }
         .en-text        { font-family: 'Google Sans Eng', 'Inter', sans-serif !important; }
         .inter-font     { font-family: 'Google Sans Eng', 'Inter', sans-serif !important; }
         .noto-serif-malayalam-font { font-family: 'Noto Serif Malayalam', serif !important; }
+        .alyamama-font  { font-family: 'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif !important; direction: rtl; text-align: right; line-height: 2.1; }
+        .gulzar-font    { font-family: 'Noto Nastaliq Urdu', 'Gulzar', serif !important; direction: rtl; text-align: right; line-height: 2.4; }
         .font-urdu p, .ur-text p  { line-height: 2.4 !important; }
         .font-arabic p, .ar-text p { line-height: 2 !important; }
     </style>

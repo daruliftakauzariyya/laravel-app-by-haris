@@ -14,9 +14,9 @@ body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;padding:20px;}
         <p style="margin:.3rem 0 0;opacity:.8;font-size:.9rem;">Darul Ifta Kauzariyya</p>
     </div>
     <div class="body">
-        <p>Dear <strong>{{ $fatwa->question->user->name }}</strong>,</p>
-        <p>The answer to your question (ID: <strong>{{ $fatwa->question->question_id }}</strong>) has been verified and published.</p>
-        <p><strong>Summary:</strong> {{ $fatwa->muftiAnswer->summary }}</p>
+        <p>Dear <strong>{{ $fatwa->user?->name ?? 'Brother/Sister' }}</strong>,</p>
+        <p>The answer to your question (ID: <strong>{{ $fatwa->question_id }}</strong>) has been verified and published.</p>
+        @if($fatwa->title)<p><strong>Summary:</strong> {{ $fatwa->title }}</p>@endif
         <a href="{{ url('/fatwa-archive/' . $fatwa->id) }}" class="btn">View Full Fatwa →</a>
         <p style="margin-top:20px;color:#888;font-size:.9rem;">Jazakumullahu Khayran for trusting Darul Ifta Kauzariyya.</p>
         <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #e2e8f0; text-align: center;">

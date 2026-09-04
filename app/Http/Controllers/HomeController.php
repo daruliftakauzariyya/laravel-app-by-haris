@@ -80,12 +80,122 @@ class HomeController extends Controller
                 'assignedQuestions as assigned_questions_count',
                 'assignedQuestions as published_fatwas_count' => fn($q) => $q->where('status', 'published')
             ])
-            // Primary:  explicit sort_order (0 = auto, pushed to end of pinned group)
-            // Secondary: most published fatwas first
             ->orderByRaw('CASE WHEN mufti_sort_order = 0 THEN 9999 ELSE mufti_sort_order END ASC')
             ->orderByDesc('published_fatwas_count')
             ->paginate(999);
 
         return view('team', compact('muftis'));
+    }
+
+    /**
+     * Generate dynamic XML Sitemap for Google, Bing, and AI Crawlers supporting all 4 languages
+     * (English, Arabic, Urdu, Malayalam)
+     */
+    public function sitemap()
+    {
+        $fatwas = QuestionAndAnswer::where('status', 'published')
+            ->latest('published_at')
+            ->get(['id', 'title', 'body', 'updated_at', 'published_at']);
+
+        $categories = \App\Models\Category::all(['id', 'slug', 'updated_at']);
+        $muftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->where('is_active', true)->get(['id', 'updated_at']);
+
+        $languages = ['en', 'ar', 'ur', 'ml'];
+
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
+
+        // Helper to output multilingual alternates
+        $addUrl = function($loc, $priority = '0.8', $changefreq = 'weekly', $lastmod = null) use (&$xml, $languages) {
+            $lastmodStr = ($lastmod ?? now())->toAtomString();
+            $xml .= "  <url>\n";
+            $xml .= "    <loc>" . htmlspecialchars($loc) . "</loc>\n";
+            
+            foreach ($languages as $lang) {
+                $separator = (strpos($loc, '?') !== false) ? '&' : '?';
+                $langUrl = $loc . $separator . 'lang=' . $lang;
+                $xml .= '    <xhtml:link rel="alternate" hreflang="' . $lang . '" href="' . htmlspecialchars($langUrl) . '"/>' . "\n";
+            }
+            $xml .= '    <xhtml:link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($loc) . '"/>' . "\n";
+            $xml .= "    <lastmod>{$lastmodStr}</lastmod>\n";
+            $xml .= "    <changefreq>{$changefreq}</changefreq>\n";
+            $xml .= "    <priority>{$priority}</priority>\n";
+            $xml .= "  </url>\n";
+        };
+
+        // 1. Homepage
+        $addUrl(route('home'), '1.0', 'daily', now());
+
+        // 2. Fatwa Archive
+        $addUrl(route('fatwa.archive'), '0.9', 'daily', now());
+
+        // 3. Team & Scholar Directory
+        $addUrl(route('team'), '0.7', 'weekly', now());
+
+        // 4. Contact
+        $addUrl(route('contact'), '0.5', 'monthly', now());
+
+        // 5. Published Fatwas (Scrollable: Question, Answer, References, Mufti Name)
+        foreach ($fatwas as $f) {
+            $lastmod = $f->updated_at ?? $f->published_at ?? now();
+            $addUrl(route('fatwa.show', $f), '0.8', 'weekly', $lastmod);
+        }
+
+        // 6. Categories Archive
+        foreach ($categories as $cat) {
+            $lastmod = $cat->updated_at ?? now();
+            $addUrl(route('fatwa.archive', ['category' => $cat->slug ?: $cat->id]), '0.7', 'weekly', $lastmod);
+        }
+
+        // 7. Muftis Scholarly Portfolios
+        foreach ($muftis as $m) {
+            $lastmod = $m->updated_at ?? now();
+            $addUrl(route('fatwa.mufti.archive', $m->id), '0.7', 'weekly', $lastmod);
+        }
+
+        $xml .= '</urlset>';
+
+        return response($xml, 200, ['Content-Type' => 'application/xml; charset=UTF-8']);
+    }
+
+    /**
+     * AI-Crawler & Search Engine friendly robots.txt
+     */
+    public function robotsTxt()
+    {
+        $sitemapUrl = route('sitemap');
+
+        $content = <<<TXT
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /mufti/
+Disallow: /login
+Disallow: /register
+Disallow: /password/
+
+# AI Crawlers & LLM Indexers Access
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: {$sitemapUrl}
+TXT;
+
+        return response($content, 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
     }
 }

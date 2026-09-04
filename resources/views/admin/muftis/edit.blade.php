@@ -58,7 +58,7 @@
                             <div class="mb-3">
                                 <label class="form-label fw-semibold text-muted small">Select Madhhab(s)</label>
                                 <div class="d-flex flex-wrap gap-3 mt-1">
-                                    @php $selectedMadhabs = old('madhab', $user->madhabs->pluck('id')->toArray()); @endphp
+                                    @php $selectedMadhabs = (array) old('madhab', $user->madhab_id ? [$user->madhab_id] : []); @endphp
                                     @foreach($madhabs as $m)
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="madhab[]" value="{{ $m->id }}" id="madhab_{{ $m->id }}" {{ in_array($m->id, $selectedMadhabs) ? 'checked' : '' }}>

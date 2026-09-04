@@ -24,5 +24,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Your session has expired. Please refresh the page.',
+                    'csrf_error' => true,
+                ], 419);
+            }
+
+            return redirect()->back()->with('error', 'Your session expired or the page timed out. Please try again.');
+        });
     })->create();

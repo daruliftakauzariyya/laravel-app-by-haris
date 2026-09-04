@@ -12,6 +12,19 @@
             <p class="text-muted small">Welcome back to Darul Ifta Kauzariyya</p>
         </div>
 
+        @if(session('error'))
+            <div class="alert alert-danger py-2 px-3 small d-flex align-items-center mb-3">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
+        @if(session('status'))
+            <div class="alert alert-success py-2 px-3 small d-flex align-items-center mb-3">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span>{{ session('status') }}</span>
+            </div>
+        @endif
 
         <form method="POST" action="{{ route('login') }}" id="loginForm">
             @csrf

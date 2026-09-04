@@ -196,6 +196,13 @@ class QuestionAdminController extends Controller
             'question_body'    => ['nullable', 'string'],
         ]);
 
+        $plainAnswer = trim(strip_tags($request->full_answer ?? ''));
+        if (mb_strlen($plainAnswer) < 30) {
+            return back()->withErrors([
+                'full_answer' => 'The answer must contain at least 30 characters before it can be saved/published (currently ' . mb_strlen($plainAnswer) . ' characters).',
+            ])->withInput();
+        }
+
         // Update the question language if provided
         if ($request->filled('language')) {
             $question->update(['language' => $request->language]);
@@ -323,6 +330,12 @@ class QuestionAdminController extends Controller
         // Ensure Question Title is present before publishing
         if (!$question->title || strlen($question->title) > 200) {
             return redirect()->back()->withErrors(['title' => 'A Question Summary (max 200 chars) is mandatory for publishing. Please edit the question details first.']);
+        }
+
+        // Ensure Answer has at least 30 characters before publishing
+        $answerText = trim(strip_tags($question->draft_answer ?? ($question->answer ?? '')));
+        if (mb_strlen($answerText) < 30) {
+            return redirect()->back()->withErrors(['answer' => 'Cannot publish: The fatwa answer must contain at least 30 characters (currently ' . mb_strlen($answerText) . ' characters).']);
         }
 
         $featuredImagePath = null;

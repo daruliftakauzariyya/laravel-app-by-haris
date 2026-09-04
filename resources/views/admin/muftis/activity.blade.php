@@ -28,7 +28,7 @@
                             </div>
                             <div class="d-flex flex-wrap gap-2">
                                 <span class="glass-pill"><i class="bi bi-check2-circle me-1"></i>Active Scholar</span>
-                                <span class="glass-pill"><i class="bi bi-book me-1"></i>{{ count($user->madhab ?? []) }} Madhabs</span>
+                                <span class="glass-pill"><i class="bi bi-book me-1"></i>{{ $user->madhab?->name ? $user->madhab->name . ' Madhab' : 'Islamic Jurisprudence' }}</span>
                                 @if($user->can_check_approve)
                                     <span class="glass-pill gold-border"><i class="bi bi-shield-check me-1"></i>Senior Checker</span>
                                 @endif

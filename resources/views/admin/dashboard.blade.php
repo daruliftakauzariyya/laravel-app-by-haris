@@ -189,6 +189,58 @@
                     </table>
                 </div>
             </div>
+
+            {{-- Published Fatwas Feed --}}
+            <div class="glass-tile overflow-hidden mt-4">
+                <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-white">
+                    <h6 class="fw-800 mb-0"><i class="bi bi-patch-check-fill me-2 text-success"></i>Recently Published Fatwas</h6>
+                    <a href="{{ route('admin.questions.index', ['status' => 'published']) }}" class="btn btn-success btn-sm rounded-pill px-4">See All Published</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr class="x-small fw-800 text-muted uppercase">
+                                <th class="ps-4">Reference</th>
+                                <th>Subject</th>
+                                <th>Category / Madhab</th>
+                                <th class="text-center">Views</th>
+                                <th class="text-end pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($recentPublishedFatwas as $fatwa)
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td class="ps-4">
+                                    <span class="badge bg-light text-dark fw-bold border">ID-{{ $fatwa->question_id }}</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ Str::limit(strip_tags($fatwa->title ?: $fatwa->body), 50) }}</div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark small">{{ $fatwa->category?->name ?? 'General' }}</div>
+                                    <div class="x-small text-muted">{{ $fatwa->madhab?->name ?? 'Common Ground' }}</div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="small fw-semibold text-muted">
+                                        <i class="bi bi-eye me-1"></i>{{ number_format($fatwa->views) }}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a href="{{ route('fatwa.show', $fatwa) }}" target="_blank" class="btn btn-link btn-sm text-success p-0 fw-bold">View Public <i class="bi bi-box-arrow-up-right ms-1"></i></a>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted small">
+                                    <i class="bi bi-journal-x fs-3 d-block mb-2"></i>
+                                    No published fatwas found.
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         {{-- Geo-Context Widget --}}

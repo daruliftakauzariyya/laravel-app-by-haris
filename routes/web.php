@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ImportOldFatwaController;
 use App\Http\Controllers\Admin\MailManagementController;
 use App\Http\Controllers\Admin\QuestionAdminController;
 use App\Http\Controllers\Auth\GoogleController;
@@ -30,6 +31,9 @@ Route::get('/fatwa-archive/{fatwa}', [FatwaController::class, 'show'])->name('fa
 Route::get('/fatwa/madhab', [FatwaController::class, 'madhabArchive'])->name('fatwa.madhab');
 Route::get('/mufti-archive/{user}', [FatwaController::class, 'muftiArchive'])->name('fatwa.mufti.archive');
 Route::post('/fatwa-archive/{fatwa}/like', [FatwaController::class, 'like'])->name('fatwa.like');
+Route::get('/fatwas/mention-search', [FatwaController::class, 'mentionSearch'])->name('fatwa.mention.search');
+Route::get('/sitemap.xml', [HomeController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', [HomeController::class, 'robotsTxt'])->name('robots.txt');
 
 /*
 |--------------------------------------------------------------------------
@@ -95,6 +99,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/visitor-insights', [DashboardController::class, 'visitorInsights'])->name('visitor.insights');
 
+    // Import Old Fatwas
+    Route::get('/fatwas/import-old', [ImportOldFatwaController::class, 'create'])->name('fatwas.import-old');
+    Route::post('/fatwas/import-old', [ImportOldFatwaController::class, 'store'])->name('fatwas.import-old.store');
+    Route::post('/fatwas/quick-create-questioner', [ImportOldFatwaController::class, 'quickCreateQuestioner'])->name('fatwas.quick-create-questioner');
+
     // Questions
     Route::get('/questions', [QuestionAdminController::class, 'index'])->name('questions.index');
     Route::get('/questions/{question}', [QuestionAdminController::class, 'show'])->name('questions.show');
@@ -131,6 +140,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/muftis', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'index'])->name('muftis.index');
     Route::get('/muftis/create', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'create'])->name('muftis.create');
     Route::post('/muftis', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'store'])->name('muftis.store');
+    Route::get('/muftis/{user}', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'show'])->name('muftis.show');
     Route::get('/muftis/{user}/edit', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'edit'])->name('muftis.edit');
     Route::put('/muftis/{user}', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'update'])->name('muftis.update');
     Route::delete('/muftis/{user}', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'destroy'])->name('muftis.destroy');
@@ -138,6 +148,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/muftis/{user}/activity', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'activity'])->name('muftis.activity');
     Route::post('/muftis/{user}/approve-avatar', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'approveAvatar'])->name('muftis.approve-avatar');
     Route::post('/muftis/{user}/reject-avatar', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'rejectAvatar'])->name('muftis.reject-avatar');
+
+    // Reports & Analytics Center
+    Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
 
     // Questioner Management
     Route::get('/questioners', [\App\Http\Controllers\Admin\QuestionerController::class, 'index'])->name('questioners.index');
@@ -182,6 +196,8 @@ Route::middleware(['auth', 'role:mufti'])->prefix('mufti')->name('mufti.')->grou
     Route::post('/questions/{question}/draft', [MuftiController::class, 'saveDraft'])->name('questions.draft');
     Route::get('/profile', [MuftiController::class, 'profile'])->name('profile');
     Route::put('/profile', [MuftiController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/reports', [MuftiController::class, 'reports'])->name('reports');
+    Route::get('/reports/export', [MuftiController::class, 'exportReports'])->name('reports.export');
 
     // New History & Communication Gateway for Muftis
     Route::get('/questions/{question}/history', [QuestionAdminController::class, 'history'])->name('questions.history');

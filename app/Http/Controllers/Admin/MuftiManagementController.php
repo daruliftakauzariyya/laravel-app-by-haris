@@ -75,6 +75,15 @@ class MuftiManagementController extends Controller
         return redirect()->route('admin.muftis.index')->with('success', 'Mufti profile created successfully.');
     }
 
+    /** Display the specified scholar's dashboard/activity */
+    public function show(User $user)
+    {
+        if (!$user->hasRole('mufti')) {
+            abort(404);
+        }
+        return redirect()->route('admin.muftis.activity', $user);
+    }
+
     /** Show the form for editing the specified scholar */
     public function edit(User $user)
     {

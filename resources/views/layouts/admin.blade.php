@@ -29,7 +29,7 @@
             c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
             t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
             y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-        })(window, document, "clarity", "script", "w8gk6uy65v");
+        })(window, document, "clarity", "script", "ycju085szi");
     </script>
     <title>@yield('title', 'Admin') — Darul Ifta Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -287,6 +287,46 @@
             padding: 2px 8px;
             font-size: 0.7rem;
         }
+        
+        /* Submenu styling for premium look */
+        .submenu-nav {
+            background: rgba(0, 0, 0, 0.15);
+            padding-left: 0;
+            list-style: none;
+            border-left: 3px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .submenu-nav .nav-link {
+            padding: 0.55rem 1.25rem 0.55rem 2.5rem !important;
+            font-size: 0.82rem !important;
+            border-left: none !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        .submenu-nav .nav-link i {
+            font-size: 0.95rem !important;
+            width: 18px !important;
+            opacity: 0.6;
+        }
+
+        .submenu-nav .nav-link:hover,
+        .submenu-nav .nav-link.active {
+            color: var(--brand-gold) !important;
+            background: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        .submenu-nav .nav-link.active i {
+            color: var(--brand-gold) !important;
+            opacity: 0.9;
+        }
+
+        .collapse-icon {
+            transition: transform 0.2s ease;
+        }
+
+        .nav-link[aria-expanded="true"] .collapse-icon {
+            transform: rotate(180deg);
+        }
     </style>
     <!-- Cropper.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
@@ -316,29 +356,54 @@
             </a>
 
             <div class="sidebar-section">Questions</div>
-            <a href="{{ route('admin.questions.index') }}"
-                class="nav-link {{ request()->routeIs('admin.questions.index') && !request('status') ? 'active' : '' }}">
-                <i class="bi bi-question-circle"></i> All Questions
+            <a href="#questionsSubmenu" 
+               data-bs-toggle="collapse" 
+               role="button" 
+               aria-expanded="{{ request()->routeIs('admin.questions.index') ? 'true' : 'false' }}" 
+               aria-controls="questionsSubmenu" 
+               class="nav-link d-flex align-items-center justify-content-between {{ request()->routeIs('admin.questions.index') ? 'active' : '' }}">
+                <span class="d-flex align-items-center gap-2">
+                    <i class="bi bi-question-circle"></i> Questions
+                </span>
+                <i class="bi bi-chevron-down small collapse-icon"></i>
             </a>
-            <a href="{{ route('admin.questions.index', ['status' => 'pending']) }}" 
-                class="nav-link {{ request('status') == 'pending' ? 'active' : '' }}">
-                <i class="bi bi-clock-history"></i> Pending (For Review)
-            </a>
-            <a href="{{ route('admin.questions.index', ['status' => 'assigned']) }}" 
-                class="nav-link {{ request('status') == 'assigned' ? 'active' : '' }}">
-                <i class="bi bi-person-check"></i> Assigned to Mufti
-            </a>
-            <a href="{{ route('admin.questions.index', ['status' => 'answered']) }}" 
-                class="nav-link {{ request('status') == 'answered' ? 'active' : '' }}">
-                <i class="bi bi-chat-check"></i> Answered by Mufti
-            </a>
-            <a href="{{ route('admin.questions.index', ['status' => 'published']) }}" 
-                class="nav-link {{ request('status') == 'published' ? 'active' : '' }}">
-                <i class="bi bi-journal-check"></i> Published to Public
-            </a>
-            <a href="{{ route('admin.questions.index', ['status' => 'rejected']) }}" 
-                class="nav-link {{ request('status') == 'rejected' ? 'active' : '' }}">
-                <i class="bi bi-x-circle"></i> Rejected
+            <div class="collapse {{ request()->routeIs('admin.questions.index') ? 'show' : '' }}" id="questionsSubmenu">
+                <div class="submenu-nav d-flex flex-column">
+                    <a href="{{ route('admin.questions.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.questions.index') && !request('status') ? 'active' : '' }}">
+                        <i class="bi bi-question-circle"></i> All Questions
+                    </a>
+                    <a href="{{ route('admin.questions.index', ['status' => 'pending']) }}" 
+                        class="nav-link {{ request('status') == 'pending' ? 'active' : '' }}">
+                        <i class="bi bi-clock-history"></i> Pending (For Review)
+                    </a>
+                    <a href="{{ route('admin.questions.index', ['status' => 'assigned']) }}" 
+                        class="nav-link {{ request('status') == 'assigned' ? 'active' : '' }}">
+                        <i class="bi bi-person-check"></i> Assigned to Mufti
+                    </a>
+                    <a href="{{ route('admin.questions.index', ['status' => 'answered']) }}" 
+                        class="nav-link {{ request('status') == 'answered' ? 'active' : '' }}">
+                        <i class="bi bi-chat-check"></i> Answered by Mufti
+                    </a>
+                    <a href="{{ route('admin.questions.index', ['status' => 'published']) }}" 
+                        class="nav-link {{ request('status') == 'published' ? 'active' : '' }}">
+                        <i class="bi bi-journal-check"></i> Published to Public
+                    </a>
+                    <a href="{{ route('admin.questions.index', ['status' => 'rejected']) }}" 
+                        class="nav-link {{ request('status') == 'rejected' ? 'active' : '' }}">
+                        <i class="bi bi-x-circle"></i> Rejected
+                    </a>
+                    <a href="{{ route('admin.fatwas.import-old') }}" 
+                        class="nav-link {{ request()->routeIs('admin.fatwas.import-old') ? 'active' : '' }}">
+                        <i class="bi bi-cloud-arrow-up-fill text-warning"></i> <strong>+ Import Old Fatwa</strong>
+                    </a>
+                </div>
+            </div>
+
+            <div class="sidebar-section">Intelligence & Reports</div>
+            <a href="{{ route('admin.reports.index') }}"
+                class="nav-link {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-bar-graph"></i> Reports & Analytics
             </a>
 
             <div class="sidebar-section">Settings</div>

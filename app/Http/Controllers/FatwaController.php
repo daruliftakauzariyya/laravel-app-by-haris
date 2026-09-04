@@ -11,6 +11,7 @@ class FatwaController extends Controller
 {
     public function index(Request $request)
     {
+        set_time_limit(300); // 5 min — needed for remote DB connections
         $query = QuestionAndAnswer::with(['category', 'assignedMufti', 'references'])->where('status', 'published');
 
         // Filter by Madhab
@@ -18,12 +19,19 @@ class FatwaController extends Controller
             $query->where('madhab_id', $request->madhab_id);
         }
 
-        // Filter by Category
+        // Filter by Category (Supports slug or numeric ID)
         if ($request->filled('category')) {
-            $catId = $request->category;
-            $childIds = \App\Models\Category::where('parent_id', $catId)->pluck('id')->toArray();
-            $allCatIds = array_merge([$catId], $childIds);
-            $query->whereIn('category_id', $allCatIds);
+            $catParam = $request->category;
+            $category = is_numeric($catParam)
+                ? \App\Models\Category::find($catParam)
+                : \App\Models\Category::where('slug', $catParam)->first();
+
+            if ($category) {
+                $catId = $category->id;
+                $childIds = \App\Models\Category::where('parent_id', $catId)->pluck('id')->toArray();
+                $allCatIds = array_merge([$catId], $childIds);
+                $query->whereIn('category_id', $allCatIds);
+            }
         }
 
         // Universal fatwa search: Question, Answer, Category, References, Madhab
@@ -73,6 +81,7 @@ class FatwaController extends Controller
 
     public function show(QuestionAndAnswer $fatwa)
     {
+        set_time_limit(300); // 5 min — needed for remote DB connections
         $fatwa->load([
             'category', 
             'assignedMufti', 
@@ -129,8 +138,9 @@ class FatwaController extends Controller
         }
 
         $hasLiked = session()->has('liked_fatwa_' . $fatwa->id);
+        $categoryFatwaCount = $fatwa->category_id ? QuestionAndAnswer::where('status', 'published')->where('category_id', $fatwa->category_id)->count() : 0;
 
-        return view('fatwa-show', compact('fatwa', 'relatedFatwas', 'recentFatwas', 'allCategories', 'hasLiked'));
+        return view('fatwa-show', compact('fatwa', 'relatedFatwas', 'recentFatwas', 'allCategories', 'hasLiked', 'categoryFatwaCount'));
     }
 
     public function muftiArchive(User $user)
@@ -244,5 +254,41 @@ class FatwaController extends Controller
             
             return $allCategories;
         });
+    }
+
+    /**
+     * Live search published fatwas for @ mentions and cross-referencing.
+     */
+    public function mentionSearch(Request $request)
+    {
+        $q = trim($request->get('q', ''));
+        
+        $query = QuestionAndAnswer::where('status', 'published');
+
+        if ($q !== '') {
+            $cleanQ = ltrim($q, '@{');
+            $cleanQ = rtrim($cleanQ, '}');
+            $query->where(function ($w) use ($cleanQ) {
+                $w->where('question_id', 'LIKE', "%{$cleanQ}%")
+                  ->orWhere('title', 'LIKE', "%{$cleanQ}%")
+                  ->orWhere('body', 'LIKE', "%{$cleanQ}%");
+            });
+        }
+
+        $fatwas = $query->latest('published_at')
+            ->take(20)
+            ->get(['id', 'question_id', 'title', 'body', 'published_at', 'language'])
+            ->map(function ($f) {
+                $rawTitle = $f->title ?: strip_tags($f->body);
+                return [
+                    'id'             => $f->id,
+                    'question_id'    => $f->question_id,
+                    'title'          => \Illuminate\Support\Str::limit($rawTitle, 80),
+                    'published_date' => $f->published_at ? $f->published_at->format('d M Y') : 'Published',
+                    'tag_code'       => '@{' . $f->question_id . '}',
+                ];
+            });
+
+        return response()->json($fatwas);
     }
 }

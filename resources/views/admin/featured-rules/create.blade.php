@@ -178,7 +178,7 @@ $rule = old();
                 {{-- Checkbox List --}}
                 <div id="fatwa-list" style="max-height:360px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:10px;">
                     @foreach($fatwas as $f)
-                    @php $title = strip_tags($f->question->title ?: $f->question->body); @endphp
+                    @php $title = strip_tags($f->title ?: $f->body); @endphp
                     <label class="fatwa-pick-item d-flex align-items-start gap-3 p-3 border-bottom"
                            style="cursor:pointer; transition:background 0.15s;"
                            data-title="{{ strtolower($title) }} {{ $f->id }}">
@@ -188,9 +188,9 @@ $rule = old();
                         <div>
                             <div class="fw-semibold small" style="color:#1e293b;">{{ Str::limit($title, 80) }}</div>
                             <div class="text-muted" style="font-size:0.72rem;">
-                                ID #{{ $f->id }}
-                                @if($f->question->madhab) · {{ $f->question->madhab?->name }} @endif
-                                @if($f->question->category) · {{ $f->question->category?->name }} @endif
+                                ID #{{ $f->question_id ?? $f->id }}
+                                @if($f->madhab) · {{ $f->madhab?->name }} @endif
+                                @if($f->category) · {{ $f->category?->name }} @endif
                             </div>
                         </div>
                     </label>
