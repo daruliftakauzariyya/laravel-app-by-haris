@@ -292,6 +292,62 @@
             line-height: 2.2;
         }
 
+        /* Typography & Font Stacks */
+        .noto-serif-malayalam-font,
+        .ml-text,
+        .font-malayalam {
+            font-family: 'Noto Serif Malayalam', 'Noto Sans Malayalam', 'Manjari', 'Gayathri', sans-serif !important;
+            font-feature-settings: "kern" 1;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .noto-sans-malayalam-font {
+            font-family: 'Noto Sans Malayalam', 'Noto Serif Malayalam', sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .alyamama-font,
+        .ar-text,
+        .font-arabic {
+            font-family: 'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif !important;
+            direction: rtl;
+            text-align: right;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .gulzar-font,
+        .ur-text,
+        .font-urdu {
+            font-family: 'Noto Nastaliq Urdu', 'Gulzar', serif !important;
+            direction: rtl;
+            text-align: right;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .inter-font,
+        .font-eng {
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header-section h1 {
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.45;
+            letter-spacing: -0.01em;
+            margin-bottom: 18px;
+        }
+
+        .header-section h1.noto-serif-malayalam-font,
+        .header-section h1.ml-text,
+        .header-section h1.font-malayalam {
+            font-size: 1.75rem;
+            line-height: 1.55;
+            font-weight: 700;
+        }
+
         /* Sidebar Styles */
         .sidebar-widget {
             background: #fff;
@@ -321,25 +377,35 @@
 
         .recent-item {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
             text-decoration: none;
             color: inherit;
-            transition: 0.2s;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+
+        .recent-item:last-child {
+            margin-bottom: 0;
         }
 
         .recent-item:hover {
-            opacity: 0.8;
+            transform: translateX(3px);
+            opacity: 0.95;
         }
 
         .recent-thumb {
-            width: 120px;
-            /* Adjusted to look good in sidebar, we'll keep the ratio */
-            height: 72px;
-            border-radius: 6px;
+            width: 82px;
+            height: 64px;
+            border-radius: 8px;
             overflow: hidden;
             flex-shrink: 0;
-            background: #f7fafc;
+            background: #f0f4f8;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
         }
 
         .recent-thumb img {
@@ -348,19 +414,59 @@
             object-fit: cover;
         }
 
-        .recent-info h6 {
-            font-size: 0.9rem;
+        .recent-thumb-fallback {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1d4054 0%, #295A75 100%);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4px;
+            border-radius: 7px;
+        }
+
+        .recent-thumb-fallback i {
+            font-size: 1.15rem;
+            color: #c9a84c;
+            margin-bottom: 2px;
+        }
+
+        .recent-thumb-fallback .thumb-qid {
+            font-size: 0.68rem;
             font-weight: 700;
-            line-height: 1.4;
+            letter-spacing: 0.5px;
+            font-family: 'Inter', sans-serif;
+            opacity: 0.95;
+        }
+
+        .recent-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .recent-info h6 {
+            font-size: 0.94rem;
+            font-weight: 600;
+            line-height: 1.48;
             margin: 0;
-            color: #2d3748;
+            color: #1f2937;
+            font-family: 'Noto Serif Malayalam', 'Noto Sans Malayalam', 'Plus Jakarta Sans', 'Inter', sans-serif;
+            transition: color 0.15s ease;
+        }
+
+        .recent-item:hover .recent-info h6 {
+            color: var(--brand-green);
         }
 
         .recent-info .date {
-            font-size: 0.75rem;
-            color: #a0aec0;
-            margin-top: 5px;
+            font-size: 0.76rem;
+            color: #6b7280;
+            margin-top: 4px;
             display: block;
+            font-weight: 500;
         }
 
         .cat-list {
@@ -725,10 +831,21 @@
                         @foreach($recentFatwas as $rf)
                             <a href="{{ route('fatwa.show', $rf) }}" class="recent-item">
                                 <div class="recent-thumb">
-                                    <img src="{{ asset($rf->featured_image ?: 'assets/img/placeholder.jpg') }}" alt="Fatwa">
+                                    @if($rf->featured_image)
+                                        <img src="{{ asset($rf->featured_image) }}" alt="{{ $rf->title ?: 'Fatwa' }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="recent-thumb-fallback" style="display:none;">
+                                            <i class="bi bi-journal-text"></i>
+                                            <span class="thumb-qid">{{ $rf->question_id }}</span>
+                                        </div>
+                                    @else
+                                        <div class="recent-thumb-fallback">
+                                            <i class="bi bi-journal-text"></i>
+                                            <span class="thumb-qid">{{ $rf->question_id }}</span>
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="recent-info">
-                                    <h6>{{ Str::limit($rf->title ?: strip_tags($rf->body), 50) }}</h6>
+                                    <h6>{{ Str::limit($rf->title ?: strip_tags($rf->body), 55) }}</h6>
                                     <span class="date">{{ $rf->published_at?->format('M d, Y') }}</span>
                                 </div>
                             </a>
@@ -745,10 +862,21 @@
                             @if(!in_array($rf->id, $displayedIds))
                                 <a href="{{ route('fatwa.show', $rf) }}" class="recent-item">
                                     <div class="recent-thumb">
-                                        <img src="{{ asset($rf->featured_image ?: 'assets/img/placeholder.jpg') }}" alt="Fatwa">
+                                        @if($rf->featured_image)
+                                            <img src="{{ asset($rf->featured_image) }}" alt="{{ $rf->title ?: 'Fatwa' }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="recent-thumb-fallback" style="display:none;">
+                                                <i class="bi bi-journal-text"></i>
+                                                <span class="thumb-qid">{{ $rf->question_id }}</span>
+                                            </div>
+                                        @else
+                                            <div class="recent-thumb-fallback">
+                                                <i class="bi bi-journal-text"></i>
+                                                <span class="thumb-qid">{{ $rf->question_id }}</span>
+                                            </div>
+                                        @endif
                                     </div>
                                     <div class="recent-info">
-                                        <h6>{{ Str::limit($rf->title ?: strip_tags($rf->body), 50) }}</h6>
+                                        <h6>{{ Str::limit($rf->title ?: strip_tags($rf->body), 55) }}</h6>
                                         <span class="date text-success">Related Question</span>
                                     </div>
                                 </a>

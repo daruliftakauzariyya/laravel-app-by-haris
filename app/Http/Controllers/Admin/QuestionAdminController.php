@@ -50,6 +50,22 @@ class QuestionAdminController extends Controller
             'statusHistory' => fn($q) => $q->with('actor')->orderBy('created_at', 'desc')
         ]);
 
+        if (Auth::check()) {
+            $adminOpenedKey = 'admin_opened_q_' . $question->id . '_' . Auth::id();
+            if (!session()->has($adminOpenedKey)) {
+                session()->put($adminOpenedKey, true);
+                FatwaActivityLog::log(
+                    $question->id, 'admin_opened',
+                    'Inquiry ' . $question->question_id . ' Opened by Admin ' . Auth::user()->name,
+                    'bi-eye-fill', 'primary',
+                    'Admin ' . Auth::user()->name . ' opened and reviewed inquiry details @ ' . now()->format('Y-m-d H:i:s'),
+                    Auth::id()
+                );
+            }
+        }
+
+        $logs = FatwaActivityLog::getComprehensiveTimeline($question);
+
         $madhab = $question->madhab;
         $isGeneral = !$madhab || in_array(strtolower($madhab->slug), ['general-other', 'common', 'general', 'other']);
 
@@ -59,7 +75,7 @@ class QuestionAdminController extends Controller
         }
         $muftis = $muftisQuery->get();
 
-        return view('admin.questions.show', compact('question', 'muftis'));
+        return view('admin.questions.show', compact('question', 'muftis', 'logs'));
     }
 
     /** Full fatwa history / timeline */
@@ -70,11 +86,7 @@ class QuestionAdminController extends Controller
             'publisher', 'statusHistory.actor'
         ]);
 
-        // DB activity logs
-        $logs = FatwaActivityLog::where('question_id', $question->id)
-            ->with('actor')
-            ->orderBy('created_at')
-            ->get();
+        $logs = FatwaActivityLog::getComprehensiveTimeline($question);
 
         return view('admin.questions.history', compact('question', 'logs'));
     }
@@ -143,9 +155,9 @@ class QuestionAdminController extends Controller
         ]);
 
         FatwaActivityLog::log(
-            $question->id, 'assigned', 'Assigned to Mufti',
+            $question->id, 'assigned', 'Assigned ' . $question->question_id . ' to Mufti ' . $mufti->name,
             'bi-person-check', 'primary',
-            'Assigned to: ' . $mufti->name, Auth::id()
+            'Assigned ' . $question->question_id . ' to Mufti ' . $mufti->name, Auth::id()
         );
 
         QuestionStatusHistory::create([
@@ -154,7 +166,7 @@ class QuestionAdminController extends Controller
             'new_status'             => 'assigned',
             'new_assigned_mufti_id'  => $mufti->id,
             'user_id'                => Auth::id(),
-            'remarks'                => 'Assigned to: ' . $mufti->name,
+            'remarks'                => 'Assigned ' . $question->question_id . ' to Mufti ' . $mufti->name,
         ]);
 
         try {

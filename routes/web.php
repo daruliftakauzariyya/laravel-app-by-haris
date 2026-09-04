@@ -189,8 +189,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 */
 Route::middleware(['auth', 'role:mufti'])->prefix('mufti')->name('mufti.')->group(function () {
     Route::get('/dashboard', [MuftiController::class, 'dashboard'])->name('dashboard');
+    Route::get('/search', [MuftiController::class, 'search'])->name('search');
+    Route::get('/api/search', [MuftiController::class, 'liveSearch'])->name('api.search');
+    Route::get('/fatwas/{question}', [MuftiController::class, 'readFatwa'])->name('fatwa.read');
     Route::get('/questions', [MuftiController::class, 'questions'])->name('questions');
     Route::get('/questions/pending', [MuftiController::class, 'pendingQuestions'])->name('questions.pending');
+    Route::get('/questions/published', [MuftiController::class, 'publishedQuestions'])->name('questions.published');
     Route::get('/questions/{question}', [MuftiController::class, 'showQuestion'])->name('questions.show');
     Route::post('/questions/{question}/answer', [MuftiController::class, 'submitAnswer'])->name('questions.answer');
     Route::post('/questions/{question}/draft', [MuftiController::class, 'saveDraft'])->name('questions.draft');

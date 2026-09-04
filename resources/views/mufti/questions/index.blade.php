@@ -44,6 +44,15 @@
         </span>
     </a>
     @endif
+
+    <a href="{{ route('mufti.questions.published') }}"
+       class="pb-3 text-[14px] font-medium inline-flex items-center gap-2 transition-all {{ request()->routeIs('mufti.questions.published') || $tab == 'published' ? 'text-primary font-bold border-b-2 border-primary' : 'text-on-surface-variant hover:text-primary' }}">
+        <span class="material-symbols-outlined text-[18px]">menu_book</span>
+        <span>Published Fatwas</span>
+        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ request()->routeIs('mufti.questions.published') || $tab == 'published' ? 'bg-emerald-700 text-white' : 'bg-surface-container text-on-surface-variant' }}">
+            {{ $counts['published'] }}
+        </span>
+    </a>
 </div>
 
 {{-- Main Table Container --}}

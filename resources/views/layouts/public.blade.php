@@ -70,7 +70,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Scheherazade+New:wght@400;700&family=Gulzar&family=Noto+Naskh+Arabic:wght@400;600;700&family=Noto+Serif+Malayalam:wght@400;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Scheherazade+New:wght@400;600;700&family=Gulzar&family=Noto+Naskh+Arabic:wght@400;600;700&family=Noto+Serif+Malayalam:wght@400;500;600;700;800&family=Noto+Sans+Malayalam:wght@400;500;600;700;800&family=Manjari:wght@400;700&family=Gayathri:wght@400;700&display=swap"
         rel="stylesheet">
     
     {{-- Inline Critical CSS (Variables & Fonts) --}}
@@ -250,49 +250,162 @@
             color: var(--brand-gold);
         }
 
-        /* Footer Overhaul */
+        /* Modern Deep Dark Footer Styling */
         footer {
-            background: var(--brand-blue-dark);
-            color: rgba(255, 255, 255, .8);
-            padding: 4rem 0 2rem;
-            border-top: 5px solid var(--brand-gold);
-            font-size: 0.9rem;
+            background: linear-gradient(180deg, #09121a 0%, #03060a 100%);
+            color: #94a3b8;
+            padding: 4.5rem 0 2rem;
+            position: relative;
+            font-size: 0.92rem;
+            border-top: 1px solid rgba(201, 168, 76, 0.2);
         }
 
-        footer h5,
-        footer h6 {
-            color: #fff;
-            margin-bottom: 1.5rem;
-            letter-spacing: 0.5px;
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, #c9a84c 20%, #f6e09e 50%, #c9a84c 80%, transparent 100%);
+            box-shadow: 0 0 16px rgba(201, 168, 76, 0.4);
         }
 
-        footer a {
-            color: rgba(255, 255, 255, .7);
+        .footer-title {
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
+            margin-bottom: 1.35rem;
+            position: relative;
+            padding-bottom: 0.6rem;
+            display: inline-block;
+        }
+
+        .footer-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 30px;
+            height: 2.5px;
+            background: linear-gradient(90deg, #c9a84c, #f6e09e);
+            border-radius: 2px;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.65rem;
+        }
+
+        .footer-links a {
+            color: #94a3b8;
             text-decoration: none;
-            transition: var(--transition-base);
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        footer a:hover {
-            color: var(--brand-gold);
-            padding-left: 5px;
+        .footer-links a i {
+            color: #c9a84c;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+            transition: transform 0.25s ease;
+        }
+
+        .footer-links a:hover {
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+
+        .footer-links a:hover i {
+            color: #f6e09e;
+            transform: translateX(2px);
         }
 
         .footer-logo {
-            max-height: 50px;
+            max-height: 88px;
+            width: auto;
             filter: brightness(0) invert(1);
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            transition: transform 0.3s ease;
+        }
+
+        .footer-logo:hover {
+            transform: scale(1.02);
+        }
+
+        .footer-social {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
         }
 
         .footer-social a {
-            font-size: 1.4rem;
-            color: #fff;
-            margin-right: 15px;
-            opacity: 0.8;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
         }
 
         .footer-social a:hover {
-            opacity: 1;
-            color: var(--brand-gold);
+            background: #c9a84c;
+            border-color: #c9a84c;
+            color: #060b10;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 14px rgba(201, 168, 76, 0.35);
+        }
+
+        .footer-contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.85rem;
+            margin-bottom: 0.95rem;
+        }
+
+        .footer-contact-icon {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            border-radius: 8px;
+            background: rgba(201, 168, 76, 0.12);
+            border: 1px solid rgba(201, 168, 76, 0.25);
+            color: #e6c875;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            margin-top: 2px;
+        }
+
+        .footer-contact-item a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-contact-item a:hover {
+            color: #f6e09e;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: 3.5rem;
+            padding-top: 1.5rem;
         }
 
             {
@@ -439,29 +552,49 @@
                         <a href="{{ route('register') }}" class="btn btn-gold btn-sm">Register Free</a>
                     @else
                         <div class="dropdown">
-                            <button class="btn btn-outline-brand btn-sm dropdown-toggle fw-bold" data-bs-toggle="dropdown">
+                            <button class="btn btn-outline-brand btn-sm dropdown-toggle fw-bold d-inline-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false">
                                 @if(Auth::user()->avatar)
-                                    <img src="{{ Auth::user()->avatar }}" class="rounded-circle me-1" width="24" height="24">
+                                    <img src="{{ Auth::user()->avatar }}" class="rounded-circle me-1" width="24" height="24" style="object-fit: cover;">
                                 @else
                                     <i class="bi bi-person-circle me-1 text-brand"></i>
                                 @endif
-                                {{ Auth::user()->name }}
+                                <span>{{ Auth::user()->name }}</span>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 py-2" style="min-width: 230px; border-radius: 12px;">
+                                <li class="px-3 py-2 bg-light border-bottom mb-1">
+                                    <div class="fw-bold text-dark text-truncate">{{ Auth::user()->name }}</div>
+                                    <span class="badge bg-brand-subtle text-brand border border-success-subtle text-capitalize" style="font-size: 0.7rem;">
+                                        <i class="bi bi-person-badge me-1"></i>{{ Auth::user()->role?->name ?? 'User' }}
+                                    </span>
+                                </li>
                                 @if(Auth::user()->hasRole('admin'))
-                                    <li><a class="dropdown-item py-2" href="{{ route('admin.dashboard') }}"><i
-                                                class="bi bi-speedometer2 me-2"></i>Admin Panel</a></li>
+                                    <li>
+                                        <a class="dropdown-item py-2 fw-semibold text-brand" href="{{ route('admin.dashboard') }}">
+                                            <i class="bi bi-speedometer2 me-2"></i>Admin Panel
+                                        </a>
+                                    </li>
                                 @endif
                                 @if(Auth::user()->hasRole('mufti'))
-                                    <li><a class="dropdown-item py-2" href="{{ route('mufti.dashboard') }}"><i
-                                                class="bi bi-person-badge me-2"></i>Mufti Panel</a></li>
+                                    <li>
+                                        <a class="dropdown-item py-2 fw-semibold text-brand" href="{{ route('mufti.dashboard') }}">
+                                            <i class="bi bi-person-workspace me-2"></i>Mufti Portal
+                                        </a>
+                                    </li>
                                 @endif
-                                @if(Auth::user()->hasRole('user'))
-                                    <li><a class="dropdown-item py-2" href="{{ route('user.dashboard') }}"><i
-                                                class="bi bi-grid-fill me-2"></i>My Dashboard</a></li>
+                                @if(Auth::user()->hasRole('user') || Auth::user()->hasRole('questioner') || !in_array(Auth::user()->role?->name, ['admin', 'mufti']))
+                                    <li>
+                                        <a class="dropdown-item py-2 fw-semibold" href="{{ route('user.dashboard') }}">
+                                            <i class="bi bi-grid-fill me-2 text-primary"></i>User Dashboard
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" href="{{ route('question.create') }}">
+                                            <i class="bi bi-pencil-square me-2 text-success"></i>Ask a Question
+                                        </a>
+                                    </li>
                                 @endif
                                 <li>
-                                    <hr class="dropdown-divider">
+                                    <hr class="dropdown-divider my-1">
                                 </li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">
@@ -517,13 +650,14 @@
                         <a href="{{ route('register') }}" class="btn btn-gold py-2">Create Free Profile</a>
                     </div>
                 @else
-                    <div class="d-flex align-items-center gap-3 mb-4 p-2 bg-light rounded-3">
+                    <div class="d-flex align-items-center gap-3 mb-3 p-2 bg-light rounded-3 border">
                         <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=1a7a4a&color=fff' }}"
-                            class="rounded-circle" width="45" height="45">
-                        <div>
-                            <div class="fw-bold">{{ Auth::user()->name }}</div>
-                            <small class="text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Scholar
-                                Panel Access</small>
+                            class="rounded-circle" width="45" height="45" style="object-fit: cover;">
+                        <div class="overflow-hidden">
+                            <div class="fw-bold text-truncate">{{ Auth::user()->name }}</div>
+                            <small class="badge bg-brand-subtle text-brand border border-success-subtle text-capitalize" style="font-size: 0.65rem;">
+                                {{ Auth::user()->role?->name ?? 'User' }}
+                            </small>
                         </div>
                     </div>
                     <div class="d-grid gap-2">
@@ -533,11 +667,17 @@
                         @endif
                         @if(Auth::user()->hasRole('mufti'))
                             <a href="{{ route('mufti.dashboard') }}" class="btn btn-brand btn-sm text-start"><i
-                                    class="bi bi-person-badge me-2"></i>Scholars Portal</a>
+                                    class="bi bi-person-workspace me-2"></i>Mufti Portal</a>
+                        @endif
+                        @if(Auth::user()->hasRole('user') || Auth::user()->hasRole('questioner') || !in_array(Auth::user()->role?->name, ['admin', 'mufti']))
+                            <a href="{{ route('user.dashboard') }}" class="btn btn-brand btn-sm text-start"><i
+                                    class="bi bi-grid-fill me-2"></i>User Dashboard</a>
+                            <a href="{{ route('question.create') }}" class="btn btn-outline-success btn-sm text-start"><i
+                                    class="bi bi-pencil-square me-2"></i>Ask a Question</a>
                         @endif
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button class="btn btn-danger btn-sm text-start w-100 mt-2"><i
+                            <button class="btn btn-outline-danger btn-sm text-start w-100 mt-1"><i
                                     class="bi bi-box-arrow-right me-2"></i>Sign Out</button>
                         </form>
                     </div>
@@ -571,81 +711,85 @@
     {{-- Footer --}}
     <footer class="mt-5">
         <div class="container">
-            <div class="row g-4">
+            <div class="row g-4 justify-content-between">
                 {{-- Column 1: Brand & Mission --}}
                 <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
-                    <img src="{{ asset('assets/logo/logoblueNew.svg') }}" class="footer-logo mb-3" alt="Darul Ifta"
-                        style="filter: brightness(0) invert(1); max-height: 40px;">
-                    <p class="small text-white-50 pe-lg-4">
+                    <img src="{{ asset('assets/logo/logoblueNew.svg') }}" class="footer-logo" alt="Darul Ifta"
+                        style="filter: brightness(0) invert(1); max-height: 88px;">
+                    <p class="small text-white-50 pe-lg-4 lh-lg mt-2 mb-3">
                         Darul Ifta Kauzariyya is dedicated to providing authentic Islamic guidance based on the Quran
                         and Sunnah. Our mission is to illuminate the path of knowledge for the global community.
                     </p>
-                    <div class="footer-social mt-4">
-                        <a href="https://www.youtube.com/@Kauzariyya" target="_blank" rel="noopener noreferrer"><i class="bi bi-youtube"></i></a>
-                        <a href="https://www.instagram.com/kauzariyya" target="_blank" rel="noopener noreferrer"><i class="bi bi-instagram"></i></a>
-                        <a href="https://x.com/kauzariyya" target="_blank" rel="noopener noreferrer"><i class="bi bi-twitter-x"></i></a>
-                        <a href="https://www.linkedin.com/company/kauzariyya/" target="_blank" rel="noopener noreferrer"><i class="bi bi-linkedin"></i></a>
+                    <div class="footer-social mt-3">
+                        <a href="https://www.youtube.com/@Kauzariyya" target="_blank" rel="noopener noreferrer" title="YouTube"><i class="bi bi-youtube"></i></a>
+                        <a href="https://www.instagram.com/kauzariyya" target="_blank" rel="noopener noreferrer" title="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a href="https://x.com/kauzariyya" target="_blank" rel="noopener noreferrer" title="X (Twitter)"><i class="bi bi-twitter-x"></i></a>
+                        <a href="https://www.linkedin.com/company/kauzariyya/" target="_blank" rel="noopener noreferrer" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
                     </div>
                 </div>
 
                 {{-- Column 2: Our Services --}}
-                <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
-                    <h6 class="text-white fw-bold mb-3">Our Services</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{{ route('question.create') }}"><i
-                                    class="bi bi-chevron-right me-2 small"></i>Ask a Fatwa</a></li>
-                        <li class="mb-2"><a href="{{ route('fatwa.archive') }}"><i
-                                    class="bi bi-chevron-right me-2 small"></i>Browse Archive</a></li>
-                        <li class="mb-2"><a href="#"><i class="bi bi-chevron-right me-2 small"></i>Search Madrasas</a>
-                        </li>
-                        <li class="mb-2"><a href="#"><i class="bi bi-chevron-right me-2 small"></i>Scholar Directory</a>
-                        </li>
+                <div class="col-lg-2 col-md-6 col-6 mb-4 mb-lg-0">
+                    <div class="footer-title">Our Services</div>
+                    <ul class="footer-links">
+                        <li><a href="{{ route('question.create') }}"><i class="bi bi-chevron-right"></i>Ask a Fatwa</a></li>
+                        <li><a href="{{ route('fatwa.archive') }}"><i class="bi bi-chevron-right"></i>Browse Archive</a></li>
+                        <li><a href="{{ route('fatwa.archive') }}"><i class="bi bi-chevron-right"></i>Categories</a></li>
+                        <li><a href="{{ route('team') }}"><i class="bi bi-chevron-right"></i>Scholar Directory</a></li>
                     </ul>
                 </div>
 
-                {{-- Column 3: Quick Access --}}
-                <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
-                    <h6 class="text-white fw-bold mb-3">Quick Links</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{{ route('home') }}"><i
-                                    class="bi bi-chevron-right me-2 small"></i>Home</a></li>
-                        <li class="mb-2"><a href="{{ route('contact') }}"><i
-                                    class="bi bi-chevron-right me-2 small"></i>Contact Us</a></li>
-                        <li class="mb-2"><a href="#"><i class="bi bi-chevron-right me-2 small"></i>Privacy Policy</a>
-                        </li>
-                        <li class="mb-2"><a href="#"><i class="bi bi-chevron-right me-2 small"></i>Terms of Use</a></li>
+                {{-- Column 3: Quick Links --}}
+                <div class="col-lg-2 col-md-6 col-6 mb-4 mb-lg-0">
+                    <div class="footer-title">Quick Links</div>
+                    <ul class="footer-links">
+                        <li><a href="{{ route('home') }}"><i class="bi bi-chevron-right"></i>Home</a></li>
+                        <li><a href="{{ route('team') }}"><i class="bi bi-chevron-right"></i>Meet the Muftis</a></li>
+                        <li><a href="{{ route('contact') }}"><i class="bi bi-chevron-right"></i>Contact Us</a></li>
+                        <li><a href="{{ route('login') }}"><i class="bi bi-chevron-right"></i>Portal Login</a></li>
                     </ul>
                 </div>
 
-                {{-- Column 4: Contact & Info --}}
+                {{-- Column 4: Contact Information --}}
                 <div class="col-lg-4 col-md-6">
-                    <h6 class="text-white fw-bold mb-4">Contact Information</h6>
-                    <div class="d-flex align-items-start mb-3">
-                        <i class="bi bi-geo-alt text-gold me-3 mt-1"></i>
-                        <p class="small mb-0 text-white-50">Darul Ifta Kauzariyya, <br>kauzariyya Compound <br>Edathala
-                            North, Aluva, Kerala.</p>
+                    <div class="footer-title">Contact Information</div>
+                    <div class="footer-contact-item">
+                        <div class="footer-contact-icon">
+                            <i class="bi bi-geo-alt"></i>
+                        </div>
+                        <p class="small mb-0 text-white-50">
+                            <strong class="text-white d-block">Darul Ifta Kauzariyya</strong>
+                            Kauzariyya Compound, Edathala North, Aluva, Kerala, India
+                        </p>
                     </div>
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-envelope text-gold me-3"></i>
-                        <p class="small mb-0"><a
-                                href="mailto:darulifta.kauzariyya@gmail.com">darulifta.kauzariyya@gmail.com</a></p>
+                    <div class="footer-contact-item">
+                        <div class="footer-contact-icon">
+                            <i class="bi bi-envelope"></i>
+                        </div>
+                        <p class="small mb-0">
+                            <a href="mailto:darulifta.kauzariyya@gmail.com">darulifta.kauzariyya@gmail.com</a>
+                        </p>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-headset text-gold me-3"></i>
-                        <p class="small mb-0"><a href="tel:+919495666777">+91 9495 666 777</a></p>
+                    <div class="footer-contact-item">
+                        <div class="footer-contact-icon">
+                            <i class="bi bi-headset"></i>
+                        </div>
+                        <p class="small mb-0">
+                            <a href="tel:+919495666777">+91 9495 666 777</a>
+                        </p>
                     </div>
-
                 </div>
             </div>
 
-            <hr class="my-4" style="border-color:rgba(255,255,255,.1)">
-
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-                <p class="text-white-50 small mb-0">&copy; {{ date('Y') }} Darul Ifta Kauzariyya. Designed for
-                    Enlightenment.</p>
-                <div class="small mt-2 mt-md-0">
-                    <span class="text-white-50">This app created & developed by</span> <span
-                        class="text-gold fw-bold">Haris I M</span>
+            <div class="footer-bottom">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+                    <p class="text-white-50 small mb-0">
+                        &copy; {{ date('Y') }} <span class="text-white fw-semibold">Darul Ifta Kauzariyya</span>. Designed for Enlightenment.
+                    </p>
+                    <div class="small">
+                        <span class="text-white-50">App created & developed by</span>
+                        <span class="text-gold fw-bold px-2 py-0.5 rounded" style="background: rgba(201, 168, 76, 0.12); border: 1px solid rgba(201, 168, 76, 0.25);">Haris I M</span>
+                    </div>
                 </div>
             </div>
         </div>

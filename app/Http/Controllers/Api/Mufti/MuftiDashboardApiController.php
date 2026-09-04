@@ -24,8 +24,10 @@ class MuftiDashboardApiController extends Controller
             ->whereIn('status', ['answered', 'approved', 'published'])
             ->count();
 
-        $verifiedCount = QuestionAndAnswer::where('checked_by_mufti_id', $user->id)
-            ->count();
+        $verifiedCount = QuestionAndAnswer::where(function ($q) use ($user) {
+            $q->where('checked_approved_by', $user->id)
+              ->orWhereHas('statusHistory', fn($h) => $h->where('user_id', $user->id)->where('new_status', 'approved'));
+        })->count();
 
         $totalEver = QuestionAndAnswer::where('assigned_mufti_id', $user->id)->count();
         $score = 0;
@@ -61,7 +63,7 @@ class MuftiDashboardApiController extends Controller
                     'id'                => $user->id,
                     'name'              => $user->name,
                     'email'             => $user->email,
-                    'avatar'            => $user->avatar ? asset($user->avatar) : null,
+                    'avatar'            => $user->avatar ? asset(ltrim($user->avatar, '/')) : null,
                     'can_check_approve' => (bool)($user->can_check_approve ?? false),
                     'country'           => $user->country ?? 'Global Scholar',
                 ],

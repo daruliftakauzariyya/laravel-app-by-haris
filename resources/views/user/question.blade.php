@@ -365,7 +365,7 @@
         <div class="related-section">
             <h5 class="related-title">Related Archive Queries</h5>
             @foreach($relatedQuestions as $rq)
-            <a href="{{ route('fatwa.show', $rq->fatwa) }}" class="related-card border-0 shadow-sm">
+            <a href="{{ route('fatwa.show', $rq->id) }}" class="related-card border-0 shadow-sm">
                 <div class="pe-3">
                     <div class="body-text small text-dark mb-0">{{ Str::limit($rq->title ?: $rq->body, 60) }}</div>
                 </div>

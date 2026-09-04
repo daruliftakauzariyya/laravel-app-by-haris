@@ -218,33 +218,49 @@
         @endif
 
         {{-- Fatwa Log History --}}
-        <div class="card border-0 shadow-sm overflow-hidden">
-            <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Fatwa Log History</h6>
-                <span class="badge bg-light text-primary rounded-pill">{{ $question->activityLogs->count() }}</span>
+        @php
+            $displayLogs = isset($logs) && $logs->isNotEmpty() ? $logs->sortByDesc(fn($l) => $l->event_at ?? $l->created_at) : FatwaActivityLog::getComprehensiveTimeline($question)->sortByDesc(fn($l) => $l->event_at ?? $l->created_at);
+        @endphp
+        <div class="card border-0 shadow-sm overflow-hidden mb-4">
+            <div class="card-header bg-white border-0 py-2.5 d-flex justify-content-between align-items-center">
+                <div class="d-flex items-center gap-2">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-clock-history me-1 text-primary"></i>Fatwa Log History</h6>
+                    <span class="badge bg-light text-primary border rounded-pill">{{ $displayLogs->count() }}</span>
+                </div>
+                <a href="{{ route('admin.questions.history', $question) }}" class="btn btn-sm btn-outline-primary py-0 px-2 text-decoration-none d-inline-flex align-items-center" style="font-size: 0.75rem;">
+                    <i class="bi bi-diagram-3 me-1"></i>Full Timeline
+                </a>
             </div>
             <div class="card-body p-0">
-                <div class="timeline-container p-3" style="max-height: 500px; overflow-y: auto;">
+                <div class="timeline-container p-3" style="max-height: 520px; overflow-y: auto;">
                     <ul class="list-unstyled mb-0">
-                        @forelse($question->activityLogs as $log)
-                        <li class="position-relative pb-4 ps-4">
+                        @forelse($displayLogs as $log)
+                        <li class="position-relative pb-3 ps-4 border-bottom border-light mb-2">
                             @if(!$loop->last)
-                            <div class="position-absolute h-100 border-start border-2 border-light" style="left: 0.45rem; top: 1rem;"></div>
+                            <div class="position-absolute h-100 border-start border-2 border-light" style="left: 0.45rem; top: 1.1rem;"></div>
                             @endif
                             <div class="position-absolute rounded-circle bg-{{ $log->color }} d-flex align-items-center justify-content-center shadow-sm"
-                                 style="left: 0; width: 1rem; height: 1rem; top: 0.15rem; z-index: 2;">
-                                <i class="bi {{ $log->icon }} text-white" style="font-size: 0.5rem;"></i>
+                                 style="left: 0; width: 1.1rem; height: 1.1rem; top: 0.15rem; z-index: 2;">
+                                <i class="bi {{ $log->icon }}" style="font-size: 0.55rem; color: #fff;"></i>
                             </div>
                             <div class="small">
-                                <div class="d-flex justify-content-between">
-                                    <span class="fw-bold">{{ $log->event_label }}</span>
-                                    <span class="text-muted x-small ms-2">{{ $log->event_at?->format('M d, H:i') }}</span>
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-1">
+                                    <div class="fw-bold text-dark d-flex align-items-center gap-1.5">
+                                        <span class="badge bg-light text-secondary border px-1.5 py-0.5 rounded text-[10px] fw-bold">#{{ $log->reverse_step_number ?? $loop->iteration }}</span>
+                                        <span>{{ $log->event_label }}</span>
+                                    </div>
+                                    <span class="text-muted x-small ms-auto font-monospace">{{ $log->event_at?->format('M d, H:i') }}</span>
                                 </div>
-                                <p class="text-muted mb-1 x-small line-height-sm mt-1">
-                                    {{ $log->notes ? Str::limit($log->notes, 120) : 'Process event recorded.' }}
+                                <p class="text-muted mb-1 x-small line-height-sm mt-1 bg-light p-1.5 rounded border border-light">
+                                    {{ $log->notes ? Str::limit($log->notes, 160) : 'Process event recorded.' }}
                                 </p>
-                                <div class="x-small text-secondary opacity-75">
-                                    <i class="bi bi-person me-1"></i>{{ $log->actor->name ?? 'System' }}
+                                <div class="d-flex justify-content-between align-items-center x-small text-secondary opacity-75">
+                                    <div>
+                                        <i class="bi bi-person me-1"></i>{{ $log->actor->name ?? ($question->user?->name ?? 'System') }}
+                                    </div>
+                                    <div>
+                                        {{ $log->event_at?->diffForHumans() }}
+                                    </div>
                                 </div>
                             </div>
                         </li>

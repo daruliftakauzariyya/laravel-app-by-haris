@@ -177,8 +177,33 @@
                     </div>
                 </div>
 
-                <!-- Desktop Trailing Session & Realtime Timestamp -->
-                <div class="hidden md:flex flex-wrap items-center gap-2 text-on-surface-variant text-[12px] font-label-md">
+                <!-- Global Fatwa Search Box (Desktop / Tablet) -->
+                <div class="relative flex-1 max-w-sm lg:max-w-md mx-2 hidden sm:block">
+                    <form action="{{ route('mufti.search') }}" method="GET" class="relative m-0" id="globalHeaderSearchForm">
+                        <span class="material-symbols-outlined absolute left-3 top-2 text-[18px] text-outline pointer-events-none">search</span>
+                        <input type="text" 
+                               id="globalFatwaSearchInput" 
+                               name="q" 
+                               value="{{ request('q') }}"
+                               placeholder="Search all fatwas, #ID, kitabs... (Ctrl+K)" 
+                               autocomplete="off"
+                               class="w-full pl-9 pr-12 py-1.5 text-[13px] bg-surface-container border border-outline-variant/70 rounded-full focus:outline-none focus:ring-1 focus:ring-primary focus:bg-white text-on-surface transition-all placeholder:text-outline">
+                        <span class="absolute right-2.5 top-1.5 text-[10px] font-mono bg-surface-container-high px-1.5 py-0.5 rounded text-outline border border-outline-variant/60 hidden md:inline-block pointer-events-none">Ctrl+K</span>
+                    </form>
+
+                    <!-- Live Autocomplete Dropdown -->
+                    <div id="liveSearchResults" class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-outline-variant rounded-xl shadow-2xl z-50 hidden overflow-hidden divide-y divide-surface-variant/60 max-h-96 overflow-y-auto">
+                        <!-- Rendered by liveSearch JS -->
+                    </div>
+                </div>
+
+                <!-- Desktop Trailing Session & Realtime Timestamp + Active Status -->
+                <div class="hidden md:flex flex-wrap items-center gap-2.5 text-on-surface-variant text-[12px] font-label-md">
+                    <div class="flex items-center gap-1 text-emerald-800 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 text-[11px]" title="Jurisconsult Status: Active">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                        <span>Active Jurisconsult</span>
+                    </div>
+                    <span class="text-outline-variant">•</span>
                     <div class="flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container border border-outline-variant/50 text-secondary">
                         <span class="material-symbols-outlined text-[15px]">timer</span>
                         <span id="sessionTimerText">Spent: 0m</span>
@@ -196,15 +221,24 @@
                 </button>
             </div>
 
-            <!-- Lower Header Bar: Desktop Navigation (Visible on lg+) -->
-            <nav class="hidden lg:flex items-center justify-between pt-2.5">
-                <ul class="flex items-center gap-6 list-none m-0 p-0 text-nowrap">
+            <!-- Lower Header Bar: Desktop Navigation (Clean Left-Aligned) -->
+            <nav class="hidden lg:flex items-center justify-start pt-2.5">
+                <ul class="flex items-center gap-6 xl:gap-8 list-none m-0 p-0 text-nowrap">
                     <!-- Dashboard -->
                     <li>
                         <a class="{{ request()->routeIs('mufti.dashboard') ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary font-medium' }} text-[14px] inline-flex items-center gap-1.5 transition-all"
                            href="{{ route('mufti.dashboard') }}">
                             <span class="material-symbols-outlined text-[17px]">dashboard</span>
                             <span>Dashboard</span>
+                        </a>
+                    </li>
+
+                    <!-- Search -->
+                    <li>
+                        <a class="{{ request()->routeIs('mufti.search') ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary font-medium' }} text-[14px] inline-flex items-center gap-1.5"
+                           href="{{ route('mufti.search') }}">
+                            <span class="material-symbols-outlined text-[17px]">search</span>
+                            <span>Search</span>
                         </a>
                     </li>
 
@@ -217,7 +251,7 @@
                             <span class="material-symbols-outlined text-[16px] transition-transform duration-150 group-hover:rotate-180">expand_more</span>
                         </a>
                         <!-- Dropdown Menu -->
-                        <div class="absolute left-0 top-full mt-1 w-48 bg-white border border-outline-variant rounded-lg shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 z-50 py-1.5">
+                        <div class="absolute left-0 top-full mt-1 w-52 bg-white border border-outline-variant rounded-lg shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 z-50 py-1.5">
                             <a class="block px-4 py-2 text-[13px] text-on-surface hover:bg-surface-container hover:text-primary transition-colors duration-150 {{ request('tab') == 'assigned' || (!request('tab') && request()->routeIs('mufti.questions')) ? 'font-bold text-primary bg-surface-container' : '' }}"
                                href="{{ route('mufti.questions', ['tab' => 'assigned']) }}">
                                 Assigned Inquiries
@@ -232,7 +266,22 @@
                                 Approved by Me
                             </a>
                             @endif
+                            <div class="my-1 border-t border-surface-variant/60"></div>
+                            <a class="block px-4 py-2 text-[13px] text-emerald-800 hover:bg-emerald-50 font-medium transition-colors duration-150 {{ request()->routeIs('mufti.questions.published') ? 'font-bold bg-emerald-50' : '' }}"
+                               href="{{ route('mufti.questions.published') }}">
+                                <span class="material-symbols-outlined text-[15px] align-middle mr-1 text-emerald-700">menu_book</span>
+                                Published Fatwas
+                            </a>
                         </div>
+                    </li>
+
+                    <!-- Published (Top-level) -->
+                    <li>
+                        <a class="{{ request()->routeIs('mufti.questions.published') ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary font-medium' }} text-[14px] inline-flex items-center gap-1.5"
+                           href="{{ route('mufti.questions.published') }}">
+                            <span class="material-symbols-outlined text-[17px]">menu_book</span>
+                            <span>Published</span>
+                        </a>
                     </li>
 
                     <!-- Pending Tasks -->
@@ -253,7 +302,7 @@
                         </a>
                     </li>
 
-                    <!-- Reports & Analytics -->
+                    <!-- Reports -->
                     <li>
                         <a class="{{ request()->routeIs('mufti.reports*') ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary font-medium' }} text-[14px] inline-flex items-center gap-1.5"
                            href="{{ route('mufti.reports') }}">
@@ -265,9 +314,10 @@
                     <!-- Public Site -->
                     <li>
                         <a class="text-on-surface-variant hover:text-primary text-[14px] font-medium inline-flex items-center gap-1"
-                           href="{{ route('home') }}" target="_blank">
+                           href="{{ route('home') }}" target="_blank" title="View Public Website">
+                            <span class="material-symbols-outlined text-[16px]">public</span>
                             <span>Public Site</span>
-                            <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                            <span class="material-symbols-outlined text-[12px] text-outline">open_in_new</span>
                         </a>
                     </li>
 
@@ -275,19 +325,13 @@
                     <li>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
-                            <button type="submit" class="text-on-surface-variant hover:text-red-700 text-[14px] font-medium inline-flex items-center gap-1 bg-transparent border-0 p-0 cursor-pointer">
+                            <button type="submit" class="text-on-surface-variant hover:text-red-700 text-[14px] font-medium inline-flex items-center gap-1 bg-transparent border-0 p-0 cursor-pointer" title="Logout from Mufti Panel">
+                                <span class="material-symbols-outlined text-[16px]">logout</span>
                                 <span>Logout</span>
-                                <span class="material-symbols-outlined text-[15px]">logout</span>
                             </button>
                         </form>
                     </li>
                 </ul>
-
-                <!-- Status Pill -->
-                <div class="flex items-center gap-2 text-[12px] font-label-md text-outline">
-                    <span class="flex h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span>
-                    <span>Jurisconsult: <strong class="text-primary">Active</strong></span>
-                </div>
             </nav>
 
             <!-- Mobile Drawer Navigation (Visible on mobile/tablet when toggled) -->
@@ -312,6 +356,18 @@
                     </div>
                 </div>
 
+                <!-- Mobile Global Search Box -->
+                <div class="mb-3">
+                    <form action="{{ route('mufti.search') }}" method="GET" class="relative m-0">
+                        <span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-outline pointer-events-none">search</span>
+                        <input type="text" 
+                               name="q" 
+                               value="{{ request('q') }}"
+                               placeholder="Search all fatwas, #ID, keywords..." 
+                               class="w-full pl-9 pr-3 py-2 text-[13px] bg-surface-container border border-outline-variant rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:bg-white text-on-surface">
+                    </form>
+                </div>
+
                 <ul class="flex flex-col gap-1 list-none m-0 p-0 text-[15px]">
                     <li>
                         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('mufti.dashboard') ? 'bg-primary text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container' }}"
@@ -321,11 +377,31 @@
                         </a>
                     </li>
                     <li>
+                        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg {{ request()->routeIs('mufti.search') ? 'bg-primary text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container' }}"
+                           href="{{ route('mufti.search') }}">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-[20px]">search</span>
+                                <span>Search</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </a>
+                    </li>
+                    <li>
                         <a class="flex items-center justify-between px-3 py-2.5 rounded-lg {{ request()->routeIs('mufti.questions') ? 'bg-primary text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container' }}"
                            href="{{ route('mufti.questions') }}">
                             <div class="flex items-center gap-3">
                                 <span class="material-symbols-outlined text-[20px]">assignment</span>
                                 <span>My Questions</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg {{ request()->routeIs('mufti.questions.published') ? 'bg-primary text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container' }}"
+                           href="{{ route('mufti.questions.published') }}">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-[20px]">menu_book</span>
+                                <span>Published</span>
                             </div>
                             <span class="material-symbols-outlined text-[18px]">chevron_right</span>
                         </a>
@@ -344,24 +420,24 @@
                         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('mufti.profile') ? 'bg-primary text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container' }}"
                            href="{{ route('mufti.profile') }}">
                             <span class="material-symbols-outlined text-[20px]">badge</span>
-                            <span>Profile Settings</span>
+                            <span>Profile</span>
                         </a>
                     </li>
                     <li>
                         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('mufti.reports*') ? 'bg-primary text-on-primary font-bold' : 'text-on-surface hover:bg-surface-container' }}"
                            href="{{ route('mufti.reports') }}">
                             <span class="material-symbols-outlined text-[20px]">bar_chart</span>
-                            <span>Reports & Analytics</span>
+                            <span>Reports</span>
                         </a>
                     </li>
                     <li>
                         <a class="flex items-center justify-between px-3 py-2.5 rounded-lg text-on-surface hover:bg-surface-container"
                            href="{{ route('home') }}" target="_blank">
                             <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-[20px]">open_in_new</span>
-                                <span>Public Website</span>
+                                <span class="material-symbols-outlined text-[20px]">public</span>
+                                <span>Public Site</span>
                             </div>
-                            <span class="material-symbols-outlined text-[16px] text-outline">arrow_outward</span>
+                            <span class="material-symbols-outlined text-[16px] text-outline">open_in_new</span>
                         </a>
                     </li>
                     <li class="pt-2 border-t border-surface-variant/60 mt-1">
@@ -453,6 +529,129 @@
             }
         }
         setInterval(updateLiveClock, 1000);
+
+        // Global Fatwa Search Box & Keyboard Shortcut (Ctrl+K or /)
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                const searchInput = document.getElementById('globalFatwaSearchInput');
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
+        });
+
+        const searchInput = document.getElementById('globalFatwaSearchInput');
+        const resultsBox = document.getElementById('liveSearchResults');
+        let debounceTimer;
+
+        if (searchInput && resultsBox) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const val = this.value.trim();
+
+                if (val.length < 2) {
+                    resultsBox.innerHTML = '';
+                    resultsBox.classList.add('hidden');
+                    return;
+                }
+
+                debounceTimer = setTimeout(() => {
+                    fetch(`{{ route('mufti.api.search') }}?q=${encodeURIComponent(val)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data.results || data.results.length === 0) {
+                                resultsBox.innerHTML = `
+                                    <div class="p-4 text-center text-[12px] text-on-surface-variant">
+                                        No fatwas matched "<strong>${escapeHtml(val)}</strong>".
+                                        <div class="mt-1">
+                                            <a href="{{ route('mufti.search') }}?q=${encodeURIComponent(val)}" class="text-primary hover:underline font-semibold">Open Full Search</a>
+                                        </div>
+                                    </div>
+                                `;
+                                resultsBox.classList.remove('hidden');
+                                return;
+                            }
+
+                            let html = `
+                                <div class="px-3 py-1.5 bg-surface-container-low text-[11px] font-bold uppercase tracking-wider text-outline flex justify-between items-center">
+                                    <span>Live Scholarly Results</span>
+                                    <span>${data.results.length} found</span>
+                                </div>
+                            `;
+
+                            data.results.forEach(item => {
+                                const statusPill = item.status === 'published' 
+                                    ? '<span class="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 text-[10px] font-semibold border border-emerald-200">Published</span>'
+                                    : '<span class="px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 text-[10px] font-semibold border border-amber-200">' + item.status_label + '</span>';
+
+                                html += `
+                                    <a href="${item.read_url}" class="block p-3 hover:bg-surface-container text-left transition-colors duration-100 group">
+                                        <div class="flex items-center justify-between gap-2 mb-0.5">
+                                            <span class="font-mono text-[11px] font-bold text-primary bg-surface-container px-1.5 py-0.2 rounded border border-outline-variant">
+                                                ${escapeHtml(item.question_id)}
+                                            </span>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-[10px] text-secondary font-medium">${escapeHtml(item.madhab)}</span>
+                                                ${statusPill}
+                                            </div>
+                                        </div>
+                                        <div class="font-semibold text-on-surface text-[13px] group-hover:text-primary line-clamp-1">
+                                            ${escapeHtml(item.title)}
+                                        </div>
+                                        <div class="text-[11px] text-on-surface-variant line-clamp-1 mt-0.5">
+                                            ${escapeHtml(item.snippet)}
+                                        </div>
+                                    </a>
+                                `;
+                            });
+
+                            html += `
+                                <div class="p-2 bg-surface-container-low text-center">
+                                    <a href="{{ route('mufti.search') }}?q=${encodeURIComponent(val)}" class="text-[12px] text-primary hover:underline font-bold inline-flex items-center gap-1">
+                                        <span>View all matching fatwas</span>
+                                        <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                    </a>
+                                </div>
+                            `;
+
+                            resultsBox.innerHTML = html;
+                            resultsBox.classList.remove('hidden');
+                        })
+                        .catch(() => {
+                            resultsBox.classList.add('hidden');
+                        });
+                }, 220);
+            });
+
+            // Hide results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+                    resultsBox.classList.add('hidden');
+                }
+            });
+
+            // Re-open if input focused with existing content
+            searchInput.addEventListener('focus', function() {
+                if (this.value.trim().length >= 2 && resultsBox.innerHTML.trim() !== '') {
+                    resultsBox.classList.remove('hidden');
+                }
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
     </script>
     @stack('scripts')
 </body>

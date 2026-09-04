@@ -48,7 +48,7 @@ class MuftiApiController extends Controller
             'data' => [
                 'user' => [
                     'name' => $user->name,
-                    'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+                    'avatar' => $user->avatar ? asset(ltrim($user->avatar, '/')) : null,
                 ],
                 'stats' => [
                     'assigned' => $assignedCount,
@@ -97,6 +97,16 @@ class MuftiApiController extends Controller
         }
 
         $question->load(['user', 'madhab', 'references', 'draftReferences']);
+
+        \App\Models\FatwaActivityLog::log(
+            $question->id,
+            'mufti_opened',
+            'Mufti ' . Auth::user()->name . ' Opened the Fatwa',
+            'bi-eye-fill',
+            'info',
+            'Mufti ' . Auth::user()->name . ' opened the fatwa @ ' . now()->format('Y-m-d H:i:s'),
+            Auth::id()
+        );
 
         return response()->json([
             'status' => 'success',

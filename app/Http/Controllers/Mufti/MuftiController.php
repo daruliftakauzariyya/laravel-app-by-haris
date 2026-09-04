@@ -8,6 +8,8 @@ use App\Models\QuestionAndAnswer;
 use App\Models\Reference;
 use App\Models\FatwaActivityLog;
 use App\Models\User;
+use App\Models\Category;
+use App\Models\Madhab;
 use App\Models\QuestionStatusHistory;
 use App\Traits\HandleAvatars;
 use Illuminate\Http\Request;
@@ -24,12 +26,27 @@ class MuftiController extends Controller
     {
         $user = Auth::user();
         $assigned = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
-                            ->where('status', 'assigned')
+                            ->where('status', '!=', 'published')
                             ->count();
         $answered = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
-                            ->whereNotNull('answer')
+                            ->whereIn('status', ['answered', 'approved', 'published'])
                             ->count();
-        $recent   = QuestionAndAnswer::with('madhab')->where('assigned_mufti_id', $user->id)->latest()->take(5)->get();
+        $publishedCount = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+                            ->where('status', 'published')
+                            ->count();
+
+        // Recent Inquiries: EXCLUDE published fatwas, order: Pending 1st, Opened 2nd, Answered 3rd
+        $recent = QuestionAndAnswer::with(['madhab', 'category', 'statusHistory'])
+            ->where('assigned_mufti_id', $user->id)
+            ->where('status', '!=', 'published')
+            ->orderByRaw("CASE 
+                WHEN status = 'assigned' AND (draft_answer IS NULL OR draft_answer = '') THEN 1 
+                WHEN status = 'assigned' AND (draft_answer IS NOT NULL AND draft_answer != '') THEN 2 
+                WHEN status = 'answered' THEN 3 
+                ELSE 4 END ASC")
+            ->latest('updated_at')
+            ->take(6)
+            ->get();
 
         // Performance Score Calculation
         $totalEver = QuestionAndAnswer::where('assigned_mufti_id', $user->id)->count();
@@ -57,7 +74,7 @@ class MuftiController extends Controller
             $score = min(100, $score);
         }
 
-        return view('mufti.dashboard', compact('assigned', 'answered', 'recent', 'score'));
+        return view('mufti.dashboard', compact('assigned', 'answered', 'publishedCount', 'recent', 'score'));
     }
 
     public function questions(Request $request)
@@ -67,19 +84,30 @@ class MuftiController extends Controller
 
         // Tab counts for the badge pills using statusHistory for verified actions
         $counts = [
-            'assigned' => QuestionAndAnswer::where('assigned_mufti_id', $user->id)->where('status', 'assigned')->count(),
-            'verified' => QuestionAndAnswer::whereHas('statusHistory', fn($h) => $h->where('user_id', $user->id)->where('new_status', 'approved'))->count(),
-            'approved' => QuestionAndAnswer::where('published_by', $user->id)->count(),
+            'assigned'  => QuestionAndAnswer::where('assigned_mufti_id', $user->id)->where('status', '!=', 'published')->count(),
+            'verified'  => QuestionAndAnswer::whereHas('statusHistory', fn($h) => $h->where('user_id', $user->id)->where('new_status', 'approved'))->count(),
+            'approved'  => QuestionAndAnswer::where('published_by', $user->id)->count(),
+            'published' => QuestionAndAnswer::where('assigned_mufti_id', $user->id)->where('status', 'published')->count(),
         ];
 
-        $query = QuestionAndAnswer::with('user', 'category', 'madhab')->latest();
+        $query = QuestionAndAnswer::with('user', 'category', 'madhab');
 
         if ($tab == 'verified') {
-            $query->whereHas('statusHistory', fn($h) => $h->where('user_id', $user->id)->where('new_status', 'approved'));
+            $query->whereHas('statusHistory', fn($h) => $h->where('user_id', $user->id)->where('new_status', 'approved'))->latest();
         } elseif ($tab == 'approved') {
-            $query->where('published_by', $user->id);
+            $query->where('published_by', $user->id)->latest();
+        } elseif ($tab == 'published') {
+            $query->where('assigned_mufti_id', $user->id)->where('status', 'published')->latest('published_at');
         } else {
-            $query->where('assigned_mufti_id', $user->id);
+            // Default active assignments: EXCLUDE published, order by Pending 1st, Opened 2nd, Answered 3rd
+            $query->where('assigned_mufti_id', $user->id)
+                  ->where('status', '!=', 'published')
+                  ->orderByRaw("CASE 
+                      WHEN status = 'assigned' AND (draft_answer IS NULL OR draft_answer = '') THEN 1 
+                      WHEN status = 'assigned' AND (draft_answer IS NOT NULL AND draft_answer != '') THEN 2 
+                      WHEN status = 'answered' THEN 3 
+                      ELSE 4 END ASC")
+                  ->latest('updated_at');
         }
 
         $questions = $query->paginate(20)->withQueryString();
@@ -99,6 +127,47 @@ class MuftiController extends Controller
         return view('mufti.questions.pending', compact('questions'));
     }
 
+    public function publishedQuestions(Request $request)
+    {
+        $user = Auth::user();
+        $search = $request->get('search');
+        $categoryId = $request->get('category_id');
+        $madhabId = $request->get('madhab_id');
+
+        $query = QuestionAndAnswer::with(['user', 'category', 'madhab', 'publisher', 'references'])
+            ->where('assigned_mufti_id', $user->id)
+            ->where('status', 'published');
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('question_id', 'like', "%{$search}%")
+                  ->orWhere('title', 'like', "%{$search}%")
+                  ->orWhere('body', 'like', "%{$search}%")
+                  ->orWhere('answer', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($categoryId)) {
+            $query->where('category_id', $categoryId);
+        }
+
+        if (!empty($madhabId)) {
+            $query->where('madhab_id', $madhabId);
+        }
+
+        $totalPublished = (clone $query)->count();
+        $totalViews = (clone $query)->sum('views');
+        $totalLikes = (clone $query)->sum('likes');
+
+        $questions = $query->latest('published_at')->paginate(15)->withQueryString();
+        $categories = \App\Models\Category::all();
+        $madhabs = \App\Models\Madhab::all();
+
+        return view('mufti.questions.published', compact(
+            'questions', 'totalPublished', 'totalViews', 'totalLikes', 'categories', 'madhabs', 'search', 'categoryId', 'madhabId'
+        ));
+    }
+
     public function showQuestion(QuestionAndAnswer $question)
     {
         abort_unless($question->assigned_mufti_id === Auth::id(), 403);
@@ -106,10 +175,10 @@ class MuftiController extends Controller
         FatwaActivityLog::log(
             $question->id,
             'mufti_opened',
-            'Mufti Opened the Fatwa',
+            'Mufti ' . Auth::user()->name . ' Opened the Fatwa',
             'bi-eye-fill',
             'info',
-            'Mufti opened the fatwa @ ' . now()->format('Y-m-d H:i:s'),
+            'Mufti ' . Auth::user()->name . ' opened the fatwa @ ' . now()->format('Y-m-d H:i:s'),
             Auth::id()
         );
 
@@ -182,11 +251,17 @@ class MuftiController extends Controller
             }
         }
 
+        $plainAnswerText = trim(strip_tags($request->full_answer ?? ''));
+        $charCount = mb_strlen($plainAnswerText);
+        $wordCount = str_word_count($plainAnswerText);
+        $sentenceCount = count(array_filter(preg_split('/[.!?\n]+/u', $plainAnswerText), fn($s) => trim($s) !== ''));
+        $refCount = count(array_filter($request->arabic_text ?? []));
+
         // Log the activity
         FatwaActivityLog::log(
-            $question->id, 'answer_submitted', 'Answer Submitted for Review',
+            $question->id, 'answer_submitted', 'Answer for Fatwa ' . $question->question_id . ' Submitted by Scholar ' . Auth::user()->name,
             'bi-pencil-square', 'info',
-            'Draft completed and submitted to administration by scholar.',
+            'Answer for fatwa ' . $question->question_id . ' submitted for verification by ' . Auth::user()->name . ' @ ' . now()->format('Y-m-d H:i:s') . ' (Letters: ' . number_format($charCount) . ', Words: ' . number_format($wordCount) . ', Sentences: ' . number_format($sentenceCount) . ($refCount > 0 ? ', ' . $refCount . ' references' : '') . ')',
             Auth::id()
         );
 
@@ -195,7 +270,7 @@ class MuftiController extends Controller
             'previous_status'        => $previousStatus,
             'new_status'             => $isPublished ? 'published' : 'answered',
             'user_id'                => Auth::id(),
-            'remarks'                => 'Answer submitted by scholar.',
+            'remarks'                => 'Answer submitted by scholar ' . Auth::user()->name . ' (Letters: ' . number_format($charCount) . ', Words: ' . number_format($wordCount) . ').',
         ]);
 
         // Notify admin
@@ -254,11 +329,17 @@ class MuftiController extends Controller
             }
         }
 
+        $plainDraftText = trim(strip_tags($request->full_answer ?? ''));
+        $draftCharCount = mb_strlen($plainDraftText);
+        $draftWordCount = str_word_count($plainDraftText);
+        $draftSentenceCount = count(array_filter(preg_split('/[.!?\n]+/u', $plainDraftText), fn($s) => trim($s) !== ''));
+        $draftRefCount = count(array_filter($request->arabic_text ?? []));
+
         // Log the activity
         FatwaActivityLog::log(
-            $question->id, 'draft_saved', 'Draft Saved by Scholar',
+            $question->id, 'draft_saved', 'Fatwa Number ' . $question->question_id . ' Draft Saved by Scholar ' . Auth::user()->name,
             'bi-journal-text', 'secondary',
-            'Mufti saved a draft of fatwa ' . $question->question_id . ' @ ' . now()->format('Y-m-d H:i:s'),
+            'Fatwa Number ' . $question->question_id . ' draft saved by scholar ' . Auth::user()->name . ' @ ' . now()->format('Y-m-d H:i:s') . ' (Letters: ' . number_format($draftCharCount) . ', Words: ' . number_format($draftWordCount) . ', Sentences: ' . number_format($draftSentenceCount) . ($draftRefCount > 0 ? ', ' . $draftRefCount . ' references attached' : '') . ')',
             Auth::id()
         );
 
@@ -446,5 +527,143 @@ class MuftiController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Global scholarly search across all platform fatwas.
+     */
+    public function search(Request $request)
+    {
+        $query = trim($request->get('q', ''));
+        $categoryId = $request->get('category_id');
+        $madhabId = $request->get('madhab_id');
+        $status = $request->get('status', 'all');
+        $scope = $request->get('scope', 'all'); // 'all' or 'my'
+        $user = Auth::user();
+
+        $fatwaQuery = QuestionAndAnswer::with(['user', 'category', 'madhab', 'assignedMufti', 'publisher', 'references']);
+
+        if ($scope === 'my') {
+            $fatwaQuery->where('assigned_mufti_id', $user->id);
+        }
+
+        if (!empty($status) && $status !== 'all') {
+            $fatwaQuery->where('status', $status);
+        }
+
+        if (!empty($categoryId)) {
+            $fatwaQuery->where('category_id', $categoryId);
+        }
+
+        if (!empty($madhabId)) {
+            $fatwaQuery->where('madhab_id', $madhabId);
+        }
+
+        if (!empty($query)) {
+            $fatwaQuery->where(function ($q) use ($query) {
+                $q->where('question_id', 'like', "%{$query}%")
+                  ->orWhere('title', 'like', "%{$query}%")
+                  ->orWhere('body', 'like', "%{$query}%")
+                  ->orWhere('answer', 'like', "%{$query}%")
+                  ->orWhere('draft_answer', 'like', "%{$query}%")
+                  ->orWhereHas('references', function ($rq) use ($query) {
+                      $rq->where('book_name', 'like', "%{$query}%")
+                         ->orWhere('arabic_text', 'like', "%{$query}%")
+                         ->orWhere('footnote', 'like', "%{$query}%");
+                  });
+            });
+        }
+
+        $totalFound = (clone $fatwaQuery)->count();
+        $publishedCount = (clone $fatwaQuery)->where('status', 'published')->count();
+        $inProgressCount = (clone $fatwaQuery)->whereIn('status', ['assigned', 'answered'])->count();
+
+        $questions = $fatwaQuery->latest('updated_at')->paginate(15)->withQueryString();
+        $categories = Category::all();
+        $madhabs = Madhab::all();
+
+        return view('mufti.search', compact('questions', 'query', 'categories', 'madhabs', 'status', 'scope', 'categoryId', 'madhabId', 'totalFound', 'publishedCount', 'inProgressCount'));
+    }
+
+    /**
+     * Fast AJAX live autocomplete search for header search box.
+     */
+    public function liveSearch(Request $request)
+    {
+        $query = trim($request->get('q', ''));
+
+        if (empty($query) || strlen($query) < 2) {
+            return response()->json(['results' => []]);
+        }
+
+        $results = QuestionAndAnswer::with(['category', 'madhab', 'assignedMufti'])
+            ->where(function ($q) use ($query) {
+                $q->where('question_id', 'like', "%{$query}%")
+                  ->orWhere('title', 'like', "%{$query}%")
+                  ->orWhere('body', 'like', "%{$query}%")
+                  ->orWhere('answer', 'like', "%{$query}%")
+                  ->orWhereHas('references', function ($rq) use ($query) {
+                      $rq->where('book_name', 'like', "%{$query}%")
+                         ->orWhere('arabic_text', 'like', "%{$query}%");
+                  });
+            })
+            ->latest('updated_at')
+            ->take(8)
+            ->get()
+            ->map(function ($item) {
+                $title = $item->title ?: strip_tags(substr($item->body, 0, 75));
+                $snippet = strip_tags(substr($item->answer ?: $item->body, 0, 110));
+
+                return [
+                    'id' => $item->id,
+                    'question_id' => $item->question_id,
+                    'title' => $title,
+                    'snippet' => $snippet,
+                    'status' => $item->status,
+                    'status_label' => ucfirst($item->status),
+                    'category' => $item->category?->name ?? 'General',
+                    'madhab' => $item->madhab?->name ?? 'General',
+                    'read_url' => route('mufti.fatwa.read', $item),
+                    'workspace_url' => route('mufti.questions.show', $item),
+                ];
+            });
+
+        return response()->json(['results' => $results]);
+    }
+
+    /**
+     * Dedicated Fatwa Reading Page in Mufti Portal Theme.
+     */
+    public function readFatwa(QuestionAndAnswer $question)
+    {
+        $question->load([
+            'user',
+            'category',
+            'madhab',
+            'assignedMufti',
+            'publisher',
+            'approver',
+            'references',
+            'statusHistory.user',
+            'activityLogs.user',
+        ]);
+
+        // Fetch related published scholarly rulings for reference
+        $relatedFatwas = QuestionAndAnswer::with(['category', 'madhab'])
+            ->where('id', '!=', $question->id)
+            ->where('status', 'published')
+            ->where(function ($q) use ($question) {
+                if ($question->category_id) {
+                    $q->where('category_id', $question->category_id);
+                }
+                if ($question->madhab_id) {
+                    $q->orWhere('madhab_id', $question->madhab_id);
+                }
+            })
+            ->latest('published_at')
+            ->take(5)
+            ->get();
+
+        return view('mufti.questions.read', compact('question', 'relatedFatwas'));
     }
 }

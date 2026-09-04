@@ -25,23 +25,28 @@ class MuftiQuestionApiController extends Controller
             'assigned' => QuestionAndAnswer::where('assigned_mufti_id', $user->id)
                 ->where('status', 'assigned')
                 ->count(),
-            'verified' => QuestionAndAnswer::where('checked_by_mufti_id', $user->id)
-                ->count(),
+            'verified' => QuestionAndAnswer::where(function ($q) use ($user) {
+                $q->where('checked_approved_by', $user->id)
+                  ->orWhereHas('statusHistory', fn($h) => $h->where('user_id', $user->id)->where('new_status', 'approved'));
+            })->count(),
             'approved' => QuestionAndAnswer::where(function ($q) use ($user) {
-                $q->where('assigned_mufti_id', $user->id)
-                  ->orWhere('checked_by_mufti_id', $user->id);
+                $q->where('published_by', $user->id)
+                  ->orWhere('checked_approved_by', $user->id);
             })->whereIn('status', ['approved', 'published'])->count(),
         ];
 
         // Base query for current tab
-        $query = QuestionAndAnswer::with(['user', 'category', 'madhab', 'files']);
+        $query = QuestionAndAnswer::with(['user', 'category', 'madhab', 'references']);
 
         if ($tab === 'verified') {
-            $query->where('checked_by_mufti_id', $user->id);
+            $query->where(function ($q) use ($user) {
+                $q->where('checked_approved_by', $user->id)
+                  ->orWhereHas('statusHistory', fn($h) => $h->where('user_id', $user->id)->where('new_status', 'approved'));
+            });
         } elseif ($tab === 'approved') {
             $query->where(function ($q) use ($user) {
-                $q->where('assigned_mufti_id', $user->id)
-                  ->orWhere('checked_by_mufti_id', $user->id);
+                $q->where('published_by', $user->id)
+                  ->orWhere('checked_approved_by', $user->id);
             })->whereIn('status', ['approved', 'published']);
         } else {
             // Default: assigned inquiries
@@ -56,7 +61,6 @@ class MuftiQuestionApiController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('question_id', 'like', "%{$search}%")
                   ->orWhere('title', 'like', "%{$search}%")
-                  ->orWhere('question', 'like', "%{$search}%")
                   ->orWhere('body', 'like', "%{$search}%");
             });
         }
@@ -85,8 +89,20 @@ class MuftiQuestionApiController extends Controller
     public function show($id)
     {
         $user = Auth::user();
-        $question = QuestionAndAnswer::with(['user', 'category', 'madhab', 'files', 'references', 'draftReferences'])
+        $question = QuestionAndAnswer::with(['user', 'category', 'madhab', 'references', 'draftReferences', 'statusHistory'])
             ->findOrFail($id);
+
+        if ($user && $question->assigned_mufti_id === $user->id) {
+            \App\Models\FatwaActivityLog::log(
+                $question->id,
+                'mufti_opened',
+                'Mufti ' . $user->name . ' Opened the Fatwa',
+                'bi-eye-fill',
+                'info',
+                'Mufti ' . $user->name . ' opened the fatwa @ ' . now()->format('Y-m-d H:i:s'),
+                $user->id
+            );
+        }
 
         return response()->json([
             'status' => 'success',
@@ -112,7 +128,6 @@ class MuftiQuestionApiController extends Controller
             'title'        => $request->summary,
             'draft_answer' => $request->full_answer,
             'status'       => 'answered',
-            'answered_at'  => now(),
         ]);
 
         // Sync references
@@ -124,7 +139,6 @@ class MuftiQuestionApiController extends Controller
                         $question->draftReferences()->create([
                             'arabic_text' => $ref['arabic_text'],
                             'book_name'   => $ref['book_name'] ?? '',
-                            'page_info'   => $ref['page_info'] ?? '',
                             'language'    => $ref['language'] ?? 'Arabic',
                             'sort_order'  => $index,
                             'is_draft'    => true,
@@ -137,7 +151,7 @@ class MuftiQuestionApiController extends Controller
         return response()->json([
             'status'  => 'success',
             'message' => 'Scholarly ruling submitted successfully for institutional verification.',
-            'data'    => $question->fresh(['draftReferences']),
+            'data'    => $question->fresh(['draftReferences', 'references']),
         ]);
     }
 
@@ -160,7 +174,6 @@ class MuftiQuestionApiController extends Controller
                     $question->draftReferences()->create([
                         'arabic_text' => $ref['arabic_text'],
                         'book_name'   => $ref['book_name'] ?? '',
-                        'page_info'   => $ref['page_info'] ?? '',
                         'language'    => $ref['language'] ?? 'Arabic',
                         'sort_order'  => $index,
                         'is_draft'    => true,

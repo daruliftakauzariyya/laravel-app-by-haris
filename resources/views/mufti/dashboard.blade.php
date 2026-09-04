@@ -85,12 +85,12 @@
     <!-- Section Header -->
     <div class="px-6 py-4 border-b border-surface-variant/80 flex flex-wrap items-baseline justify-between gap-2">
         <div>
-            <h2 class="font-headline-sm text-[18px] text-primary font-semibold">Recent Scholarly Assignments</h2>
-            <p class="font-body-sm text-[13px] text-on-surface-variant">Your latest {{ count($recent) }} assigned inquiries</p>
+            <h2 class="font-headline-sm text-[18px] text-primary font-semibold">Recent Inquiries (Active)</h2>
+            <p class="font-body-sm text-[13px] text-on-surface-variant">Active inquiries prioritized by Pending 1st, Opened 2nd, and Answered 3rd (no published fatwas)</p>
         </div>
         <div class="flex items-center gap-1.5 text-label-md text-[13px] text-outline">
             <span class="material-symbols-outlined text-[16px]">folder_open</span>
-            <span>Dossier Archive: {{ count($recent) }} inquiries</span>
+            <span>Active Queue: {{ count($recent) }} inquiries</span>
         </div>
     </div>
 
@@ -118,20 +118,20 @@
 
             <div class="flex items-center justify-between pt-1 text-[11px] text-on-surface-variant">
                 <span>{{ $q->created_at ? $q->created_at->format('d M Y') : '—' }}</span>
-                @if($q->status === 'assigned')
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                @if($q->status === 'assigned' && empty($q->draft_answer))
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200" title="Priority 1: Pending">
                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        Assigned
+                        1. Pending
+                    </span>
+                @elseif($q->status === 'assigned' && !empty($q->draft_answer))
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-800 border border-sky-200" title="Priority 2: Opened / In Draft">
+                        <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                        2. Opened
                     </span>
                 @elseif($q->status === 'answered')
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-800 border border-blue-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        Answered
-                    </span>
-                @elseif($q->status === 'published')
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        Published
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200" title="Priority 3: Answered">
+                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                        3. Answered
                     </span>
                 @else
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-100 text-stone-700">
@@ -149,7 +149,7 @@
         </div>
         @empty
         <div class="p-8 text-center text-on-surface-variant text-[13px]">
-            No inquiries assigned to your profile yet.
+            No pending or active inquiries assigned to your profile.
         </div>
         @endforelse
     </div>
@@ -163,7 +163,7 @@
                     <th class="py-3 px-6 font-semibold text-left" scope="col">Inquiry Details</th>
                     <th class="py-3 px-6 font-semibold text-left" scope="col">Madhab</th>
                     <th class="py-3 px-6 font-semibold text-left" scope="col">Date</th>
-                    <th class="py-3 px-6 font-semibold text-left" scope="col">Status</th>
+                    <th class="py-3 px-6 font-semibold text-left" scope="col">Status (Priority)</th>
                     <th class="py-3 px-6 font-semibold text-right" scope="col">Action</th>
                 </tr>
             </thead>
@@ -190,20 +190,20 @@
                         {{ $q->created_at ? $q->created_at->format('d M Y') : '—' }}
                     </td>
                     <td class="py-3 px-6 text-[12px] whitespace-nowrap">
-                        @if($q->status === 'assigned')
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                        @if($q->status === 'assigned' && empty($q->draft_answer))
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                Assigned
+                                1. Pending
+                            </span>
+                        @elseif($q->status === 'assigned' && !empty($q->draft_answer))
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-800 border border-sky-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                                2. Opened (Draft)
                             </span>
                         @elseif($q->status === 'answered')
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-800 border border-blue-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                Answered
-                            </span>
-                        @elseif($q->status === 'published')
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                Published
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                                3. Answered
                             </span>
                         @else
                             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-stone-100 text-stone-700">
@@ -226,14 +226,15 @@
                             <div class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center text-outline mb-3 border border-outline-variant/50">
                                 <span class="material-symbols-outlined text-[28px]">move_to_inbox</span>
                             </div>
-                            <h3 class="font-title-md text-[17px] text-primary mb-1 font-semibold">No Inquiries Available</h3>
+                            <h3 class="font-title-md text-[17px] text-primary mb-1 font-semibold">No Active Inquiries Available</h3>
                             <p class="font-body-sm text-[13px] text-on-surface-variant leading-relaxed">
-                                No inquiries assigned to your profile yet.
+                                You have no pending, opened, or answered fatwas currently in the active queue. All your resolved fatwas can be viewed under Published Fatwas.
                             </p>
                             <div class="mt-4 flex items-center gap-2 text-[11px] font-label-sm text-outline">
-                                <span class="w-6 h-[1px] bg-outline-variant"></span>
-                                <span>All jurisprudence records up to date</span>
-                                <span class="w-6 h-[1px] bg-outline-variant"></span>
+                                <a href="{{ route('mufti.questions.published') }}" class="text-primary hover:underline font-semibold flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">menu_book</span>
+                                    <span>Go to Published Fatwas</span>
+                                </a>
                             </div>
                         </div>
                     </td>
@@ -245,11 +246,17 @@
 
     <!-- Minimal Table Footer -->
     <div class="px-6 py-3 bg-surface-container-low/50 border-t border-surface-variant flex items-center justify-between text-[12px] font-label-md text-outline">
-        <span>Showing {{ count($recent) }} recent inquiries</span>
-        <a href="{{ route('mufti.questions') }}" class="text-primary hover:text-primary/80 font-semibold inline-flex items-center gap-1">
-            <span>View All Assigned Dossiers</span>
-            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-        </a>
+        <span>Showing {{ count($recent) }} active inquiries</span>
+        <div class="flex items-center gap-4">
+            <a href="{{ route('mufti.questions.published') }}" class="text-secondary hover:text-primary font-medium inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-[15px]">menu_book</span>
+                <span>Published Fatwas ({{ $publishedCount }})</span>
+            </a>
+            <a href="{{ route('mufti.questions') }}" class="text-primary hover:text-primary/80 font-semibold inline-flex items-center gap-1">
+                <span>View All Inquiries</span>
+                <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+            </a>
+        </div>
     </div>
 </section>
 @endsection

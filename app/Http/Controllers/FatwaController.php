@@ -79,8 +79,9 @@ class FatwaController extends Controller
         return view('fatwa-archive', compact('fatwas', 'allCategories', 'madhabs'));
     }
 
-    public function show(QuestionAndAnswer $fatwa)
+    public function show(Request $request, QuestionAndAnswer $fatwa)
     {
+        $request = $request ?: request();
         set_time_limit(300); // 5 min — needed for remote DB connections
         $fatwa->load([
             'category', 
@@ -137,6 +138,24 @@ class FatwaController extends Controller
             }
         }
 
+        // Track country-specific reader reads
+        $ip = $request->ip();
+        $countryCode = $request->header('CF-IPCountry') ?: null;
+        $countryMap = ['IN' => 'India', 'AE' => 'United Arab Emirates', 'SA' => 'Saudi Arabia', 'GB' => 'United Kingdom', 'QA' => 'Qatar', 'US' => 'United States', 'MY' => 'Malaysia', 'KW' => 'Kuwait', 'OM' => 'Oman'];
+        $countryName = $countryCode && isset($countryMap[$countryCode]) ? $countryMap[$countryCode] : (auth()->check() && auth()->user()->country ? auth()->user()->country : 'India');
+
+        $countryViewKey = 'viewed_country_' . $fatwa->id . '_' . md5($ip . '_' . date('Y-m-d'));
+        if (!session()->has($countryViewKey) && $fatwa->status === 'published') {
+            session()->put($countryViewKey, true);
+            FatwaActivityLog::log(
+                $fatwa->id, 'country_view',
+                'Fatwa ' . $fatwa->question_id . ' Read in ' . $countryName,
+                'bi-geo-alt-fill', 'info',
+                'Fatwa ' . $fatwa->question_id . ' opened and read by reader from ' . $countryName . ' (IP: ' . $ip . ') @ ' . now()->format('Y-m-d H:i:s'),
+                auth()->id(), $fatwa->id
+            );
+        }
+
         $hasLiked = session()->has('liked_fatwa_' . $fatwa->id);
         $categoryFatwaCount = $fatwa->category_id ? QuestionAndAnswer::where('status', 'published')->where('category_id', $fatwa->category_id)->count() : 0;
 
@@ -187,6 +206,19 @@ class FatwaController extends Controller
         // Record the like and increment counter
         $fatwa->increment('likes');
         session()->put('liked_fatwa_' . $fatwa->id, true);
+
+        $ip = $request->ip();
+        $countryCode = $request->header('CF-IPCountry') ?: null;
+        $countryMap = ['IN' => 'India', 'AE' => 'United Arab Emirates', 'SA' => 'Saudi Arabia', 'GB' => 'United Kingdom', 'QA' => 'Qatar', 'US' => 'United States', 'MY' => 'Malaysia', 'KW' => 'Kuwait', 'OM' => 'Oman'];
+        $countryName = $countryCode && isset($countryMap[$countryCode]) ? $countryMap[$countryCode] : (auth()->check() && auth()->user()->country ? auth()->user()->country : 'India');
+
+        FatwaActivityLog::log(
+            $fatwa->id, 'liked',
+            'Someone Liked Fatwa ' . $fatwa->question_id . ' and Added to Favorites',
+            'bi-heart-fill', 'danger',
+            'Someone liked this fatwa and added to favorite fatwas list (IP: ' . $ip . ', Country: ' . $countryName . ') @ ' . now()->format('Y-m-d H:i:s'),
+            auth()->id(), $fatwa->id
+        );
 
         return response()->json([
             'success' => true,

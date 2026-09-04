@@ -74,12 +74,24 @@ class User extends Authenticatable
 
     public function hasRole($roles)
     {
+        $roleName = strtolower(trim($this->role?->name ?? ''));
+
         if (is_string($roles)) {
-            return $this->role?->name === $roles;
+            $r = strtolower(trim($roles));
+            if ($r === 'user' || $r === 'questioner') {
+                return in_array($roleName, ['user', 'questioner']);
+            }
+            return $roleName === $r;
         }
 
         if (is_array($roles)) {
-            return in_array($this->role?->name, $roles);
+            $rolesList = array_map(fn($item) => strtolower(trim($item)), $roles);
+            if (in_array('user', $rolesList) || in_array('questioner', $rolesList)) {
+                if (in_array($roleName, ['user', 'questioner'])) {
+                    return true;
+                }
+            }
+            return in_array($roleName, $rolesList);
         }
 
         return false;
