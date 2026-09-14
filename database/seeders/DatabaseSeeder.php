@@ -36,12 +36,12 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Create a demo Mufti
+        // Create demo Muftis for all Madhabs
         $mufti = User::firstOrCreate(
             ['email' => 'mufti@daruliftaportal.com'],
             [
-                'name'              => 'Mufti Demo',
-                'despl_name'        => 'Mufti Demo',
+                'name'              => 'Mufti Demo (Hanafi)',
+                'despl_name'        => 'Mufti Demo (Hanafi)',
                 'password'          => bcrypt('Mufti@123'),
                 'role_id'           => $muftiRole->id,
                 'madhab_id'         => $hanafi->id,
@@ -51,6 +51,57 @@ class DatabaseSeeder extends Seeder
                 'gender'            => 'male',
                 'country'           => 'India',
                 'mother_language'   => 'Urdu',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'mufti.shafii@daruliftaportal.com'],
+            [
+                'name'              => 'Mufti Shafii',
+                'despl_name'        => 'Mufti Shafii',
+                'password'          => bcrypt('Mufti@123'),
+                'role_id'           => $muftiRole->id,
+                'madhab_id'         => $shafii->id,
+                'profile_completed' => true,
+                'is_active'         => true,
+                'email_verified_at' => now(),
+                'gender'            => 'male',
+                'country'           => 'India',
+                'mother_language'   => 'Malayalam',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'mufti.maliki@daruliftaportal.com'],
+            [
+                'name'              => 'Mufti Maliki',
+                'despl_name'        => 'Mufti Maliki',
+                'password'          => bcrypt('Mufti@123'),
+                'role_id'           => $muftiRole->id,
+                'madhab_id'         => $maliki->id,
+                'profile_completed' => true,
+                'is_active'         => true,
+                'email_verified_at' => now(),
+                'gender'            => 'male',
+                'country'           => 'India',
+                'mother_language'   => 'Arabic',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'mufti.hanbali@daruliftaportal.com'],
+            [
+                'name'              => 'Mufti Hanbali',
+                'despl_name'        => 'Mufti Hanbali',
+                'password'          => bcrypt('Mufti@123'),
+                'role_id'           => $muftiRole->id,
+                'madhab_id'         => $hanbali->id,
+                'profile_completed' => true,
+                'is_active'         => true,
+                'email_verified_at' => now(),
+                'gender'            => 'male',
+                'country'           => 'India',
+                'mother_language'   => 'Arabic',
             ]
         );
 

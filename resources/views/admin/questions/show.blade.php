@@ -109,9 +109,17 @@
                     @csrf
                     <select name="mufti_id" class="form-select form-select-sm mb-2" required>
                         <option value="">Select Mufti...</option>
-                        @foreach($muftis as $m)
-                            <option value="{{ $m->id }}" {{ $question->assigned_mufti_id == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
-                        @endforeach
+                        @forelse($muftis as $m)
+                            @php
+                                $isMatch = $question->madhab_id && $m->madhab_id === $question->madhab_id;
+                                $madhabSuffix = $m->madhab ? ' (' . $m->madhab->name . ($isMatch ? ' — Recommended' : '') . ')' : '';
+                            @endphp
+                            <option value="{{ $m->id }}" {{ $question->assigned_mufti_id == $m->id ? 'selected' : '' }}>
+                                {{ $m->name }}{{ $madhabSuffix }}
+                            </option>
+                        @empty
+                            <option value="" disabled>No active Muftis registered</option>
+                        @endforelse
                     </select>
                     <button class="btn btn-primary btn-sm w-100">Assign</button>
                 </form>

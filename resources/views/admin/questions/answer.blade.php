@@ -35,9 +35,17 @@
                 <label class="form-label fw-semibold">Answering Mufti <span class="text-danger">*</span></label>
                 <select name="mufti_id" class="form-select @error('mufti_id') is-invalid @enderror" required>
                     <option value="">Select Mufti...</option>
-                    @foreach($muftis as $m)
-                        <option value="{{ $m->id }}" {{ old('mufti_id', $question->assigned_mufti_id) == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
-                    @endforeach
+                    @forelse($muftis as $m)
+                        @php
+                            $isMatch = $question->madhab_id && $m->madhab_id === $question->madhab_id;
+                            $madhabSuffix = $m->madhab ? ' (' . $m->madhab->name . ($isMatch ? ' — Recommended' : '') . ')' : '';
+                        @endphp
+                        <option value="{{ $m->id }}" {{ old('mufti_id', $question->assigned_mufti_id) == $m->id ? 'selected' : '' }}>
+                            {{ $m->name }}{{ $madhabSuffix }}
+                        </option>
+                    @empty
+                        <option value="" disabled>No active Muftis registered</option>
+                    @endforelse
                 </select>
                 @error('mufti_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>

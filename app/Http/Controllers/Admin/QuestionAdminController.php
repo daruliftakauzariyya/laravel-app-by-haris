@@ -67,13 +67,17 @@ class QuestionAdminController extends Controller
         $logs = FatwaActivityLog::getComprehensiveTimeline($question);
 
         $madhab = $question->madhab;
-        $isGeneral = !$madhab || in_array(strtolower($madhab->slug), ['general-other', 'common', 'general', 'other']);
-
-        $muftisQuery = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->where('is_active', true);
-        if (!$isGeneral) {
-            $muftisQuery->where('madhab_id', $question->madhab_id);
-        }
-        $muftis = $muftisQuery->get();
+        $muftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
+            ->where('is_active', true)
+            ->with('madhab')
+            ->get()
+            ->sortBy(function ($m) use ($question) {
+                if ($question->madhab_id && $m->madhab_id === $question->madhab_id) {
+                    return 0 . '_' . $m->name;
+                }
+                return 1 . '_' . $m->name;
+            })
+            ->values();
 
         return view('admin.questions.show', compact('question', 'muftis', 'logs'));
     }
@@ -184,13 +188,17 @@ class QuestionAdminController extends Controller
         $question->load('user', 'references');
         
         $madhab = $question->madhab;
-        $isGeneral = !$madhab || in_array(strtolower($madhab->slug), ['general-other', 'common', 'general', 'other']);
-
-        $muftisQuery = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->where('is_active', true);
-        if (!$isGeneral) {
-            $muftisQuery->where('madhab_id', $question->madhab_id);
-        }
-        $muftis = $muftisQuery->get();
+        $muftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
+            ->where('is_active', true)
+            ->with('madhab')
+            ->get()
+            ->sortBy(function ($m) use ($question) {
+                if ($question->madhab_id && $m->madhab_id === $question->madhab_id) {
+                    return 0 . '_' . $m->name;
+                }
+                return 1 . '_' . $m->name;
+            })
+            ->values();
 
         return view('admin.questions.answer', compact('question', 'muftis'));
     }
@@ -313,16 +321,18 @@ class QuestionAdminController extends Controller
 
         $writtenByMuftiId = $question->assigned_mufti_id;
         $madhab = $question->madhab;
-        $isGeneral = !$madhab || in_array(strtolower($madhab->slug), ['general-other', 'common', 'general', 'other']);
-
-        $verifierQuery = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
+        $verifierMuftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
             ->where('is_active', true)
-            ->where('id', '!=', $writtenByMuftiId);
-
-        if (!$isGeneral) {
-            $verifierQuery->where('madhab_id', $question->madhab_id);
-        }
-        $verifierMuftis = $verifierQuery->get();
+            ->where('id', '!=', $writtenByMuftiId)
+            ->with('madhab')
+            ->get()
+            ->sortBy(function ($m) use ($question) {
+                if ($question->madhab_id && $m->madhab_id === $question->madhab_id) {
+                    return 0 . '_' . $m->name;
+                }
+                return 1 . '_' . $m->name;
+            })
+            ->values();
 
         $approverMuftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
             ->where('can_check_approve', true)
