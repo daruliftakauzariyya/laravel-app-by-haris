@@ -66,26 +66,58 @@ class QuestionAndAnswer extends Model
      */
     public static function generateQuestionId(): string
     {
-        $latest = self::orderBy('id', 'desc')->first();
+        $allIds = self::whereNotNull('question_id')->pluck('question_id');
 
-        if (!$latest || !preg_match('/^([A-Z])([0-9]{4})$/', $latest->question_id, $matches)) {
-            return 'A0001';
-        }
+        $highestLetter = 'A';
+        $highestNumber = 0;
+        $foundMatch = false;
 
-        $letter = $matches[1];
-        $number = (int)$matches[2];
-
-        $number++;
-
-        if ($number > 9999) {
-            $number = 1;
-            $letter = chr(ord($letter) + 1);
-            if ($letter > 'Z') {
-                $letter = 'A';
+        foreach ($allIds as $qid) {
+            if (preg_match('/^([A-Z])([0-9]{4})$/i', (string)$qid, $matches)) {
+                $l = strtoupper($matches[1]);
+                $n = (int)$matches[2];
+                if (!$foundMatch || $l > $highestLetter || ($l === $highestLetter && $n > $highestNumber)) {
+                    $highestLetter = $l;
+                    $highestNumber = $n;
+                    $foundMatch = true;
+                }
             }
         }
 
-        return $letter . str_pad($number, 4, '0', STR_PAD_LEFT);
+        if (!$foundMatch) {
+            $nextLetter = 'A';
+            $nextNumber = 1;
+        } else {
+            $nextLetter = $highestLetter;
+            $nextNumber = $highestNumber + 1;
+            if ($nextNumber > 9999) {
+                $nextNumber = 1;
+                $nextLetter = chr(ord($nextLetter) + 1);
+                if ($nextLetter > 'Z') {
+                    $nextLetter = 'A';
+                }
+            }
+        }
+
+        $candidate = $nextLetter . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+        // Guarantee uniqueness: loop until an unused ID is found
+        while (self::where('question_id', $candidate)->exists()) {
+            $nextNumber++;
+            if ($nextNumber > 9999) {
+                $nextNumber = 1;
+                $nextLetter = chr(ord($nextLetter) + 1);
+                if ($nextLetter > 'Z') {
+                    do {
+                        $candidate = 'Q' . strtoupper(substr(md5(uniqid((string)mt_rand(), true)), 0, 6));
+                    } while (self::where('question_id', $candidate)->exists());
+                    return $candidate;
+                }
+            }
+            $candidate = $nextLetter . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
     }
 
     // Relationships
