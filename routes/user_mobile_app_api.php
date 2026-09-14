@@ -171,8 +171,8 @@ Route::middleware('auth:sanctum')->group(function () {
             'files.*'     => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB limit
         ]);
 
-        $question = \App\Models\Question::create([
-            'question_id' => \App\Models\Question::generateQuestionId(),
+        $question = \App\Models\QuestionAndAnswer::create([
+            'question_id' => \App\Models\QuestionAndAnswer::generateQuestionId(),
             'user_id'     => $request->user()->id,
             'category_id' => $request->category_id,
             'madhab_id'   => $request->madhab_id,
@@ -200,8 +200,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // List user's inquiries
     Route::get('/questions', function (Request $request) {
-        $questions = \App\Models\Question::where('user_id', $request->user()->id)
-                    ->with(['category', 'madhab', 'fatwa'])
+        $questions = \App\Models\QuestionAndAnswer::where('user_id', $request->user()->id)
+                    ->with(['category', 'madhab'])
                     ->latest()
                     ->paginate(20);
         return response()->json(['status' => 'success', 'data' => $questions]);

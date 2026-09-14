@@ -13,6 +13,6 @@ class QuestionFile extends Model
 
     public function question()
     {
-        return $this->belongsTo(Question::class);
+        return $this->belongsTo(QuestionAndAnswer::class, 'question_id');
     }
 }

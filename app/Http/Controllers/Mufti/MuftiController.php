@@ -25,15 +25,17 @@ class MuftiController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
-        $assigned = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
-                            ->where('status', '!=', 'published')
-                            ->count();
-        $answered = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
-                            ->whereIn('status', ['answered', 'approved', 'published'])
-                            ->count();
-        $publishedCount = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
-                            ->where('status', 'published')
-                            ->count();
+        
+        $counts = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+            ->selectRaw('status, count(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status')
+            ->toArray();
+
+        $publishedCount = $counts['published'] ?? 0;
+        $answered = ($counts['answered'] ?? 0) + ($counts['approved'] ?? 0) + $publishedCount;
+        $totalEver = array_sum($counts);
+        $assigned = $totalEver - $publishedCount;
 
         // Recent Inquiries: EXCLUDE published fatwas, order: Pending 1st, Opened 2nd, Answered 3rd
         $recent = QuestionAndAnswer::with(['madhab', 'category', 'statusHistory'])

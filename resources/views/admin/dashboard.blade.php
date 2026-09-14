@@ -300,13 +300,16 @@ new Chart(ctx, {
 });
 
 async function fetchLiveUsers() {
+    if (document.hidden) return;
     try {
         const response = await fetch('{{ route("admin.live-stats.api") }}');
         const data = await response.json();
-        if (data) document.getElementById('live-users-count').innerText = data.byIp;
+        if (data && document.getElementById('live-users-count')) {
+            document.getElementById('live-users-count').innerText = data.byIp;
+        }
     } catch (error) {}
 }
-setInterval(fetchLiveUsers, 10000);
+setInterval(fetchLiveUsers, 30000);
 </script>
 @endpush
 @endsection

@@ -17,94 +17,101 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Active Live Users calculation
-        $recentActiveUsers = User::where('updated_at', '>=', now()->subMinutes(15))->count();
-        $liveByIdentity = max(1, $recentActiveUsers);
-        $totalReadsCount = (int) QuestionAndAnswer::sum('views');
-        $liveByIp = max(2, min(45, (int) round(($totalReadsCount / 100) + 2)));
+        $data = \Illuminate\Support\Facades\Cache::remember('admin_dashboard_index_data', 20, function () {
+            // Consolidated status counts in 1 single query
+            $statusCounts = QuestionAndAnswer::selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status')->toArray();
+            $totalCount = array_sum($statusCounts);
 
-        // Core stats
-        $stats = [
-            'total'            => QuestionAndAnswer::count(),
-            'pending'          => QuestionAndAnswer::where('status', 'pending')->count(),
-            'assigned'         => QuestionAndAnswer::where('status', 'assigned')->count(),
-            'answered'         => QuestionAndAnswer::where('status', 'answered')->count(),
-            'published'        => QuestionAndAnswer::where('status', 'published')->count(),
-            'total_reads'      => $totalReadsCount,
-            'questioners'      => User::whereHas('questions')->count(),
-            'live_by_ip'       => $liveByIp,
-            'live_by_identity' => $liveByIdentity,
-        ];
+            // Active Live Users calculation
+            $recentActiveUsers = User::where('updated_at', '>=', now()->subMinutes(15))->count();
+            $liveByIdentity = max(1, $recentActiveUsers);
+            $totalReadsCount = (int) QuestionAndAnswer::sum('views');
+            $liveByIp = max(2, min(45, (int) round(($totalReadsCount / 100) + 2)));
 
-        // Most popular category (by published fatwas)
-        $topCategory = Category::select('categories.*')
-            ->selectRaw('COUNT(question_and_answer.id) as q_count')
-            ->join('question_and_answer', 'categories.id', '=', 'question_and_answer.category_id')
-            ->where('question_and_answer.status', 'published')
-            ->groupBy('categories.id')
-            ->orderByDesc('q_count')
-            ->first();
+            // Core stats
+            $stats = [
+                'total'            => $totalCount,
+                'pending'          => $statusCounts['pending'] ?? 0,
+                'assigned'         => $statusCounts['assigned'] ?? 0,
+                'answered'         => $statusCounts['answered'] ?? 0,
+                'published'        => $statusCounts['published'] ?? 0,
+                'total_reads'      => $totalReadsCount,
+                'questioners'      => User::whereHas('questions')->count(),
+                'live_by_ip'       => $liveByIp,
+                'live_by_identity' => $liveByIdentity,
+            ];
 
-        // Consolidated Geographic Logic for Dashboard (Top 5)
-        $totalAudience = max(10, $totalReadsCount + QuestionAndAnswer::count() * 5);
-        $geoReach = [
-            [
-                'country'      => 'India',
-                'country_code' => 'IN',
-                'total_count'  => (int) round($totalAudience * 0.62),
-                'top_region'   => 'Kerala / Malappuram',
-                'region_count' => (int) round($totalAudience * 0.44),
-            ],
-            [
-                'country'      => 'United Arab Emirates',
-                'country_code' => 'AE',
-                'total_count'  => (int) round($totalAudience * 0.16),
-                'top_region'   => 'Dubai Emirate',
-                'region_count' => (int) round($totalAudience * 0.11),
-            ],
-            [
-                'country'      => 'Saudi Arabia',
-                'country_code' => 'SA',
-                'total_count'  => (int) round($totalAudience * 0.10),
-                'top_region'   => 'Riyadh / Makkah',
-                'region_count' => (int) round($totalAudience * 0.07),
-            ],
-            [
-                'country'      => 'United Kingdom',
-                'country_code' => 'GB',
-                'total_count'  => (int) round($totalAudience * 0.06),
-                'top_region'   => 'Greater London',
-                'region_count' => (int) round($totalAudience * 0.04),
-            ],
-            [
-                'country'      => 'Qatar',
-                'country_code' => 'QA',
-                'total_count'  => (int) round($totalAudience * 0.04),
-                'top_region'   => 'Doha Municipality',
-                'region_count' => (int) round($totalAudience * 0.03),
-            ],
-        ];
+            // Most popular category (by published fatwas)
+            $topCategory = Category::select('categories.*')
+                ->selectRaw('COUNT(question_and_answer.id) as q_count')
+                ->join('question_and_answer', 'categories.id', '=', 'question_and_answer.category_id')
+                ->where('question_and_answer.status', 'published')
+                ->groupBy('categories.id')
+                ->orderByDesc('q_count')
+                ->first();
 
-        // Questions submitted per month (last 6 months)
-        $monthlyData = QuestionAndAnswer::select(
-                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
-                DB::raw('COUNT(*) as count')
-            )
-            ->where('created_at', '>=', now()->subMonths(6))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get()
-            ->keyBy('month');
+            // Consolidated Geographic Logic for Dashboard (Top 5)
+            $totalAudience = max(10, $totalReadsCount + $totalCount * 5);
+            $geoReach = [
+                [
+                    'country'      => 'India',
+                    'country_code' => 'IN',
+                    'total_count'  => (int) round($totalAudience * 0.62),
+                    'top_region'   => 'Kerala / Malappuram',
+                    'region_count' => (int) round($totalAudience * 0.44),
+                ],
+                [
+                    'country'      => 'United Arab Emirates',
+                    'country_code' => 'AE',
+                    'total_count'  => (int) round($totalAudience * 0.16),
+                    'top_region'   => 'Dubai Emirate',
+                    'region_count' => (int) round($totalAudience * 0.11),
+                ],
+                [
+                    'country'      => 'Saudi Arabia',
+                    'country_code' => 'SA',
+                    'total_count'  => (int) round($totalAudience * 0.10),
+                    'top_region'   => 'Riyadh / Makkah',
+                    'region_count' => (int) round($totalAudience * 0.07),
+                ],
+                [
+                    'country'      => 'United Kingdom',
+                    'country_code' => 'GB',
+                    'total_count'  => (int) round($totalAudience * 0.06),
+                    'top_region'   => 'Greater London',
+                    'region_count' => (int) round($totalAudience * 0.04),
+                ],
+                [
+                    'country'      => 'Qatar',
+                    'country_code' => 'QA',
+                    'total_count'  => (int) round($totalAudience * 0.04),
+                    'top_region'   => 'Doha Municipality',
+                    'region_count' => (int) round($totalAudience * 0.03),
+                ],
+            ];
 
-        // Build labels for last 6 months
-        $monthlyLabels = [];
-        $monthlyCounts = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $key = now()->subMonths($i)->format('Y-m');
-            $label = now()->subMonths($i)->format('M Y');
-            $monthlyLabels[] = $label;
-            $monthlyCounts[] = $monthlyData[$key]->count ?? 0;
-        }
+            // Questions submitted per month (last 6 months)
+            $monthlyData = QuestionAndAnswer::select(
+                    DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
+                    DB::raw('COUNT(*) as count')
+                )
+                ->where('created_at', '>=', now()->subMonths(6))
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get()
+                ->keyBy('month');
+
+            $monthlyLabels = [];
+            $monthlyCounts = [];
+            for ($i = 5; $i >= 0; $i--) {
+                $key = now()->subMonths($i)->format('Y-m');
+                $label = now()->subMonths($i)->format('M Y');
+                $monthlyLabels[] = $label;
+                $monthlyCounts[] = $monthlyData[$key]->count ?? 0;
+            }
+
+            return compact('stats', 'topCategory', 'geoReach', 'monthlyLabels', 'monthlyCounts');
+        });
 
         $recentQuestions = QuestionAndAnswer::with(['user', 'madhab', 'category', 'assignedMufti'])
             ->latest()
@@ -117,11 +124,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.dashboard', compact(
-            'stats', 'recentQuestions', 'recentPublishedFatwas',
-            'topCategory', 'geoReach',
-            'monthlyLabels', 'monthlyCounts'
-        ));
+        return view('admin.dashboard', array_merge($data, compact('recentQuestions', 'recentPublishedFatwas')));
     }
 
     /**
@@ -248,14 +251,18 @@ class DashboardController extends Controller
      */
     public function liveUsersApi()
     {
-        $recentActiveUsers = User::where('updated_at', '>=', now()->subMinutes(15))->count();
-        $totalReadsCount = (int) QuestionAndAnswer::sum('views');
-        $liveByIp = max(2, min(45, (int) round(($totalReadsCount / 100) + 2)));
+        $data = \Illuminate\Support\Facades\Cache::remember('admin_live_stats_data', 15, function () {
+            $recentActiveUsers = User::where('updated_at', '>=', now()->subMinutes(15))->count();
+            $totalReadsCount = (int) QuestionAndAnswer::sum('views');
+            $liveByIp = max(2, min(45, (int) round(($totalReadsCount / 100) + 2)));
 
-        return response()->json([
-            'byIp'       => $liveByIp,
-            'byIdentity' => max(1, $recentActiveUsers),
-        ]);
+            return [
+                'byIp'       => $liveByIp,
+                'byIdentity' => max(1, $recentActiveUsers),
+            ];
+        });
+
+        return response()->json($data);
     }
 
     /**

@@ -576,6 +576,17 @@
             </div>
 
             @yield('content')
+
+            {{-- Admin Footer --}}
+            <footer class="mt-5 pt-4 pb-2 border-top d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 text-muted small no-print">
+                <div>
+                    &copy; {{ date('Y') }} <strong>Darul Ifta Kauzariyya</strong>. All rights reserved.
+                </div>
+                <div>
+                    <span>App created & developed by</span>
+                    <a href="https://www.harisim.site" target="_blank" rel="noopener noreferrer" class="fw-bold text-decoration-none ms-1 px-2 py-0.5 rounded" style="color: var(--brand-blue); background: rgba(5, 41, 97, 0.08); border: 1px solid rgba(5, 41, 97, 0.15);">MUFTI Haris I M</a>
+                </div>
+            </footer>
         </div>
     </div>
 

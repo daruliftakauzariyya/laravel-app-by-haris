@@ -442,48 +442,65 @@
         }
 
         .offcanvas-header {
-            background: var(--brand-blue-dark);
-            color: #fff;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: #ffffff;
+            color: var(--brand-blue);
+            border-bottom: 1px solid #eef2f7;
+            padding: 1.25rem 1.5rem;
         }
 
         .offcanvas-body {
-            padding: 0;
-            background: var(--bg-light);
+            padding: 0 !important;
+            background: #f8fafc;
         }
 
         .mobile-nav-list {
             list-style: none;
-            padding: 0;
+            padding: 2.5rem 1.25rem 1.25rem 1.25rem !important;
             margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
         }
 
         .mobile-nav-link {
             display: flex;
             align-items: center;
-            padding: 1rem 1.5rem;
+            justify-content: center;
+            text-align: center;
+            gap: 0.65rem;
+            padding: 0.85rem 1.25rem;
             color: var(--brand-blue);
+            background: #ffffff;
             text-decoration: none;
-            font-weight: 600;
-            border-bottom: 1px solid #eef2f7;
-            transition: var(--transition-base);
+            font-weight: 700;
+            font-size: 0.95rem;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
         }
 
         .mobile-nav-link:hover,
         .mobile-nav-link.active {
-            background: #fff;
+            background: var(--brand-blue);
+            color: #ffffff;
+            border-color: var(--brand-blue);
+            box-shadow: 0 4px 14px rgba(5, 41, 97, 0.16);
+            transform: translateY(-1px);
+        }
+
+        .mobile-nav-link.active i {
             color: var(--brand-gold);
-            padding-left: 2rem;
         }
 
         .mobile-nav-link i {
-            font-size: 1.2rem;
-            width: 30px;
+            font-size: 1.15rem;
+            width: auto;
         }
 
         .mobile-auth-section {
-            padding: 2rem 1.5rem;
-            background: #fff;
+            padding: 1.5rem 1.25rem;
+            background: #ffffff;
             margin-top: auto;
             border-top: 1px solid #eef2f7;
         }
@@ -613,12 +630,11 @@
 
     {{-- Mobile Offcanvas Menu (L-to-R) --}}
     <div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title fw-bold" id="mobileMenuLabel">
-                <i class="bi bi-grid-3x3-gap me-2"></i>Scholar Menu
-            </h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
-                aria-label="Close"></button>
+        <div class="offcanvas-header d-flex align-items-center justify-content-between">
+            <a href="{{ route('home') }}" class="d-inline-flex align-items-center">
+                <img src="{{ asset('assets/logo/logoblueNew.svg') }}" alt="Darul Ifta Kauzariyya" style="max-height: 38px; width: auto;">
+            </a>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body d-flex flex-column h-100">
             <div class="mobile-nav-list">
@@ -770,14 +786,6 @@
                             <a href="mailto:darulifta.kauzariyya@gmail.com">darulifta.kauzariyya@gmail.com</a>
                         </p>
                     </div>
-                    <div class="footer-contact-item">
-                        <div class="footer-contact-icon">
-                            <i class="bi bi-headset"></i>
-                        </div>
-                        <p class="small mb-0">
-                            <a href="tel:+919495666777">+91 9495 666 777</a>
-                        </p>
-                    </div>
                 </div>
             </div>
 
@@ -788,7 +796,7 @@
                     </p>
                     <div class="small">
                         <span class="text-white-50">App created & developed by</span>
-                        <span class="text-gold fw-bold px-2 py-0.5 rounded" style="background: rgba(201, 168, 76, 0.12); border: 1px solid rgba(201, 168, 76, 0.25);">Haris I M</span>
+                        <a href="https://www.harisim.site" target="_blank" rel="noopener noreferrer" class="text-gold fw-bold px-2 py-0.5 rounded text-decoration-none" style="background: rgba(201, 168, 76, 0.12); border: 1px solid rgba(201, 168, 76, 0.25); transition: 0.2s;">MUFTI Haris I M</a>
                     </div>
                 </div>
             </div>

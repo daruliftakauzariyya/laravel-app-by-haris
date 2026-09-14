@@ -483,7 +483,9 @@
                 <span class="text-primary font-medium">Mufti Panel</span>
                 <span>— Verified Islamic Jurisprudence Environment</span>
             </div>
-            <div>
+            <div class="flex items-center gap-3 flex-wrap justify-center sm:justify-end">
+                <span>App created & developed by <a href="https://www.harisim.site" target="_blank" rel="noopener noreferrer" class="text-primary font-bold hover:underline">MUFTI Haris I M</a></span>
+                <span class="text-surface-variant">|</span>
                 <span>Logged in: <strong class="text-on-surface font-medium">{{ Auth::user()->name }}</strong> ({{ Auth::user()->email }})</span>
             </div>
         </div>

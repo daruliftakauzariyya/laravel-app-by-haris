@@ -24,7 +24,7 @@ class Madhab extends Model
 
     public function questions()
     {
-        return $this->hasMany(Question::class);
+        return $this->hasMany(QuestionAndAnswer::class, 'madhab_id');
     }
 
     public function users()
@@ -34,6 +34,8 @@ class Madhab extends Model
 
     public function muftis()
     {
-        return $this->belongsToMany(User::class, 'madhab_user');
+        return $this->hasMany(User::class)->whereHas('role', function ($q) {
+            $q->where('name', 'mufti');
+        });
     }
 }

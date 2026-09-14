@@ -11,8 +11,22 @@ class MadhabController extends Controller
 {
     public function index()
     {
-        $madhabs = Madhab::withCount(['questions', 'users', 'muftis'])->paginate(10);
-        return view('admin.madhabs.index', compact('madhabs'));
+        $madhabs = Madhab::withCount([
+            'questions',
+            'questions as published_questions_count' => fn($q) => $q->where('status_id', 6)->orWhere('status', 'published'),
+            'users',
+            'muftis'
+        ])->orderBy('id')->get();
+
+        $stats = [
+            'total_madhabs'   => $madhabs->count(),
+            'total_questions' => $madhabs->sum('questions_count'),
+            'total_published' => $madhabs->sum('published_questions_count'),
+            'total_muftis'    => $madhabs->sum('muftis_count'),
+            'total_users'     => $madhabs->sum('users_count'),
+        ];
+
+        return view('admin.madhabs.index', compact('madhabs', 'stats'));
     }
 
     public function store(Request $request)

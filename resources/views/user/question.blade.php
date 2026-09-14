@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Query Details')
+@section('title', $question->title ?: 'Inquiry #'.$question->question_id.' Details — Darul Ifta Kauzariyya')
 
 @section('content')
 @php
@@ -9,373 +9,370 @@
     $isArabic = $question->language == 'Arabic' || (!$isMalayalam && preg_match('/[\x{0600}-\x{06FF}]/u', $textToCheck));
     $isUrdu = $question->language == 'Urdu';
 
-    $langClass = 'inter-font font-eng';
+    $langClass = 'font-eng';
     if ($isUrdu) {
-        $langClass = 'gulzar-font ur-text font-urdu';
+        $langClass = 'font-urdu';
     } elseif ($isArabic) {
-        $langClass = 'alyamama-font ar-text font-arabic';
+        $langClass = 'font-arabic';
     } elseif ($isMalayalam) {
-        $langClass = 'noto-serif-malayalam-font ml-text font-malayalam';
+        $langClass = 'font-malayalam';
     }
+
+    $status = strtolower($question->status ?: 'pending');
+    $statusBadgeClass = 'bg-secondary text-white';
+    $statusIcon = 'bi-info-circle';
+
+    if ($status === 'published') {
+        $statusBadgeClass = 'bg-success text-white';
+        $statusIcon = 'bi-check-circle-fill';
+    } elseif ($status === 'answered') {
+        $statusBadgeClass = 'bg-primary text-white';
+        $statusIcon = 'bi-chat-left-dots-fill';
+    } elseif ($status === 'assigned') {
+        $statusBadgeClass = 'bg-info text-dark';
+        $statusIcon = 'bi-person-badge';
+    } elseif ($status === 'pending') {
+        $statusBadgeClass = 'bg-warning text-dark';
+        $statusIcon = 'bi-hourglass-split';
+    } elseif ($status === 'rejected') {
+        $statusBadgeClass = 'bg-danger text-white';
+        $statusIcon = 'bi-x-circle-fill';
+    }
+
+    $rawBody = $question->body ?? '';
+    $rawAnswer = $question->answer ?: $question->draft_answer;
 @endphp
 
 <style>
-    :root {
-        --slate-blue: #4A6372;
-        --brand-green: #1a7a4a;
-        --bg-soft: #f4f7f9;
-        --pending: #ffc107;
-        --published: #198754;
-        --rejected: #dc3545;
+    .query-detail-canvas {
+        background-color: #f8fafc;
+        min-height: 85vh;
+        padding-top: 1.5rem;
+        padding-bottom: 5rem;
     }
-    .fatwa-container {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    .app-card {
-        background: #fff;
-        border-radius: 12px;
+
+    .query-card-main {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 22px;
         overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        border: none;
+        box-shadow: 0 4px 24px rgba(5, 41, 97, 0.04);
     }
-    .app-header {
-        background-color: var(--slate-blue);
-        color: #fff;
-        padding: 25px;
+
+    .query-header-box {
+        background: linear-gradient(135deg, #052961 0%, #0d3b82 60%, #1e4b9c 100%);
+        color: #ffffff;
+        padding: 1.75rem 1.5rem;
         position: relative;
     }
-    .status-badge {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        font-size: 0.75rem;
-        padding: 5px 12px;
-        border-radius: 50px;
-        font-weight: 700;
-        text-transform: uppercase;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+
+    @media (min-width: 768px) {
+        .query-header-box {
+            padding: 2.25rem 2.5rem;
+        }
     }
-    .app-header h1 {
-        font-size: 1.3rem;
-        font-weight: 700;
+
+    .query-meta-bar {
+        background: #fdfaf3;
+        border-bottom: 1px solid #f1ebd8;
+        padding: 1rem 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+        .query-meta-bar {
+            padding: 1.25rem 2.5rem;
+        }
+    }
+
+    .query-content-pane {
+        padding: 1.75rem 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+        .query-content-pane {
+            padding: 2.5rem;
+        }
+    }
+
+    /* ── Typography & HTML Content Capacity ── */
+    .query-text-body {
+        font-family: 'Noto Serif Malayalam', 'Literata', 'Inter', serif;
+        font-size: 1.12rem;
+        line-height: 2.1;
+        color: #1e293b;
+        word-break: break-word;
+    }
+
+    .query-text-body p {
+        margin-bottom: 1.15rem;
+        line-height: 2.1;
+    }
+
+    .query-text-body p:last-child {
+        margin-bottom: 0;
+    }
+
+    .query-text-body h1,
+    .query-text-body h2,
+    .query-text-body h3,
+    .query-text-body h4,
+    .query-text-body h5,
+    .query-text-body h6 {
+        font-family: 'Noto Serif Malayalam', 'Plus Jakarta Sans', sans-serif;
+        font-weight: 800;
+        color: #0f172a;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
         line-height: 1.5;
-        margin: 0;
-        padding-right: 120px;
     }
-    .meta-grid {
-        background: #fff;
-        padding: 20px 25px;
-        border-bottom: 1px solid #edf2f7;
+
+    .query-text-body ul,
+    .query-text-body ol {
+        margin-bottom: 1.25rem;
+        padding-left: 1.5rem;
     }
-    .meta-item {
-        margin-bottom: 8px;
+
+    .query-text-body li {
+        margin-bottom: 0.5rem;
+        line-height: 1.9;
     }
-    .meta-label {
+
+    .query-text-body blockquote {
+        background: #f8fafc;
+        border-left: 4px solid var(--brand-gold, #c9a84c);
+        padding: 1rem 1.25rem;
+        border-radius: 0 12px 12px 0;
+        margin: 1.25rem 0;
+        font-style: italic;
+    }
+
+    .query-text-body strong,
+    .query-text-body b {
         font-weight: 700;
-        font-size: 0.82rem;
-        color: #555;
-        width: 75px;
-        display: inline-block;
+        color: #0f172a;
     }
-    .meta-value {
-        font-weight: 600;
-        font-size: 0.82rem;
-        color: var(--brand-green);
+
+    /* Multi-lingual font family registration */
+    .font-malayalam,
+    .noto-serif-malayalam-font {
+        font-family: 'Noto Serif Malayalam', 'Noto Sans Malayalam', 'Manjari', serif !important;
+        line-height: 2.15 !important;
     }
-    .content-body {
-        padding: 25px;
+
+    .font-arabic,
+    .alyamama-font {
+        font-family: 'Noto Naskh Arabic', 'Amiri', 'Scheherazade New', serif !important;
+        line-height: 2.3 !important;
+        font-size: 1.35rem !important;
+        direction: rtl;
+        text-align: right;
     }
-    .section-label {
-        font-weight: 700;
-        font-size: 1.25rem;
-        color: #000;
-        margin-bottom: 16px;
-        display: block;
-    }
-    .body-text {
-        font-size: 1.18rem;
-        line-height: 2.0;
-        color: #333;
-    }
-    .body-text.noto-serif-malayalam-font,
-    .body-text.noto-serif-malayalam-font *,
-    .body-text.ml-text,
-    .body-text.ml-text *,
-    .body-text.font-malayalam,
-    .body-text.font-malayalam * {
-        font-family: 'Noto Serif Malayalam', serif !important;
-        font-size: 1.18rem !important;
-        line-height: 2.1 !important;
-    }
-    .body-text.ur-text,
-    .body-text.ur-text *,
-    .body-text.font-urdu,
-    .body-text.font-urdu * {
-        font-family: 'Noto Nastaliq Urdu', serif !important;
+
+    .font-urdu,
+    .gulzar-font {
+        font-family: 'Noto Nastaliq Urdu', 'Gulzar', serif !important;
+        line-height: 2.4 !important;
         font-size: 1.25rem !important;
         direction: rtl;
         text-align: right;
-        line-height: 2.4 !important;
     }
-    .body-text.ar-text,
-    .body-text.ar-text *,
-    .body-text.font-arabic,
-    .body-text.font-arabic * {
-        font-family: 'Noto Naskh Arabic', 'Amiri', serif !important;
-        font-size: 1.28rem !important;
-        direction: rtl;
-        text-align: right;
-        line-height: 2.2 !important;
+
+    .font-eng,
+    .inter-font {
+        font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+        line-height: 1.85 !important;
     }
-    .body-text.inter-font,
-    .body-text.inter-font * {
-        font-family: 'Google Sans Eng', 'Inter', sans-serif !important;
-        font-size: 1.15rem !important;
-        line-height: 1.95 !important;
-    }
-    .arabic-block {
-        font-family: 'Noto Naskh Arabic', 'Amiri', serif !important;
-        font-size: 1.65rem;
-        text-align: right;
-        direction: rtl;
-        margin: 22px 0;
-        color: #000;
+
+    .arabic-bismillah {
+        font-family: 'Noto Naskh Arabic', 'Amiri', serif;
+        font-size: 1.85rem;
+        font-weight: 700;
+        color: #052961;
         line-height: 2.2;
     }
-    .fatwa-tag-pill {
-        display: inline-flex;
-        align-items: center;
-        background: #ecfdf5;
-        color: #047857 !important;
-        border: 1px solid #a7f3d0;
-        padding: 2px 9px;
-        border-radius: 6px;
-        font-size: 0.9em;
+
+    .arabic-intro {
+        font-family: 'Noto Naskh Arabic', 'Amiri', serif;
+        font-size: 1.45rem;
         font-weight: 600;
-        text-decoration: none !important;
-        margin: 0 3px;
-        transition: all 0.2s ease;
-        vertical-align: middle;
+        color: #475569;
+        line-height: 2.0;
     }
-    .fatwa-tag-pill:hover {
-        background: #d1fae5;
-        border-color: #059669;
-        color: #065f46 !important;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.06);
-    }
-    .fatwa-tag-pill.not-found {
-        background: #f1f5f9;
-        color: #475569 !important;
-        border-color: #cbd5e1;
-    }
-    .signature-section {
-        padding: 0 25px 25px;
-    }
-    .signature-item {
-        margin-bottom: 12px;
-    }
-    .sig-label {
-        font-weight: 700;
-        font-size: 0.9rem;
-        display: block;
-        color: #000;
-    }
-    .sig-value {
-        color: var(--brand-green);
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-    .references-section {
-        background-color: #f9fafb;
-        margin: 15px 25px;
-        padding: 18px;
-        border-radius: 8px;
-        border-right: 4px solid var(--brand-green);
-    }
-    .tags-footer {
-        padding: 15px 25px;
-        border-top: 1px solid #edf2f7;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .tag-item {
-        color: #666;
-        font-size: 0.85rem;
-        margin-right: 8px;
-        text-decoration: none;
-    }
-    .share-icon {
-        color: var(--slate-blue);
-        font-size: 1.1rem;
-    }
-    .related-section {
-        background-color: #eef2f5;
-        border-radius: 20px 20px 0 0;
-        margin-top: 30px;
-        padding: 25px;
-    }
-    .related-title {
-        font-weight: 700;
-        color: var(--slate-blue);
-        margin-bottom: 20px;
-    }
-    .related-card {
-        background: #fff;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        text-decoration: none;
-        color: inherit;
-        transition: transform 0.2s;
+
+    .reference-quote-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid #052961;
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
     }
 </style>
 
-<div class="container py-4">
-    <div class="fatwa-container">
+<div class="query-detail-canvas">
+    <div class="container">
         
-        {{-- Back Button --}}
-        <div class="mb-3">
-            <a href="{{ route('user.dashboard') }}" class="text-decoration-none text-muted small">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
+        {{-- Navigation & Breadcrumbs Bar --}}
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+            <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-white bg-white border shadow-sm rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i>
+                <span>Back to Dashboard</span>
             </a>
+            <span class="text-muted small fw-semibold">
+                Inquiry Tracking ID: <strong class="text-dark">#{{ $question->question_id }}</strong>
+            </span>
         </div>
 
-        <div class="app-card mb-4">
-            {{-- Header --}}
-            <div class="app-header">
-                {{-- Status Badge --}}
-                @php
-                    $statusColor = 'bg-secondary';
-                    if($question->status == 'pending') $statusColor = 'bg-warning text-dark';
-                    elseif($question->status == 'published') $statusColor = 'bg-success';
-                    elseif($question->status == 'answered') $statusColor = 'bg-info';
-                    elseif($question->status == 'rejected') $statusColor = 'bg-danger';
-                @endphp
-                <span class="status-badge {{ $statusColor }}">
-                    {{ ucfirst($question->status) }}
-                </span>
-
-                <h1 class="{{ $langClass }}">{{ $question->title ?: 'Your Query Detail' }}</h1>
-            </div>
-
-            {{-- Metadata --}}
-            <div class="meta-grid">
-                {{-- Row 1: Qu-Id & Madhab --}}
-                <div class="row g-0 mb-2">
-                    <div class="col-6">
-                        <div class="meta-item"><span class="meta-label text-dark">Qu-Id:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->question_id }}</span></div>
-                    </div>
-                    <div class="col-6">
-                        <div class="meta-item"><span class="meta-label text-dark">Madhab:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->madhab?->name == 'Shafii' ? "Shafi'i" : ($question->madhab?->name ?? 'General/Other') }}</span></div>
-                    </div>
-                </div>
-                {{-- Row 2: Category & Published --}}
-                <div class="row g-0">
-                    <div class="col-6">
-                        <div class="meta-item"><span class="meta-label text-dark">Category:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->category->name ?? 'Pending' }}</span></div>
-                    </div>
-                    <div class="col-6">
-                        <div class="meta-item"><span class="meta-label text-dark">Published:</span> <span class="meta-value" style="color: #1a7a4a;">{{ $question->published_at?->format('d-m-Y') ?: 'Pending' }}</span></div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Question Content --}}
-            <div class="content-body">
-                <span class="section-label">Question:</span>
-                <div class="body-text {{ $langClass }}">{!! $question->formatted_body !!}</div>
-            </div>
-
-            @if(($question->answer || $question->draft_answer) && in_array($question->status, ['answered', 'approved', 'published']))
-            <hr class="mx-4 my-2" style="opacity: 0.1;">
-
-            {{-- Answer Content --}}
-            <div class="content-body">
-                <span class="section-label">Answer:</span>
-                
-                <div class="arabic-block text-end" dir="rtl" style="margin: 15px 0 25px 0;">
-                    <div style="font-size: 1.85rem; font-weight: 700; line-height: 2.1;">بسم الله الرحمن الرحيم</div>
-                    <div style="font-size: 1.55rem; font-weight: 600; line-height: 2.1; color: #374151;">الجواب وبالله التوفيق والنجاح</div>
-                </div>
-
-                <div class="body-text {{ $langClass }} mt-3">
-                    {!! $question->formatted_answer !!}
-                </div>
-            </div>
-
-            {{-- Quotes / References --}}
-            @php 
-                $refs = $question->references->isNotEmpty() ? $question->references : $question->draftReferences; 
-            @endphp
-            @if($refs->count())
-            <div class="references-section px-4 pb-2">
-                <h6 class="fw-bold small mb-3 text-muted">Supporting References</h6>
-                @foreach($refs as $ref)
-                    <div class="p-3 mb-3 bg-light rounded border-start border-4 border-success">
-                        <div class="arabic-text mb-2 text-dark {{ $ref->language == 'Urdu' ? 'gulzar-font font-urdu' : 'alyamama-font font-arabic' }}" style="font-size: 1.35rem; line-height: 2.2;">
-                            {{ $ref->arabic_text }}
+        {{-- Main Query Card (Full Container Width matching Header/Footer) --}}
+        <div class="query-card-main mb-4">
+            
+            {{-- 1. Header Banner --}}
+            <div class="query-header-box">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                            <span class="badge px-3 py-1.5 rounded-pill {{ $statusBadgeClass }} fw-bold" style="font-size: 0.75rem;">
+                                <i class="bi {{ $statusIcon }} me-1"></i> {{ ucfirst($status) }}
+                            </span>
+                            <span class="badge bg-white bg-opacity-20 text-white px-3 py-1.5 rounded-pill fw-semibold" style="font-size: 0.75rem;">
+                                <i class="bi bi-folder2 me-1"></i> {{ $question->category->name ?? 'General Fiqh' }}
+                            </span>
                         </div>
-                        <div class="small text-muted fw-semibold"><i class="bi bi-book me-1 text-success"></i>{{ $ref->book_name }}</div>
+                        <h2 class="fw-800 text-white mb-0 {{ $langClass }}" style="font-size: 1.45rem; line-height: 1.45;">
+                            {{ $question->title ?: 'Inquiry #'.$question->question_id }}
+                        </h2>
                     </div>
-                @endforeach
+
+                    <div class="text-md-end text-white-50 small">
+                        <div>Submitted: <strong class="text-white">{{ $question->created_at ? $question->created_at->format('d M Y, h:i A') : 'N/A' }}</strong></div>
+                        <div>School: <strong class="text-white">{{ $question->madhab?->name ?? 'General Jurisprudence' }}</strong></div>
+                    </div>
+                </div>
             </div>
+
+            {{-- 2. Metadata Grid --}}
+            <div class="query-meta-bar">
+                <div class="row g-3 text-dark small">
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted text-uppercase fw-bold" style="font-size: 0.68rem;">Question ID</div>
+                        <div class="fw-800 text-primary fs-6">#{{ $question->question_id }}</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted text-uppercase fw-bold" style="font-size: 0.68rem;">Jurisprudence School</div>
+                        <div class="fw-bold fs-6">{{ $question->madhab?->name ?? 'General Fiqh' }}</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted text-uppercase fw-bold" style="font-size: 0.68rem;">Assigned Mufti</div>
+                        <div class="fw-bold fs-6">{{ $question->assignedMufti->name ?? 'Darul Ifta Faculty' }}</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted text-uppercase fw-bold" style="font-size: 0.68rem;">Fatwa Status</div>
+                        <div class="fw-bold fs-6 {{ $status === 'published' ? 'text-success' : 'text-primary' }}">
+                            {{ $question->published_at ? 'Published on ' . $question->published_at->format('d M Y') : ucfirst($status) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 3. Inquirer's Question Section (Raw HTML rendering support) --}}
+            <div class="query-content-pane border-bottom">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1 rounded-pill fw-bold" style="font-size: 0.72rem;">
+                        <i class="bi bi-person-fill me-1"></i> Inquirer Question
+                    </span>
+                </div>
+                <div class="query-text-body {{ $langClass }}">
+                    @if($question->formatted_body)
+                        {!! $question->formatted_body !!}
+                    @elseif(str_contains($rawBody, '<p') || str_contains($rawBody, '<div') || str_contains($rawBody, '<br'))
+                        {!! $rawBody !!}
+                    @else
+                        {!! nl2br(e($rawBody)) !!}
+                    @endif
+                </div>
+            </div>
+
+            {{-- 4. Scholarly Answer / Fatwa Section (If answered/published) --}}
+            @if(($question->answer || $question->draft_answer) && in_array($question->status, ['answered', 'approved', 'published']))
+                <div class="query-content-pane bg-light bg-opacity-50">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fw-bold" style="font-size: 0.75rem;">
+                            <i class="bi bi-patch-check-fill me-1"></i> Official Scholarly Ruling (Fatwa)
+                        </span>
+                    </div>
+
+                    {{-- Arabic Opening --}}
+                    <div class="text-end mb-4" dir="rtl">
+                        <div class="arabic-bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+                        <div class="arabic-intro">الْجَوَابُ وَبِاللهِ التَّوْفِيقُ وَالنَّجَاحُ</div>
+                    </div>
+
+                    {{-- Fatwa Text Body (Rich HTML Support & Proper Font Family) --}}
+                    <div class="query-text-body {{ $langClass }} mb-5">
+                        @if($question->formatted_answer)
+                            {!! $question->formatted_answer !!}
+                        @elseif(str_contains($rawAnswer, '<p') || str_contains($rawAnswer, '<div') || str_contains($rawAnswer, '<br'))
+                            {!! $rawAnswer !!}
+                        @else
+                            {!! nl2br(e($rawAnswer)) !!}
+                        @endif
+                    </div>
+
+                    {{-- Supporting Scholarly References --}}
+                    @php 
+                        $refs = $question->references->isNotEmpty() ? $question->references : $question->draftReferences; 
+                    @endphp
+                    @if($refs && $refs->count())
+                        <div class="mb-4">
+                            <h6 class="fw-800 text-dark mb-3"><i class="bi bi-book-half text-primary me-2"></i>Scholarly References & Texts</h6>
+                            @foreach($refs as $ref)
+                                <div class="reference-quote-card">
+                                    <div class="text-end text-dark mb-2" dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-size: 1.25rem; line-height: 2.0;">
+                                        {{ $ref->arabic_text }}
+                                    </div>
+                                    <div class="small text-muted fw-bold">
+                                        <i class="bi bi-bookmark-check-fill text-primary me-1"></i> {{ $ref->book_name }}
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    {{-- Signature & Author Attributions --}}
+                    <div class="pt-4 border-top">
+                        <div class="text-end mb-3 fw-bold" dir="rtl" style="font-family: 'Noto Naskh Arabic', serif; font-size: 1.4rem; color: #052961;">
+                            وَاللهُ أَعْلَمُ بِالصَّوَابِ
+                        </div>
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 small text-muted">
+                            <div>
+                                Written by: <strong class="text-dark">{{ $question->assignedMufti->name ?? 'Darul Ifta Faculty' }}</strong>
+                                @if($question->publisher)
+                                    • Approved by: <strong class="text-dark">{{ $question->publisher->name }}</strong>
+                                @endif
+                            </div>
+                            <div>
+                                <span class="badge bg-white text-dark border px-2.5 py-1 rounded-pill">
+                                    Darul Ifta Kauzariyya Archive
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @elseif($status === 'pending' || $status === 'assigned')
+                <div class="query-content-pane bg-white text-center py-5">
+                    <div class="d-inline-flex p-3 rounded-circle bg-warning bg-opacity-10 text-warning mb-3">
+                        <i class="bi bi-hourglass-split fs-2"></i>
+                    </div>
+                    <h5 class="fw-800 text-dark mb-1">Ruling Under Scholarly Review</h5>
+                    <p class="text-muted small mb-0" style="max-width: 480px; margin: 0 auto;">
+                        Your inquiry has been received and is currently being studied by our qualified Muftis according to authentic Quran and Sunnah sources. You will be notified once the ruling is issued.
+                    </p>
+                </div>
             @endif
 
-            {{-- Closing & Signatures --}}
-            <div class="signature-section">
-                <div class="arabic-block" style="text-align: right; margin-bottom: 25px; border-top: 1px solid #f0f0f0; padding-top: 20px; font-size: 1.7rem; font-weight: 700;">
-                    والله أعلم بالصواب
-                </div>
-
-                <div class="signature-item">
-                    <span class="sig-label text-dark">Written by:</span>
-                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->assignedMufti->name ?? 'Darul Ifta' }}</span>
-                </div>
-
-                @if($question->publisher)
-                <div class="signature-item">
-                    <span class="sig-label text-dark">Published & Approved by:</span>
-                    <span class="sig-value" style="color: #1a7a4a;">{{ $question->publisher->name }}</span>
-                </div>
-                @endif
-            </div>
-
-            {{-- Tags & Share --}}
-            <div class="tags-footer">
-                <div>
-                    <span class="fw-bold small me-2">Tags:</span>
-                    <span class="tag-item">#islam</span>
-                    <span class="tag-item">#figh</span>
-                    <span class="tag-item">#hadiya</span>
-                    <span class="tag-item">#salath</span>
-                </div>
-                <a href="#" class="share-icon"><i class="bi bi-share"></i></a>
-            </div>
-            @endif
         </div>
 
-        {{-- Related Questions --}}
-        @if(isset($relatedQuestions) && $relatedQuestions->count())
-        <div class="related-section">
-            <h5 class="related-title">Related Archive Queries</h5>
-            @foreach($relatedQuestions as $rq)
-            <a href="{{ route('fatwa.show', $rq->id) }}" class="related-card border-0 shadow-sm">
-                <div class="pe-3">
-                    <div class="body-text small text-dark mb-0">{{ Str::limit($rq->title ?: $rq->body, 60) }}</div>
-                </div>
-                <div class="text-end" style="min-width: 100px;">
-                    <span class="fw-bold small" style="color:#666;">(QU ID {{ $rq->id }})</span>
-                </div>
-            </a>
-            @endforeach
-        </div>
-        @endif
     </div>
 </div>
+
 @endsection

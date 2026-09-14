@@ -294,33 +294,37 @@ class FatwaController extends Controller
     public function mentionSearch(Request $request)
     {
         $q = trim($request->get('q', ''));
-        
-        $query = QuestionAndAnswer::where('status', 'published');
+        $cacheKey = 'fatwa_mention_search_' . md5($q);
 
-        if ($q !== '') {
-            $cleanQ = ltrim($q, '@{');
-            $cleanQ = rtrim($cleanQ, '}');
-            $query->where(function ($w) use ($cleanQ) {
-                $w->where('question_id', 'LIKE', "%{$cleanQ}%")
-                  ->orWhere('title', 'LIKE', "%{$cleanQ}%")
-                  ->orWhere('body', 'LIKE', "%{$cleanQ}%");
-            });
-        }
+        $results = \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function () use ($q) {
+            $query = QuestionAndAnswer::where('status', 'published');
 
-        $fatwas = $query->latest('published_at')
-            ->take(20)
-            ->get(['id', 'question_id', 'title', 'body', 'published_at', 'language'])
-            ->map(function ($f) {
-                $rawTitle = $f->title ?: strip_tags($f->body);
-                return [
-                    'id'             => $f->id,
-                    'question_id'    => $f->question_id,
-                    'title'          => \Illuminate\Support\Str::limit($rawTitle, 80),
-                    'published_date' => $f->published_at ? $f->published_at->format('d M Y') : 'Published',
-                    'tag_code'       => '@{' . $f->question_id . '}',
-                ];
-            });
+            if ($q !== '') {
+                $cleanQ = ltrim($q, '@{');
+                $cleanQ = rtrim($cleanQ, '}');
+                $query->where(function ($w) use ($cleanQ) {
+                    $w->where('question_id', 'LIKE', "%{$cleanQ}%")
+                      ->orWhere('title', 'LIKE', "%{$cleanQ}%")
+                      ->orWhere('body', 'LIKE', "%{$cleanQ}%");
+                });
+            }
 
-        return response()->json($fatwas);
+            return $query->latest('published_at')
+                ->take(20)
+                ->get(['id', 'question_id', 'title', 'body', 'published_at', 'language'])
+                ->map(function ($f) {
+                    $rawTitle = $f->title ?: strip_tags($f->body);
+                    return [
+                        'id'             => $f->id,
+                        'question_id'    => $f->question_id,
+                        'title'          => \Illuminate\Support\Str::limit($rawTitle, 80),
+                        'published_date' => $f->published_at ? $f->published_at->format('d M Y') : 'Published',
+                        'tag_code'       => '@{' . $f->question_id . '}',
+                    ];
+                })
+                ->toArray();
+        });
+
+        return response()->json($results);
     }
 }

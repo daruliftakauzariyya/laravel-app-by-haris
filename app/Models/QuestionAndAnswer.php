@@ -42,6 +42,24 @@ class QuestionAndAnswer extends Model
         'verified_by' => 'array',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            // Bi-directional automatic synchronization of status string and status_id
+            if ($model->isDirty('status') && !$model->isDirty('status_id')) {
+                $model->status_id = \App\Models\Status::codeToId($model->status);
+            } elseif ($model->isDirty('status_id') && !$model->isDirty('status')) {
+                $model->status = \App\Models\Status::idToCode($model->status_id);
+            } elseif (empty($model->status_id) && !empty($model->status)) {
+                $model->status_id = \App\Models\Status::codeToId($model->status);
+            } elseif (empty($model->status) && !empty($model->status_id)) {
+                $model->status = \App\Models\Status::idToCode($model->status_id);
+            }
+        });
+    }
+
     /**
      * Generate a unique 5-character question ID (1 alphabet + 4 numbers).
      * Example: A0012
@@ -109,6 +127,31 @@ class QuestionAndAnswer extends Model
     public function draftReferences()
     {
         return $this->hasMany(Reference::class, 'question_and_answer_id')->where('is_draft', true)->orderBy('sort_order');
+    }
+
+    public function statusRecord()
+    {
+        return $this->belongsTo(Status::class, 'status_id');
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return Status::getLabel($this->status_id ?? $this->status);
+    }
+
+    public function getStatusBadgeAttribute(): string
+    {
+        return Status::renderBadge($this->status_id ?? $this->status);
+    }
+
+    public function scopeStatus($query, $status)
+    {
+        if (is_array($status)) {
+            $ids = array_map(fn($s) => is_numeric($s) ? (int)$s : Status::codeToId($s), $status);
+            return $query->whereIn('status_id', $ids);
+        }
+        $id = is_numeric($status) ? (int)$status : Status::codeToId($status);
+        return $query->where('status_id', $id);
     }
 
     public function statusHistory()

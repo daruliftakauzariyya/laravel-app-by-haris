@@ -29,5 +29,14 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\QuestionAndAnswer::deleted($clearCache);
         \App\Models\Category::saved($clearCache);
         \App\Models\Category::deleted($clearCache);
+
+        // Global Blade Directives for Status Management
+        \Illuminate\Support\Facades\Blade::directive('statusBadge', function ($expression) {
+            return "<?php echo \App\Models\Status::renderBadge($expression); ?>";
+        });
+
+        \Illuminate\Support\Facades\Blade::directive('statusLabel', function ($expression) {
+            return "<?php echo \App\Models\Status::getLabel($expression); ?>";
+        });
     }
 }
