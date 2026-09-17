@@ -16,7 +16,12 @@ class GoogleController extends Controller
      */
     public function redirect()
     {
-        return Socialite::driver('google')->redirect();
+        $driver = Socialite::driver('google');
+        $driver->setScopes([
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile'
+        ]);
+        return $driver->redirect();
     }
 
     /**
@@ -25,7 +30,12 @@ class GoogleController extends Controller
     public function link()
     {
         session(['google_oauth_action' => 'link_account']);
-        return Socialite::driver('google')->redirect();
+        $driver = Socialite::driver('google');
+        $driver->setScopes([
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile'
+        ]);
+        return $driver->redirect();
     }
 
     /**

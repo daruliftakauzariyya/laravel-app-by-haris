@@ -25,7 +25,7 @@ class QuestionController extends Controller
 
         // Check for 5-minute patience (Throttling)
         $lastQuestion = QuestionAndAnswer::where('user_id', Auth::id())
-            ->latest()
+            ->latest('created_at')
             ->first();
 
         if ($lastQuestion && $lastQuestion->created_at->addMinutes(5)->isFuture()) {
@@ -41,6 +41,18 @@ class QuestionController extends Controller
         ];
 
         $request->validate($rules);
+
+        // Deduplication Guard: If identical question was submitted in the last 2 minutes, don't create duplicate
+        $existing = QuestionAndAnswer::where('user_id', Auth::id())
+            ->where('title', $request->title)
+            ->where('body', $request->body)
+            ->where('created_at', '>=', now()->subMinutes(2))
+            ->latest('id')
+            ->first();
+
+        if ($existing) {
+            return redirect()->route('home')->with('success', 'Your question has been submitted successfully! Question ID: ' . $existing->question_id);
+        }
 
         // Check if the user's profile is incomplete
         $hasMobile  = !empty($user->mobile);
@@ -80,15 +92,30 @@ class QuestionController extends Controller
      */
     public static function saveQuestion($userId, array $data)
     {
-        $question = QuestionAndAnswer::create([
-            'question_id' => QuestionAndAnswer::generateQuestionId(),
-            'user_id'     => $userId,
-            'category_id' => $data['category_id'] ?? null,
-            'title'       => $data['title'],
-            'body'        => $data['body'],
-            'madhab_id'   => $data['madhab_id'],
-            'status'      => 'pending',
-        ]);
+        // 1. Strict Idempotency / Deduplication Guard: Check if identical question was created in the last 2 minutes
+        $existing = QuestionAndAnswer::where('user_id', $userId)
+            ->where('title', $data['title'])
+            ->where('body', $data['body'])
+            ->where('created_at', '>=', now()->subMinutes(2))
+            ->latest('id')
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        // 2. Wrap creation in DB transaction
+        $question = \Illuminate\Support\Facades\DB::transaction(function () use ($userId, $data) {
+            return QuestionAndAnswer::create([
+                'question_id' => QuestionAndAnswer::generateQuestionId(),
+                'user_id'     => $userId,
+                'category_id' => $data['category_id'] ?? null,
+                'title'       => $data['title'],
+                'body'        => $data['body'],
+                'madhab_id'   => $data['madhab_id'],
+                'status'      => 'pending',
+            ]);
+        });
 
         $madhabName = \App\Models\Madhab::find($data['madhab_id'])?->name ?? 'General';
 

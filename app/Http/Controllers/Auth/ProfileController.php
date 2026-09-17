@@ -89,16 +89,16 @@ class ProfileController extends Controller
 
         $user->update($updateData);
 
-        // Check if there is a pending question
+        // Atomically pull pending question from session to guarantee single execution
         if (session()->has('pending_question')) {
-            $pendingQuestion = session('pending_question');
+            $pendingQuestion = session()->pull('pending_question');
             
-            // Post the question
-            $question = QuestionController::saveQuestion($user->id, $pendingQuestion);
-            
-            session()->forget('pending_question');
+            if ($pendingQuestion) {
+                // Post the question
+                $question = QuestionController::saveQuestion($user->id, $pendingQuestion);
 
-            return redirect()->route('home')->with('success', 'Your profile details have been completed and your question has been posted successfully! Question ID: ' . $question->question_id);
+                return redirect()->route('home')->with('success', 'Your profile details have been completed and your question has been posted successfully! Question ID: ' . $question->question_id);
+            }
         }
 
         return redirect()->route('user.dashboard')->with('success', 'Profile details completed successfully!');
@@ -115,7 +115,12 @@ class ProfileController extends Controller
             return redirect()->route('home')->with('error', 'Bypassing profile completion is not allowed.');
         }
 
-        $pendingQuestion = session('pending_question');
+        // Atomically pull pending question from session
+        $pendingQuestion = session()->pull('pending_question');
+
+        if (!$pendingQuestion) {
+            return redirect()->route('home')->with('success', 'Your question has already been processed.');
+        }
 
         // Post the question
         $question = QuestionController::saveQuestion($user->id, $pendingQuestion);
@@ -126,8 +131,6 @@ class ProfileController extends Controller
         } catch (\Exception $e) {
             \Log::error("Failed to send CompleteProfileRequestMail: " . $e->getMessage());
         }
-
-        session()->forget('pending_question');
 
         return redirect()->route('home')->with('success', 'Your question has been submitted successfully! Please check your email to complete your profile later. Question ID: ' . $question->question_id);
     }

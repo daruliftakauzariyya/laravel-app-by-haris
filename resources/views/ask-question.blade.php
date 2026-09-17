@@ -528,7 +528,13 @@
         }
     });
 
-    document.getElementById('askForm').onsubmit = function() {
+    let isSubmittingQuestion = false;
+    document.getElementById('askForm').onsubmit = function(e) {
+        if (isSubmittingQuestion) {
+            if (e && e.preventDefault) e.preventDefault();
+            return false;
+        }
+
         var body = document.querySelector('input[name=body]');
         body.value = quill.root.innerHTML;
         if(quill.getText().trim().length === 0) {
@@ -536,9 +542,12 @@
             return false;
         }
         
+        isSubmittingQuestion = true;
         const btn = document.getElementById('submit-btn');
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Posting Question to Muftis...`;
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Posting Question to Muftis...`;
+        }
         
         return true;
     };

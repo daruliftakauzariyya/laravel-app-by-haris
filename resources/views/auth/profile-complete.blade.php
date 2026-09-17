@@ -320,8 +320,27 @@
         });
     });
 
+    let isProfileSubmitting = false;
+    const completeForm = document.getElementById('completeProfileForm');
+    if (completeForm) {
+        completeForm.addEventListener('submit', function(e) {
+            if (isProfileSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            isProfileSubmitting = true;
+            const submitBtn = completeForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Saving & Submitting...`;
+            }
+        });
+    }
+
     function submitSkipForm() {
+        if (isProfileSubmitting) return;
         if (confirm('Are you sure you want to skip completing your profile details for now? Region-specific rulings (Fatwas) often depend heavily on your locale and context.')) {
+            isProfileSubmitting = true;
             document.getElementById('skipProfileForm').submit();
         }
     }
