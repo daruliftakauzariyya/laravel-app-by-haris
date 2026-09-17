@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Models\QuestionAndAnswer;
 use App\Models\Madhab;
 
@@ -27,13 +28,21 @@ class UserDashboardController extends Controller
         return view('user.dashboard', compact('questions', 'stats', 'madhabs'));
     }
 
+    public function settings()
+    {
+        $user = Auth::user();
+        $madhabs = Madhab::all();
+        return view('user.settings', compact('user', 'madhabs'));
+    }
+
     public function updateProfile(Request $request)
     {
         $user = Auth::user();
         $validated = $request->validate([
             'name'            => 'required|string|max:255',
+            'despl_name'      => 'nullable|string|max:255',
             'mobile'          => 'nullable|string|max:20',
-            'gender'          => 'nullable|string|in:Male,Female',
+            'gender'          => 'nullable|string|in:Male,Female,Other',
             'madhab_id'       => 'nullable|exists:madhabs,id',
             'address_line_1'  => 'nullable|string|max:255',
             'address_line_2'  => 'nullable|string|max:255',
@@ -41,7 +50,7 @@ class UserDashboardController extends Controller
             'state'           => 'nullable|string|max:100',
             'district'        => 'nullable|string|max:100',
             'mother_language' => 'nullable|string|max:50',
-            'avatar_file'     => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'avatar_file'     => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
         // Handle Avatar Upload
@@ -55,7 +64,7 @@ class UserDashboardController extends Controller
             }
 
             $file = $request->file('avatar_file');
-            $filename = time() . '_' . $file->getClientOriginalName();
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
             $targetDir = public_path('assets/img/avatars');
             
             if (!file_exists($targetDir)) {
@@ -73,15 +82,26 @@ class UserDashboardController extends Controller
 
     public function updatePassword(Request $request)
     {
-        $request->validate([
-            'password' => 'required|string|min:8|confirmed',
+        $user = Auth::user();
+
+        // If user already has a password set, require current_password
+        if (!empty($user->password)) {
+            $request->validate([
+                'current_password' => 'required|current_password',
+                'password'         => 'required|string|min:8|confirmed',
+            ]);
+        } else {
+            // If user signed up with Google and has no password yet
+            $request->validate([
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->password),
         ]);
 
-        Auth::user()->update([
-            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
-        ]);
-
-        return back()->with('success', 'Password updated successfully. You can now use your new password.');
+        return back()->with('success', 'Password updated successfully. You can now use your password to sign in.');
     }
 
     public function show(QuestionAndAnswer $question)

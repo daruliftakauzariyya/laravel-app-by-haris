@@ -641,6 +641,18 @@
     </style>
 
     <div class="main-wrapper py-5">
+        @if($fatwa->status !== 'published')
+            <div class="alert alert-warning border border-warning shadow-sm d-flex align-items-center mb-4 rounded-3 p-3" role="alert">
+                <i class="bi bi-shield-lock-fill fs-3 me-3 text-warning"></i>
+                <div>
+                    <div class="fw-bold text-dark fs-6">Unpublished Inquiry (Preview Mode)</div>
+                    <div class="small text-muted">
+                        This inquiry has status <span class="badge bg-warning text-dark text-uppercase fw-bold">{{ $fatwa->status }}</span>. It is not publicly visible on the archive and can only be viewed by authorized roles (Admin, Assigned Mufti, or Author).
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <div class="row">
             {{-- Left Column: Main Content --}}
             <div class="col-lg-8">

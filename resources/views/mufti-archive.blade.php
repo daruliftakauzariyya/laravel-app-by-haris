@@ -133,33 +133,7 @@
             @else
                 <div class="row g-4">
                     @foreach($fatwas as $fatwa)
-                    <div class="col-md-6">
-                        <a href="{{ route('fatwa.show', $fatwa) }}" class="text-decoration-none text-dark">
-                            <div class="fatwa-card h-100">
-                                <div class="fatwa-thumb">
-                                    <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}" alt="Fatwa" onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
-                                    <span class="madhab-badge">{{ $fatwa->madhab?->name == 'Shafii' ? "Shafi'i" : ($fatwa->madhab?->name ?? 'General/Other') }}</span>
-                                </div>
-                                <div class="fatwa-body">
-                                    <div class="fatwa-meta small mb-2 d-flex justify-content-between">
-                                        <span class="text-primary fw-bold">{{ $fatwa->category->name ?? 'General' }}</span>
-                                        <span class="text-warning small">
-                                            @for($i=0; $i<($fatwa->category->stars ?? 5); $i++)
-                                                <i class="bi bi-star-fill"></i>
-                                            @endfor
-                                        </span>
-                                        <span class="text-muted">{{ $fatwa->published_at?->format('d M Y') }}</span>
-                                    </div>
-                                    <h6 class="fw-bold mb-2 line-clamp-2">{{ Str::limit($fatwa->title ?: strip_tags($fatwa->body), 60) }}</h6>
-                                    <p class="text-muted x-small mb-3 line-clamp-2">{{ Str::limit(strip_tags($fatwa->answer), 80) }}</p>
-                                    <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-2">
-                                        <span class="x-small text-muted"><i class="bi bi-eye me-1"></i>{{ number_format($fatwa->views) }} views</span>
-                                        <span class="x-small text-muted"><i class="bi bi-heart-fill text-danger me-1"></i>{{ number_format($fatwa->likes) }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
+                        @include('partials.fatwa-card', ['fatwa' => $fatwa, 'colClass' => 'col-12 col-md-6'])
                     @endforeach
                 </div>
                 <div class="mt-5">{{ $fatwas->links() }}</div>
@@ -402,35 +376,6 @@
         transform: scale(1.05);
     }
 
-    .fatwa-card {
-        background: #fff;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-        border: 1px solid #edf2f7;
-        transition: all 0.3s ease;
-        display: flex;
-        flex-direction: column;
-    }
-    .fatwa-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    }
-    .fatwa-thumb { position: relative; height: 160px; overflow: hidden; }
-    .fatwa-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .fatwa-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
-    .madhab-badge {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        background: rgba(var(--bs-primary-rgb), 0.9);
-        color: #fff;
-        font-size: 0.65rem;
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
     .transition-up { transition: transform 0.2s ease; }
     .transition-up:hover { transform: translateY(-3px); }
     .x-small { font-size: 0.75rem; }

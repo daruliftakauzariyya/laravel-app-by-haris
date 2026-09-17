@@ -513,7 +513,11 @@
                         </div>
                     </div>
 
-                    <div class="w-100 w-md-auto mt-2 mt-md-0">
+                    <div class="w-100 w-md-auto mt-2 mt-md-0 d-flex flex-wrap align-items-center gap-2">
+                        <a href="{{ route('user.settings') }}" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2" style="border-color: rgba(255,255,255,0.4);">
+                            <i class="bi bi-gear-fill"></i>
+                            <span>Settings</span>
+                        </a>
                         <a href="{{ route('question.create') }}" class="btn-new-inquiry">
                             <i class="bi bi-plus-circle-fill fs-5"></i>
                             <span>Ask New Question</span>

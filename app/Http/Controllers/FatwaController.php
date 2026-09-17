@@ -90,14 +90,24 @@ class FatwaController extends Controller
             'publisher'
         ]);
         
-        // Restrict access if not published
+        // Restrict access if not published: must be logged in and possess authorized role
         if ($fatwa->status !== 'published') {
             $user = auth()->user();
             if (!$user) {
-                abort(404);
+                return redirect()->guest(route('login'))->with('warning', 'This inquiry is not published yet. Please log in with an authorized account to view.');
             }
-            if ($user->role?->name !== 'admin' && $user->role?->name !== 'mufti' && $fatwa->user_id !== $user->id) {
-                abort(404);
+            
+            $isAdminOrMufti = $user->hasRole(['admin', 'mufti']) 
+                || in_array($user->role_id, [1, 2]) 
+                || in_array(strtolower($user->role?->name ?? ''), ['admin', 'mufti']);
+            $isOwner = ((int)$fatwa->user_id === (int)$user->id);
+            $isAssignedMufti = ((int)$fatwa->assigned_mufti_id === (int)$user->id);
+
+            if (!$isAdminOrMufti && !$isOwner && !$isAssignedMufti) {
+                if ($user->hasRole('questioner') || $user->role_id === 3) {
+                    return redirect()->route('user.dashboard')->with('error', 'You are not authorized to view this unpublished inquiry.');
+                }
+                abort(403, 'Unauthorized access to unpublished inquiry.');
             }
         }
 
@@ -118,7 +128,10 @@ class FatwaController extends Controller
 
         $allCategories = $this->getCategoryHierarchy();
 
-        $fatwa->incrementViews(); // Public reads counter
+        // Increment public views only if published
+        if ($fatwa->status === 'published') {
+            $fatwa->incrementViews();
+        }
 
         // Track questioner's own views (logged-in user only, session protected)
         if (auth()->check()) {
@@ -192,6 +205,13 @@ class FatwaController extends Controller
 
     public function like(Request $request, QuestionAndAnswer $fatwa)
     {
+        if ($fatwa->status !== 'published') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot like an unpublished inquiry.'
+            ], 403);
+        }
+
         $alreadyLiked = session()->has('liked_fatwa_' . $fatwa->id);
 
         if ($alreadyLiked) {

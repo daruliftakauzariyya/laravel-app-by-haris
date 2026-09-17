@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\PublicStatsController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\FatwaController;
 use App\Http\Controllers\QuestionController;
@@ -13,6 +14,11 @@ use Illuminate\Support\Facades\Route;
 | API Routes — Darul Ifta Portal
 |--------------------------------------------------------------------------
 */
+
+// Public: Portal Numbers & Statistics Details API (Reusable across web, apps, cards)
+Route::get('/stats', [PublicStatsController::class, 'index']);
+Route::get('/public/stats', [PublicStatsController::class, 'index']);
+Route::get('/public/stats/cards', [PublicStatsController::class, 'cards']);
 
 // Include Dedicated Mufti Mobile App API Routes
 require __DIR__ . '/mufti_mobile_app_api.php';

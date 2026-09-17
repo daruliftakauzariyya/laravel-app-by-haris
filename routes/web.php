@@ -32,6 +32,8 @@ Route::get('/fatwa/madhab', [FatwaController::class, 'madhabArchive'])->name('fa
 Route::get('/mufti-archive/{user}', [FatwaController::class, 'muftiArchive'])->name('fatwa.mufti.archive');
 Route::post('/fatwa-archive/{fatwa}/like', [FatwaController::class, 'like'])->name('fatwa.like');
 Route::get('/fatwas/mention-search', [FatwaController::class, 'mentionSearch'])->name('fatwa.mention.search');
+Route::get('/privacy', [HomeController::class, 'privacy'])->name('privacy');
+Route::get('/terms', [HomeController::class, 'terms'])->name('terms');
 Route::get('/sitemap.xml', [HomeController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [HomeController::class, 'robotsTxt'])->name('robots.txt');
 
@@ -52,12 +54,17 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/logout', [LoginController::class, 'logout']);
 
 
+// Google OAuth Authentication
+Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('auth.google.callback');
+
 // OTP Verification
 Route::get('/verify-otp', [\App\Http\Controllers\Auth\OtpVerificationController::class, 'showVerifyForm'])->name('otp.verify.form');
 Route::post('/verify-otp', [\App\Http\Controllers\Auth\OtpVerificationController::class, 'verify'])->name('otp.verify.submit');
 
 // OTP Login
 Route::post('/login/otp/send', [\App\Http\Controllers\Auth\LoginController::class, 'sendLoginOtp'])->name('login.otp.send');
+Route::post('/login/otp/verify', [\App\Http\Controllers\Auth\LoginController::class, 'verifyLoginOtp'])->name('login.otp.verify');
 
 // Password Recovery (Forgot Password)
 Route::get('/forgot-password', [\App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
@@ -72,6 +79,9 @@ Route::post('/reset-password', [\App\Http\Controllers\Auth\ForgotPasswordControl
 */
 Route::middleware(['auth'])->group(function () {
     Route::get('/user/dashboard', [\App\Http\Controllers\User\UserDashboardController::class, 'index'])->name('user.dashboard');
+    Route::get('/user/settings', [\App\Http\Controllers\User\UserDashboardController::class, 'settings'])->name('user.settings');
+    Route::get('/user/auth/google/link', [GoogleController::class, 'link'])->name('user.google.link');
+    Route::post('/user/auth/google/unlink', [GoogleController::class, 'unlink'])->name('user.google.unlink');
     Route::put('/user/profile', [\App\Http\Controllers\User\UserDashboardController::class, 'updateProfile'])->name('user.profile.update');
     Route::put('/user/password', [\App\Http\Controllers\User\UserDashboardController::class, 'updatePassword'])->name('user.password.update');
     Route::get('/user/questions/{question}', [\App\Http\Controllers\User\UserDashboardController::class, 'show'])->name('user.question.show');

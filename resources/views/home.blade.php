@@ -112,35 +112,9 @@
             </a>
         </div>
 
-        <div class="row g-4 justify-content-center">
+        <div class="row g-4">
             @foreach($latestFatwas as $fatwa)
-            <div class="col-md-6 col-lg-4 col-xl-3">
-                <a href="{{ route('fatwa.show', $fatwa) }}" class="text-decoration-none">
-                    <div class="recent-fatwa-card-v2 h-100 d-flex flex-column justify-content-between">
-                        <!-- Top Text & Image Row -->
-                        <div class="card-top-half p-4">
-                            <div class="card-text-side pe-2">
-                                <span class="badge-custom-category">
-                                    {{ $fatwa->category?->name ?? 'General / Other' }}
-                                </span>
-                                <h5 class="recent-fatwa-title-v2 mt-3 ml-text">
-                                    {{ Str::limit(strip_tags($fatwa->title ?: $fatwa->body), 85) }}
-                                </h5>
-                            </div>
-                            <div class="card-image-side" style="background-image: url('{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}');">
-                                <span class="card-madhab-badge">{{ $fatwa->madhab?->name ?? 'General' }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Full Width Bottom Footer Bar -->
-                        <div class="card-bottom-bar d-flex align-items-center justify-content-between px-4 py-3">
-                            <span class="meta-item"><i class="bi bi-calendar3 me-1"></i>{{ $fatwa->published_at?->format('M d, Y') ?? 'May 20, 2024' }}</span>
-                            <span class="meta-item"><i class="bi bi-eye me-1"></i>{{ number_format($fatwa->views) }} Views</span>
-                            <i class="bi bi-arrow-right text-gold"></i>
-                        </div>
-                    </div>
-                </a>
-            </div>
+                @include('partials.fatwa-card', ['fatwa' => $fatwa, 'colClass' => 'col-12 col-md-6 col-lg-4'])
             @endforeach
         </div>
 
@@ -218,36 +192,7 @@
 
         <div class="row g-4">
             @foreach($featuredData['fatwas'] as $fatwa)
-            <div class="col-md-6 col-lg-4">
-                <a href="{{ route('fatwa.show', $fatwa) }}" class="text-decoration-none">
-                    <div class="fatwa-card-featured-v2 h-100">
-                        <div class="featured-thumb-v2">
-                            <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}" alt="Fatwa" loading="lazy"
-                                 onerror="this.src='https://placehold.co/400x180/295a75/fff?text=Fatwa'">
-                            <span class="featured-madhab-badge">{{ $fatwa->madhab?->name ?? 'General' }}</span>
-                            @if($fatwa->views > 50)
-                            <span class="featured-hot-badge"><i class="bi bi-fire me-1"></i>Popular</span>
-                            @endif
-                        </div>
-                        <div class="featured-body-v2">
-                            <div class="featured-meta-v2">
-                                <span class="category"><i class="bi bi-folder2 me-1"></i>{{ $fatwa->category?->name ?? 'General' }}</span>
-                                <span class="views"><i class="bi bi-eye me-1"></i>{{ number_format($fatwa->views) }}</span>
-                            </div>
-                            <h5 class="featured-title-v2 ml-text">{{ Str::limit(strip_tags($fatwa->title ?: $fatwa->body), 75) }}</h5>
-                            <p class="featured-excerpt-v2 text-muted">{{ Str::limit(strip_tags($fatwa->answer ?? ''), 95) }}</p>
-                            
-                            <div class="featured-footer-v2">
-                                <div class="author-info">
-                                    <i class="bi bi-person-circle"></i>
-                                    <span>{{ $fatwa->assignedMufti?->name ?? 'Darul Ifta' }}</span>
-                                </div>
-                                <span class="read-more">Read Fatwa <i class="bi bi-chevron-right"></i></span>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-            </div>
+                @include('partials.fatwa-card', ['fatwa' => $fatwa, 'colClass' => 'col-12 col-md-6 col-lg-4'])
             @endforeach
         </div>
     </div>
@@ -1601,111 +1546,6 @@ $scholars = [
             max-width: 100%;
         }
     }
-
-    /* ============================================
-       9. Fatwa Card — Clean Box Model Design
-       ============================================ */
-    .fatwa-card {
-        background: #fff;
-        border-radius: 14px;
-        overflow: hidden;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-        border: 1px solid #edf2f7;
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
-        display: flex;
-        flex-direction: column;
-    }
-    .fatwa-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 12px 30px rgba(26, 122, 74, 0.12);
-        border-color: #c6e9d8;
-    }
-    .fatwa-thumb {
-        position: relative;
-        width: 100%;
-        height: 180px;
-        overflow: hidden;
-        background: #f0f4f8;
-    }
-    .fatwa-thumb img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.4s ease;
-    }
-    .fatwa-card:hover .fatwa-thumb img { transform: scale(1.04); }
-    .madhab-badge {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        background: #1a7a4a;
-        color: #fff;
-        font-size: 0.72rem;
-        font-weight: 700;
-        padding: 3px 10px;
-        border-radius: 20px;
-        letter-spacing: 0.5px;
-    }
-    .fatwa-body {
-        padding: 18px 20px 16px;
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
-    .fatwa-meta {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.75rem;
-        color: #a0aec0;
-        margin-bottom: 10px;
-        font-weight: 500;
-    }
-    .fatwa-meta span:first-child { color: #1a7a4a; font-weight: 600; }
-    .fatwa-title {
-        font-size: 0.98rem;
-        font-weight: 800;
-        color: #1a202c;
-        line-height: 1.45;
-        margin-bottom: 10px;
-        flex-grow: 1;
-    }
-    .fatwa-excerpt {
-        font-size: 0.83rem;
-        color: #718096;
-        line-height: 1.6;
-        margin-bottom: 16px;
-    }
-    .fatwa-footer {
-        display: flex;
-        align-items: center;
-        border-top: 1px solid #f1f5f9;
-        padding-top: 12px;
-        margin-top: auto;
-        gap: 6px;
-        flex-wrap: nowrap;
-        overflow: hidden;
-    }
-    .fatwa-author {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #4a5568;
-        flex: 1 1 0;
-        min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-    }
-    .read-more-btn {
-        font-size: 0.8rem;
-        font-weight: 700;
-        color: #1a7a4a;
-        border: 1.5px solid #1a7a4a;
-        padding: 4px 14px;
-        border-radius: 20px;
-        transition: 0.2s;
-    }
-    .fatwa-card:hover .read-more-btn { background: #1a7a4a; color: #fff; }
 </style>
 @endpush
 

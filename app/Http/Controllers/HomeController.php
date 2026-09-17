@@ -55,6 +55,16 @@ class HomeController extends Controller
         return view('contact');
     }
 
+    public function privacy()
+    {
+        return view('privacy');
+    }
+
+    public function terms()
+    {
+        return view('terms');
+    }
+
     public function submitContact(Request $request)
     {
         $validated = $request->validate([
@@ -134,6 +144,10 @@ class HomeController extends Controller
 
         // 4. Contact
         $addUrl(route('contact'), '0.5', 'monthly', now());
+
+        // 4b. Legal: Privacy Policy & Terms of Service
+        $addUrl(route('privacy'), '0.4', 'monthly', now());
+        $addUrl(route('terms'), '0.4', 'monthly', now());
 
         // 5. Published Fatwas (Scrollable: Question, Answer, References, Mufti Name)
         foreach ($fatwas as $f) {

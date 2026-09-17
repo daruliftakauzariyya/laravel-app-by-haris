@@ -250,6 +250,210 @@
             color: var(--brand-gold);
         }
 
+        /* ========================================================
+           Standardized Unified Fatwa Display Card Component Styles
+           ======================================================== */
+        .fatwa-card {
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .fatwa-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 36px rgba(10, 35, 64, 0.09);
+            border-color: #cbd5e1;
+        }
+
+        .fatwa-thumb {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            min-height: 180px;
+            max-height: 180px;
+            overflow: hidden;
+            background: #0d263e;
+        }
+
+        .fatwa-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.4s ease;
+        }
+
+        .fatwa-card:hover .fatwa-thumb img {
+            transform: scale(1.05);
+        }
+
+        .madhab-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: #1a7a4a;
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 2;
+        }
+
+        .fatwa-body {
+            padding: 1.25rem 1.35rem 1.15rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+        }
+
+        .fatwa-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            color: #94a3b8;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            gap: 6px;
+        }
+
+        .fatwa-meta-cat {
+            color: #1a7a4a;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 48%;
+        }
+
+        .fatwa-meta-stars {
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+        }
+
+        .fatwa-meta-date {
+            color: #94a3b8;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Universal Multi-Language Support Font Stacks */
+        .fatwa-title, .fatwa-excerpt {
+            font-family: 'Noto Sans Malayalam', 'Noto Serif Malayalam', 'Amiri', 'Noto Naskh Arabic', 'Gulzar', 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .fatwa-title {
+            font-size: 1.02rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.5;
+            margin-bottom: 0.65rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 3.1rem;
+        }
+
+        .fatwa-title.lang-malayalam, .fatwa-excerpt.lang-malayalam {
+            font-family: 'Noto Sans Malayalam', 'Noto Serif Malayalam', 'Manjari', sans-serif !important;
+            line-height: 1.65;
+        }
+
+        .fatwa-title.lang-arabic, .fatwa-excerpt.lang-arabic {
+            font-family: 'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif !important;
+            line-height: 1.85;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .fatwa-title.lang-urdu, .fatwa-excerpt.lang-urdu {
+            font-family: 'Gulzar', 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif !important;
+            line-height: 2.0;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .fatwa-excerpt {
+            font-size: 0.86rem;
+            color: #475569;
+            line-height: 1.65;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 4.2rem;
+        }
+
+        .fatwa-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 0.85rem;
+            margin-top: auto;
+            gap: 8px;
+        }
+
+        .fatwa-author-box {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow: hidden;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .fatwa-author {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #475569;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fatwa-actions-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .read-more-btn {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #1a7a4a;
+            border: 1.5px solid #1a7a4a;
+            padding: 3px 12px;
+            border-radius: 20px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .fatwa-card:hover .read-more-btn {
+            background: #1a7a4a;
+            color: #ffffff;
+        }
+
         /* Modern Deep Dark Footer Styling */
         footer {
             background: linear-gradient(180deg, #09121a 0%, #03060a 100%);
@@ -605,6 +809,11 @@
                                         </a>
                                     </li>
                                     <li>
+                                        <a class="dropdown-item py-2" href="{{ route('user.settings') }}">
+                                            <i class="bi bi-gear-fill me-2 text-secondary"></i>Account Settings
+                                        </a>
+                                    </li>
+                                    <li>
                                         <a class="dropdown-item py-2" href="{{ route('question.create') }}">
                                             <i class="bi bi-pencil-square me-2 text-success"></i>Ask a Question
                                         </a>
@@ -688,6 +897,8 @@
                         @if(Auth::user()->hasRole('user') || Auth::user()->hasRole('questioner') || !in_array(Auth::user()->role?->name, ['admin', 'mufti']))
                             <a href="{{ route('user.dashboard') }}" class="btn btn-brand btn-sm text-start"><i
                                     class="bi bi-grid-fill me-2"></i>User Dashboard</a>
+                            <a href="{{ route('user.settings') }}" class="btn btn-outline-secondary btn-sm text-start"><i
+                                    class="bi bi-gear-fill me-2"></i>Account Settings</a>
                             <a href="{{ route('question.create') }}" class="btn btn-outline-success btn-sm text-start"><i
                                     class="bi bi-pencil-square me-2"></i>Ask a Question</a>
                         @endif
@@ -762,6 +973,8 @@
                         <li><a href="{{ route('home') }}"><i class="bi bi-chevron-right"></i>Home</a></li>
                         <li><a href="{{ route('team') }}"><i class="bi bi-chevron-right"></i>Meet the Muftis</a></li>
                         <li><a href="{{ route('contact') }}"><i class="bi bi-chevron-right"></i>Contact Us</a></li>
+                        <li><a href="{{ route('privacy') }}"><i class="bi bi-chevron-right"></i>Privacy Policy</a></li>
+                        <li><a href="{{ route('terms') }}"><i class="bi bi-chevron-right"></i>Terms of Service</a></li>
                         <li><a href="{{ route('login') }}"><i class="bi bi-chevron-right"></i>Portal Login</a></li>
                     </ul>
                 </div>
