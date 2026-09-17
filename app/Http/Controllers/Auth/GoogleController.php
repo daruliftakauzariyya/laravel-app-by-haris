@@ -7,10 +7,133 @@ use App\Models\User;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController extends Controller
 {
+    /**
+     * Handle Google Identity Services (GSI) / One-Tap & Popup Token.
+     */
+    public function handleToken(Request $request)
+    {
+        $accessToken = $request->input('access_token');
+        $idToken = $request->input('id_token') ?: $request->input('credential');
+
+        if (!$accessToken && !$idToken) {
+            return response()->json(['success' => false, 'message' => 'No credential received from Google.'], 400);
+        }
+
+        $googleUser = null;
+
+        try {
+            if ($accessToken) {
+                $response = Http::timeout(10)->withToken($accessToken)
+                    ->get('https://www.googleapis.com/oauth2/v3/userinfo');
+                if ($response->successful()) {
+                    $googleUser = $response->json();
+                }
+            } elseif ($idToken) {
+                $response = Http::timeout(10)->get('https://oauth2.googleapis.com/tokeninfo', [
+                    'id_token' => $idToken,
+                ]);
+                if ($response->successful()) {
+                    $googleUser = $response->json();
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error connecting to Google: ' . $e->getMessage()], 500);
+        }
+
+        if (!$googleUser || empty($googleUser['sub']) || empty($googleUser['email'])) {
+            return response()->json(['success' => false, 'message' => 'Failed to verify Google account details.'], 401);
+        }
+
+        $googleId = $googleUser['sub'];
+        $googleEmail = $googleUser['email'];
+        $googleAvatar = $googleUser['picture'] ?? null;
+        $googleName = $googleUser['name'] ?? ($googleUser['given_name'] ?? 'User');
+
+        $isLinkingAction = session()->pull('google_oauth_action') === 'link_account' || $request->input('action') === 'link';
+
+        // 1. Logged-in user linking account
+        if (Auth::check() || $isLinkingAction) {
+            $currentUser = Auth::user();
+            if (!$currentUser) {
+                return response()->json(['success' => false, 'message' => 'Session expired. Please sign in before connecting Google.'], 401);
+            }
+
+            $conflictUser = User::where('google_id', $googleId)
+                ->where('id', '!=', $currentUser->id)
+                ->first();
+
+            if ($conflictUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This Google account is already linked to another user (' . $conflictUser->email . ').'
+                ], 422);
+            }
+
+            $currentUser->update([
+                'google_id' => $googleId,
+                'avatar'    => $currentUser->avatar ?: $googleAvatar,
+            ]);
+
+            session()->flash('success', 'Google account (' . $googleEmail . ') connected successfully!');
+
+            return response()->json([
+                'success'  => true,
+                'message'  => 'Google account connected successfully!',
+                'redirect' => route('user.settings')
+            ]);
+        }
+
+        // 2. Public sign-in / registration flow
+        $user = User::where('google_id', $googleId)->first();
+
+        if (!$user && $googleEmail) {
+            $user = User::where('email', $googleEmail)->first();
+            if ($user) {
+                $user->update([
+                    'google_id' => $googleId,
+                    'avatar'    => $user->avatar ?: $googleAvatar,
+                ]);
+            }
+        }
+
+        if (!$user) {
+            $role = Role::whereIn('name', ['questioner', 'user'])->first();
+            $roleId = $role ? $role->id : 3;
+
+            $user = User::create([
+                'role_id'           => $roleId,
+                'name'              => $googleName,
+                'despl_name'        => $googleName,
+                'email'             => $googleEmail,
+                'google_id'         => $googleId,
+                'avatar'            => $googleAvatar,
+                'email_verified_at' => now(),
+                'profile_completed' => false,
+                'is_active'         => true,
+            ]);
+        }
+
+        Auth::login($user, true);
+
+        $redirectUrl = route('user.dashboard');
+        if ($user->hasRole('admin')) {
+            $redirectUrl = route('admin.dashboard');
+        } elseif ($user->hasRole('mufti')) {
+            $redirectUrl = route('mufti.dashboard');
+        }
+
+        return response()->json([
+            'success'  => true,
+            'redirect' => session()->pull('url.intended', $redirectUrl),
+            'message'  => 'Signed in successfully with Google!'
+        ]);
+    }
+
     /**
      * Redirect to Google OAuth consent screen (Public Login).
      */

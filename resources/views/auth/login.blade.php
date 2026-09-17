@@ -9,20 +9,27 @@
 @push('styles')
 <style>
     :root {
+        --auth-bg: #080c14;
         --auth-primary: #2563eb;
         --auth-primary-hover: #1d4ed8;
-        --auth-gold: #c9a84c;
-        --auth-gold-light: #fef3c7;
+        --auth-gold: #f59e0b;
+        --auth-text-main: #f8fafc;
+        --auth-text-muted: #94a3b8;
+        --auth-border: rgba(255, 255, 255, 0.1);
     }
 
     html, body {
         height: 100%;
         margin: 0;
         padding: 0;
-        background: #050b14;
+        background-color: var(--auth-bg);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: var(--auth-text-main);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ── Fullscreen Container with Balanced Side Padding ── */
+    /* ── Fullscreen Center Container with Subtle Lighting & Kauzariyya BG Art ── */
     .auth-fullscreen-wrap {
         width: 100%;
         min-height: 100vh;
@@ -30,281 +37,166 @@
         align-items: center;
         justify-content: center;
         position: relative;
-        background-color: #050b14;
-        background-image: 
-            linear-gradient(135deg, rgba(5, 11, 20, 0.88) 0%, rgba(2, 6, 12, 0.94) 100%),
-            url('{{ asset("assets/img/dark-fiqh-library.jpg") }}');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        padding: 2.5rem 3.5rem;
+        background-color: var(--auth-bg);
+        padding: 3rem 1.5rem;
         overflow-x: hidden;
     }
 
-    .auth-container-inner {
-        width: 100%;
-        max-width: 1380px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 3.5rem;
+    .auth-fullscreen-wrap::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url('{{ asset("assets/img/slider/kauzariyya.jpg") }}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.12;
+        filter: grayscale(35%) contrast(115%);
+        pointer-events: none;
+        z-index: 1;
     }
 
-    /* ── Left Hero Section ── */
-    .auth-hero-col {
-        flex: 1.2;
+    .auth-fullscreen-wrap::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: 
+            radial-gradient(circle at 50% 12%, rgba(37, 99, 235, 0.22) 0%, transparent 55%),
+            radial-gradient(circle at 50% 88%, rgba(201, 168, 76, 0.1) 0%, transparent 45%),
+            radial-gradient(circle at 50% 50%, rgba(8, 12, 20, 0.72) 0%, #080c14 100%);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .auth-centered-box {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        gap: 1.5rem;
-        color: #ffffff;
+        align-items: center;
         position: relative;
         z-index: 2;
     }
 
-    .auth-logo-wrap {
-        display: block;
-        margin-bottom: 0.5rem;
+    .auth-logo-center {
+        margin-bottom: 2rem;
+        text-align: center;
     }
 
     .auth-logo-link {
         display: inline-flex;
         align-items: center;
         text-decoration: none;
-        transition: transform 0.2s ease;
+        transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
     .auth-logo-link:hover {
-        transform: scale(1.03);
+        opacity: 0.92;
+        transform: translateY(-1px);
     }
 
     .auth-logo-img {
-        height: 52px;
-        width: 175px;
-        max-width: 240px;
+        height: 76px;
+        width: auto;
+        max-width: 280px;
         object-fit: contain;
         display: block;
-        filter: brightness(0) invert(1) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
+        filter: brightness(0) invert(1) drop-shadow(0 4px 18px rgba(0, 0, 0, 0.6));
     }
 
-    .auth-hero-main {
-        max-width: 560px;
+    /* ── Borderless Clean Form Container ── */
+    .auth-form-wrap {
+        width: 100%;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
     }
 
-    .auth-hero-eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(201, 168, 76, 0.16);
-        border: 1px solid rgba(201, 168, 76, 0.38);
-        color: #fce7b2;
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 0.8px;
-        text-transform: uppercase;
-        padding: 5px 14px;
-        border-radius: 9999px;
-        margin-bottom: 1.25rem;
-    }
-
-    .auth-hero-title {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-weight: 800;
-        font-size: 2.75rem;
-        line-height: 1.15;
-        letter-spacing: -0.5px;
-        color: #ffffff;
-        margin-bottom: 1rem;
-        text-transform: uppercase;
-    }
-
-    .auth-hero-subtitle {
-        font-size: 1.05rem;
-        font-weight: 500;
-        color: rgba(255, 255, 255, 0.82);
-        line-height: 1.6;
+    .auth-card-header {
         margin-bottom: 1.75rem;
     }
 
-    /* ── Real Numbers Stats Grid ── */
-    .auth-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 14px;
-        margin-bottom: 2rem;
-    }
-
-    .stat-mini-card {
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 18px;
-        padding: 1.05rem 1.2rem;
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .stat-mini-card:hover {
-        background: rgba(255, 255, 255, 0.14);
-        transform: translateY(-2px);
-        border-color: rgba(201, 168, 76, 0.45);
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
-    }
-
-    .stat-icon-wrap {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.35rem;
-        flex-shrink: 0;
-    }
-
-    .stat-icon-gold {
-        background: rgba(201, 168, 76, 0.2);
-        color: #fce7b2;
-        border: 1px solid rgba(201, 168, 76, 0.4);
-    }
-
-    .stat-icon-blue {
-        background: rgba(37, 99, 235, 0.2);
-        color: #93c5fd;
-        border: 1px solid rgba(37, 99, 235, 0.4);
-    }
-
-    .stat-icon-green {
-        background: rgba(34, 197, 94, 0.2);
-        color: #86efac;
-        border: 1px solid rgba(34, 197, 94, 0.4);
-    }
-
-    .stat-icon-purple {
-        background: rgba(168, 85, 247, 0.2);
-        color: #d8b4fe;
-        border: 1px solid rgba(168, 85, 247, 0.4);
-    }
-
-    .stat-card-number {
+    .auth-card-title {
         font-family: 'Plus Jakarta Sans', sans-serif;
-        font-size: 1.35rem;
-        font-weight: 800;
+        font-size: 1.85rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
         color: #ffffff;
-        line-height: 1.15;
-        margin-bottom: 2px;
+        margin-bottom: 0.4rem;
     }
 
-    .stat-card-label {
-        font-size: 0.74rem;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.72);
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-    }
-
-    .back-home-link {
-        color: rgba(255, 255, 255, 0.65);
-        text-decoration: none;
-        font-size: 0.88rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s ease;
-    }
-
-    .back-home-link:hover {
-        color: #ffffff;
-        transform: translateX(-4px);
-    }
-
-    /* ── Right Form Section (Glassmorphic Card) ── */
-    .auth-form-col {
-        flex: 0.95;
-        display: flex;
-        justify-content: flex-end;
-        position: relative;
-        z-index: 3;
-    }
-
-    .glass-auth-card {
-        width: 100%;
-        max-width: 440px;
-        background: rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(28px) saturate(190%);
-        -webkit-backdrop-filter: blur(28px) saturate(190%);
-        border-radius: 28px;
-        border: 1px solid rgba(255, 255, 255, 0.24);
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
-        padding: 2.5rem 2.25rem;
-        color: #ffffff;
-        transition: all 0.3s ease;
+    .auth-card-desc {
+        font-size: 0.9rem;
+        color: var(--auth-text-muted);
+        margin-bottom: 0;
+        line-height: 1.5;
+        font-weight: 400;
     }
 
     .glass-form-label {
-        font-size: 0.86rem;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.92);
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: #cbd5e1;
         margin-bottom: 0.45rem;
         display: block;
+        letter-spacing: 0.01em;
     }
 
     .glass-form-control {
         width: 100%;
-        background: #ffffff !important;
-        border: none !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid var(--auth-border) !important;
         border-radius: 12px !important;
         padding: 0.85rem 1.15rem;
-        font-size: 0.95rem;
-        font-weight: 500;
-        color: #0f172a !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        font-size: 0.92rem;
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        color: #ffffff !important;
         transition: all 0.2s ease;
     }
 
     .glass-form-control:focus {
         outline: none !important;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.38), 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
     }
 
     .glass-form-control::placeholder {
-        color: #94a3b8;
-        font-size: 0.9rem;
+        color: #64748b;
+        font-size: 0.88rem;
     }
 
     .btn-auth-solid {
         background: var(--auth-primary);
         color: #ffffff;
         border: none;
-        font-weight: 700;
-        letter-spacing: 0.6px;
-        text-transform: uppercase;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.01em;
         font-size: 0.92rem;
-        padding: 0.88rem 1.25rem;
+        padding: 0.85rem 1.25rem;
         border-radius: 12px;
         width: 100%;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 18px rgba(37, 99, 235, 0.35);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
     }
 
     .btn-auth-solid:hover, .btn-auth-solid:focus {
         background: var(--auth-primary-hover);
         color: #ffffff;
         transform: translateY(-1px);
-        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.5);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
     }
 
     .btn-auth-outline {
-        background: rgba(255, 255, 255, 0.14);
-        color: #ffffff;
-        border: 1px solid rgba(255, 255, 255, 0.38);
-        font-weight: 600;
-        font-size: 0.92rem;
+        background: rgba(255, 255, 255, 0.04);
+        color: #e2e8f0;
+        border: 1px solid var(--auth-border);
+        font-weight: 500;
+        font-size: 0.88rem;
         padding: 0.82rem 1.25rem;
         border-radius: 12px;
         width: 100%;
@@ -312,9 +204,9 @@
     }
 
     .btn-auth-outline:hover {
-        background: rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.08);
         color: #ffffff;
-        border-color: rgba(255, 255, 255, 0.65);
+        border-color: rgba(255, 255, 255, 0.25);
     }
 
     .divider-simbile {
@@ -328,24 +220,26 @@
     .divider-simbile::after {
         content: '';
         flex: 1;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .divider-simbile span {
-        padding: 0 12px;
-        font-size: 0.82rem;
+        padding: 0 14px;
+        font-size: 0.76rem;
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.7);
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
     }
 
     .btn-google-glass {
         width: 100%;
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        color: #ffffff;
-        font-weight: 600;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--auth-border);
+        color: #f1f5f9;
+        font-weight: 500;
         font-size: 0.9rem;
-        padding: 0.8rem 1.25rem;
+        padding: 0.82rem 1.25rem;
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -356,60 +250,143 @@
     }
 
     .btn-google-glass:hover {
-        background: rgba(255, 255, 255, 0.22);
-        border-color: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.25);
         color: #ffffff;
         transform: translateY(-1px);
     }
 
     .glass-footer-text {
         font-size: 0.86rem;
-        color: rgba(255, 255, 255, 0.75);
+        color: #64748b;
         text-align: center;
-        margin-top: 1.5rem;
+        margin-top: 1.6rem;
         margin-bottom: 0;
     }
 
     .glass-footer-text a {
-        color: #ffffff;
-        font-weight: 700;
-        text-decoration: underline;
-        transition: opacity 0.2s;
+        color: #93c5fd;
+        font-weight: 500;
+        text-decoration: none;
+        transition: color 0.2s ease;
     }
 
+    .glass-footer-text a:hover {
+        color: #bfdbfe;
+        text-decoration: underline;
+    }
+
+    .back-home-link {
+        color: #64748b;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .back-home-link:hover {
+        color: #94a3b8;
+        transform: translateX(-3px);
+    }
+
+    .pwa-install-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #94a3b8;
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 0.32rem 0.75rem;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        outline: none;
+    }
+
+    .pwa-install-btn:hover {
+        background: rgba(37, 99, 235, 0.15);
+        border-color: rgba(37, 99, 235, 0.35);
+        color: #93c5fd;
+        transform: translateY(-1px);
+    }
+
+    .pwa-install-btn i {
+        font-size: 0.85rem;
+        color: #f59e0b;
+    }
+
+    /* ── Step 2 User Greeting & Profile (Borderless & Minimal) ── */
     .user-pill-glass {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        border-radius: 18px;
-        padding: 1.15rem;
-        margin-bottom: 1.25rem;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin-bottom: 1rem;
         text-align: center;
         position: relative;
     }
 
+    .arabic-greeting {
+        font-family: 'Amiri', 'Scheherazade New', 'Noto Naskh Arabic', serif;
+        font-size: 1.65rem;
+        font-weight: 700;
+        color: #f59e0b;
+        letter-spacing: 0.02em;
+        margin-bottom: 0.2rem;
+        text-shadow: 0 2px 12px rgba(245, 158, 11, 0.28);
+    }
+
+    .user-greeting-name {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: #ffffff;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.85rem;
+        line-height: 1.3;
+    }
+
     .user-avatar-preview {
-        width: 62px;
-        height: 62px;
+        width: 92px;
+        height: 92px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid #60a5fa;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+        border: 3px solid #3b82f6;
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
     }
 
     .user-avatar-initial {
-        width: 62px;
-        height: 62px;
+        width: 92px;
+        height: 92px;
         border-radius: 50%;
         background: linear-gradient(135deg, #2563eb, #3b82f6);
         color: #ffffff;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.6rem;
+        font-size: 2.2rem;
         font-weight: 700;
-        border: 3px solid rgba(255, 255, 255, 0.6);
+        border: 3px solid rgba(255, 255, 255, 0.25);
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
     }
 
+    .user-step2-instruction {
+        font-size: 0.88rem;
+        color: var(--auth-text-muted);
+        line-height: 1.55;
+        margin-top: 1.15rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        font-weight: 400;
+    }
+
+    /* ── Step 3 OTP Digits ── */
     .otp-inputs-grid {
         display: flex;
         gap: 8px;
@@ -419,25 +396,30 @@
 
     .otp-digit {
         width: 44px;
-        height: 52px;
+        height: 50px;
         text-align: center;
-        font-size: 1.5rem;
+        font-family: 'Plus Jakarta Sans', monospace;
+        font-size: 1.4rem;
         font-weight: 700;
-        border: none;
+        border: 1px solid var(--auth-border);
         border-radius: 10px;
-        background: #ffffff;
-        color: #0f172a;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.06);
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         transition: all 0.2s ease;
     }
 
     .otp-digit:focus {
         outline: none;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.38);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
     }
 
     .otp-digit.filled {
-        background: #f0fdf4;
+        background: rgba(34, 197, 94, 0.1);
+        border-color: rgba(34, 197, 94, 0.4);
+        color: #86efac;
     }
 
     .password-toggle-btn {
@@ -451,15 +433,16 @@
         cursor: pointer;
         padding: 4px;
         z-index: 10;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
+        transition: color 0.2s ease;
     }
 
     .password-toggle-btn:hover {
-        color: #0f172a;
+        color: #ffffff;
     }
 
     .fade-step {
-        animation: fadeInStep 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation: fadeInStep 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes fadeInStep {
@@ -473,129 +456,15 @@
         }
     }
 
-    /* ── Mobile Balanced Styling ── */
-    @media (max-width: 1199.98px) {
-        .auth-fullscreen-wrap {
-            padding: 2rem 2rem;
-        }
-        .auth-container-inner {
-            gap: 2rem;
-        }
-        .auth-hero-title {
-            font-size: 2.35rem;
-        }
-    }
-
-    @media (max-width: 991.98px) {
-        .auth-fullscreen-wrap {
-            padding: 1.5rem 1.25rem 3rem;
-            align-items: flex-start;
-        }
-        .auth-container-inner {
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .auth-hero-col {
-            flex: none;
-            width: 100%;
-            text-align: center;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        .auth-logo-link {
-            margin-bottom: 1.25rem;
-            display: inline-block;
-        }
-        .auth-logo-img {
-            max-height: 48px;
-            margin: 0 auto;
-        }
-        .auth-hero-main {
-            max-width: 100%;
-        }
-        .auth-hero-eyebrow {
-            font-size: 0.72rem;
-            padding: 4px 12px;
-            margin-bottom: 0.85rem;
-        }
-        .auth-hero-title {
-            font-size: 1.85rem;
-            margin-bottom: 0.65rem;
-        }
-        .auth-hero-subtitle {
-            font-size: 0.92rem;
-            margin-bottom: 1.25rem;
-        }
-        .auth-stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            width: 100%;
-            max-width: 480px;
-            margin: 0 auto 1rem;
-        }
-        .stat-mini-card {
-            padding: 0.75rem 0.9rem;
-            gap: 10px;
-            border-radius: 14px;
-        }
-        .stat-icon-wrap {
-            width: 36px;
-            height: 36px;
-            font-size: 1.15rem;
-            border-radius: 10px;
-        }
-        .stat-card-number {
-            font-size: 1.15rem;
-        }
-        .stat-card-label {
-            font-size: 0.68rem;
-        }
-        .auth-form-col {
-            width: 100%;
-            justify-content: center;
-        }
-        .glass-auth-card {
-            max-width: 460px;
-            padding: 1.85rem 1.4rem;
-            border-radius: 22px;
-        }
-        .back-home-link {
-            display: none;
-        }
-    }
-
     @media (max-width: 576px) {
         .auth-fullscreen-wrap {
-            padding: 1.25rem 0.85rem 2.5rem;
+            padding: 2rem 1rem 3rem;
         }
         .auth-logo-img {
-            max-height: 44px;
+            max-height: 56px;
         }
-        .auth-hero-title {
-            font-size: 1.55rem;
-        }
-        .auth-stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-        .stat-mini-card {
-            padding: 0.65rem 0.75rem;
-            gap: 8px;
-        }
-        .stat-icon-wrap {
-            width: 32px;
-            height: 32px;
-            font-size: 1rem;
-        }
-        .stat-card-number {
-            font-size: 1.05rem;
-        }
-        .stat-card-label {
-            font-size: 0.65rem;
-        }
-        .glass-auth-card {
-            padding: 1.6rem 1.15rem;
-            border-radius: 20px;
+        .auth-card-title {
+            font-size: 1.6rem;
         }
     }
 </style>
@@ -603,234 +472,228 @@
 
 @section('content')
 <div class="auth-fullscreen-wrap">
-    <div class="auth-container-inner">
+    <div class="auth-centered-box">
         
-        {{-- Left Hero Side: Official Logo, Title, Real Numbers Cards --}}
-        <div class="auth-hero-col">
-            <div class="auth-logo-wrap">
-                <a href="{{ route('home') }}" class="auth-logo-link" title="Darul Ifta Kauzariyya">
-                    <img src="{{ asset('assets/logo/logoblueNew.svg') }}" 
-                         alt="Darul Ifta Kauzariyya Logo" 
-                         class="auth-logo-img"
-                         width="175"
-                         height="52"
-                         onerror="this.onerror=null; this.src='{{ asset('assets/logo/Darul-Ifta-Logo.png') }}';">
-                </a>
-            </div>
-
-            <div class="auth-hero-main">
-                <span class="auth-hero-eyebrow">
-                    <i class="bi bi-book-half"></i> Islamic Jurisprudence Portal
-                </span>
-                <h1 class="auth-hero-title">
-                    Authentic<br>Guidance
-                </h1>
-                <p class="auth-hero-subtitle">
-                    Where classical scholarly jurisprudence meets verified everyday verdicts for the global Ummah.
-                </p>
-
-                {{-- Dynamic Public Numbers Stats Grid --}}
-                <div class="auth-stats-grid">
-                    @foreach($statCards as $card)
-                    <div class="stat-mini-card">
-                        <div class="stat-icon-wrap stat-icon-{{ $card['color'] ?? 'blue' }}">
-                            <i class="bi {{ $card['icon'] ?? 'bi-bar-chart' }}"></i>
-                        </div>
-                        <div>
-                            <div class="stat-card-number">{{ $card['formatted'] }}</div>
-                            <div class="stat-card-label">{{ $card['label'] }}</div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div>
-                <a href="{{ route('home') }}" class="back-home-link">
-                    <i class="bi bi-arrow-left"></i>
-                    <span>Return to Kauzariyya Home</span>
-                </a>
-            </div>
+        {{-- Brand Logo Centered --}}
+        <div class="auth-logo-center">
+            <a href="{{ route('home') }}" class="auth-logo-link" title="Darul Ifta Kauzariyya">
+                <img src="{{ asset('assets/logo/logoblueNew.svg') }}" 
+                     alt="Darul Ifta Kauzariyya Logo" 
+                     class="auth-logo-img"
+                     width="260"
+                     height="76"
+                     onerror="this.onerror=null; this.src='{{ asset('assets/logo/Darul-Ifta-Logo.png') }}';">
+            </a>
         </div>
 
-        {{-- Right Side: Floating Glassmorphism Form Card --}}
-        <div class="auth-form-col">
-            <div class="glass-auth-card">
+        {{-- Clean Borderless Form Container --}}
+        <div class="auth-form-wrap">
 
-                {{-- Flash Alerts --}}
-                @if(session('error'))
-                    <div class="alert alert-danger py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 bg-danger text-white">
-                        <i class="bi bi-exclamation-triangle-fill me-2 flex-shrink-0"></i>
-                        <span>{{ session('error') }}</span>
+            {{-- Form Header --}}
+            <div class="auth-card-header text-center">
+                <h1 class="auth-card-title">Sign In</h1>
+                <p class="auth-card-desc">Welcome back! Please enter your details to continue.</p>
+            </div>
+
+            {{-- Flash Alerts --}}
+            @if(session('error'))
+                <div class="alert alert-danger py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 bg-danger text-white">
+                    <i class="bi bi-exclamation-triangle-fill me-2 flex-shrink-0"></i>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div class="alert alert-warning py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 bg-warning text-dark">
+                    <i class="bi bi-shield-lock-fill me-2 flex-shrink-0"></i>
+                    <span>{{ session('warning') }}</span>
+                </div>
+            @endif
+
+            @if(session('status'))
+                <div class="alert alert-success py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 bg-success text-white">
+                    <i class="bi bi-check-circle-fill me-2 flex-shrink-0"></i>
+                    <span>{{ session('status') }}</span>
+                </div>
+            @endif
+
+            {{-- Dynamic Alert --}}
+            <div id="dynamicAlert" class="alert d-none py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 text-white" role="alert">
+                <i id="dynamicAlertIcon" class="bi me-2 flex-shrink-0"></i>
+                <span id="dynamicAlertMessage"></span>
+            </div>
+
+            {{-- =========================================================================
+                 STEP 1: ENTER EMAIL / IDENTIFIER
+                 ========================================================================= --}}
+            <div id="stepIdentify" class="fade-step">
+                <form id="formIdentify" onsubmit="return false;">
+                    <div class="mb-3">
+                        <label class="glass-form-label">Email or Mobile Number</label>
+                        <input type="text" id="inputLoginId" class="glass-form-control"
+                               placeholder="Enter your email or mobile" value="{{ old('login_id') }}" required autofocus autocomplete="username">
+                        <div class="invalid-feedback d-block mt-1 small text-warning d-none" id="loginIdFeedback">Please enter your email or mobile number.</div>
                     </div>
-                @endif
 
-                @if(session('warning'))
-                    <div class="alert alert-warning py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 bg-warning text-dark">
-                        <i class="bi bi-shield-lock-fill me-2 flex-shrink-0"></i>
-                        <span>{{ session('warning') }}</span>
-                    </div>
-                @endif
+                    <button type="submit" id="btnContinue" class="btn-auth-solid d-flex align-items-center justify-content-center gap-2">
+                        <span>Continue</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </form>
 
-                @if(session('status'))
-                    <div class="alert alert-success py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 bg-success text-white">
-                        <i class="bi bi-check-circle-fill me-2 flex-shrink-0"></i>
-                        <span>{{ session('status') }}</span>
-                    </div>
-                @endif
-
-                {{-- Dynamic Alert --}}
-                <div id="dynamicAlert" class="alert d-none py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 text-white" role="alert">
-                    <i id="dynamicAlertIcon" class="bi me-2 flex-shrink-0"></i>
-                    <span id="dynamicAlertMessage"></span>
+                <div class="divider-simbile">
+                    <span>or</span>
                 </div>
 
-                {{-- =========================================================================
-                     STEP 1: ENTER EMAIL / IDENTIFIER
-                     ========================================================================= --}}
-                <div id="stepIdentify" class="fade-step">
-                    <form id="formIdentify" onsubmit="return false;">
-                        <div class="mb-4">
-                            <label class="glass-form-label">Email or Mobile Number</label>
-                            <input type="text" id="inputLoginId" class="glass-form-control"
-                                   placeholder="Enter your email or mobile" value="{{ old('login_id') }}" required autofocus autocomplete="username">
-                            <div class="invalid-feedback d-block mt-1 small text-warning d-none" id="loginIdFeedback">Please enter your email or mobile number.</div>
-                        </div>
+                <a href="{{ route('auth.google') }}" id="btnGoogleAuth" onclick="handleGoogleButtonClick(event)" class="btn-google-glass">
+                    <svg width="18" height="18" viewBox="0 0 18 18">
+                        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.616z"/>
+                        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                        <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.347 2.825.957 4.039l3.007-2.332z"/>
+                        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
+                    </svg>
+                    <span>Sign in with Google</span>
+                </a>
 
-                        <button type="submit" id="btnContinue" class="btn-auth-solid d-flex align-items-center justify-content-center gap-2">
-                            <span>Continue</span>
-                            <i class="bi bi-arrow-right"></i>
+                <p class="glass-footer-text">
+                    Are you new? <a href="{{ route('register') }}">Create an Account</a>
+                </p>
+            </div>
+
+            {{-- =========================================================================
+                 STEP 2: USER IDENTIFIED & METHOD CHOICE (Password vs Email OTP)
+                 ========================================================================= --}}
+            <div id="stepChooseMethod" class="fade-step d-none">
+                {{-- User Profile Header (Borderless Clean) --}}
+                <div class="user-pill-glass">
+                    <div class="d-flex align-items-center justify-content-start mb-1">
+                        <button type="button" id="btnSwitchAccount" class="btn btn-sm btn-link text-white-50 text-decoration-none p-0 d-inline-flex align-items-center gap-1" title="Use another account">
+                            <i class="bi bi-arrow-left"></i><span class="small">Change</span>
                         </button>
-                    </form>
-
-                    <div class="divider-simbile">
-                        <span>or</span>
                     </div>
 
-                    <a href="{{ route('auth.google') }}" class="btn-google-glass">
-                        <svg width="18" height="18" viewBox="0 0 18 18">
-                            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.616z"/>
-                            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
-                            <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.347 2.825.957 4.039l3.007-2.332z"/>
-                            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
-                        </svg>
-                        <span>Sign in with Google</span>
-                    </a>
+                    {{-- 1. Arabic Greeting --}}
+                    <div class="arabic-greeting">السلام عليكم</div>
 
-                    <p class="glass-footer-text">
-                        Are you new? <a href="{{ route('register') }}">Create an Account</a>
+                    {{-- 2. User Name --}}
+                    <h2 class="user-greeting-name" id="userDisplayName">--</h2>
+                    <div class="d-none" id="userDisplayEmail">--</div>
+
+                    {{-- 3. Profile Image (Large) --}}
+                    <div class="d-flex justify-content-center my-2">
+                        <div id="userAvatarContainer">
+                            {{-- Injected dynamically --}}
+                        </div>
+                    </div>
+
+                    {{-- 4. Guidance Text --}}
+                    <p class="user-step2-instruction">
+                        You can log in either by entering your password or by pressing the "Send OTP" button and using the OTP received in your email inbox.
                     </p>
                 </div>
 
-                {{-- =========================================================================
-                     STEP 2: USER IDENTIFIED & METHOD CHOICE (Password vs Email OTP)
-                     ========================================================================= --}}
-                <div id="stepChooseMethod" class="fade-step d-none">
-                    {{-- User Profile Header --}}
-                    <div class="user-pill-glass">
-                        <button type="button" id="btnSwitchAccount" class="btn btn-sm btn-link text-white-50 text-decoration-none position-absolute top-0 start-0 m-2 p-1" title="Use another account">
-                            <i class="bi bi-arrow-left me-1"></i><span class="small">Change</span>
-                        </button>
+                {{-- Method 1: Password Form --}}
+                <form id="formPasswordLogin" method="POST" action="{{ route('login') }}">
+                    @csrf
+                    <input type="hidden" name="login_id" id="hiddenPasswordLoginId">
 
-                        <div class="mb-2 d-flex justify-content-center">
-                            <div id="userAvatarContainer">
-                                {{-- Injected dynamically --}}
-                            </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="glass-form-label mb-0">Password</label>
+                            <a href="{{ route('password.request') }}" class="small text-white-50 text-decoration-none">Forgot password?</a>
                         </div>
-                        <h6 class="fw-bold text-white mb-0 fs-6" id="userDisplayName">--</h6>
-                        <div class="text-white-50 small" id="userDisplayEmail">--</div>
+                        <div class="position-relative">
+                            <input type="password" name="password" id="inputPassword" class="glass-form-control pe-5"
+                                   placeholder="Enter your password" required autocomplete="current-password">
+                            <button type="button" class="password-toggle-btn" id="btnTogglePassword" tabindex="-1">
+                                <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    {{-- Method 1: Password Form --}}
-                    <form id="formPasswordLogin" method="POST" action="{{ route('login') }}">
-                        @csrf
-                        <input type="hidden" name="login_id" id="hiddenPasswordLoginId">
-
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="glass-form-label mb-0">Password</label>
-                                <a href="{{ route('password.request') }}" class="small text-white-50 text-decoration-none">Forgot password?</a>
-                            </div>
-                            <div class="position-relative">
-                                <input type="password" name="password" id="inputPassword" class="glass-form-control pe-5"
-                                       placeholder="Enter your password" required autocomplete="current-password">
-                                <button type="button" class="password-toggle-btn" id="btnTogglePassword" tabindex="-1">
-                                    <i class="bi bi-eye" id="togglePasswordIcon"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="remember" id="rememberMeCheckbox" checked>
-                            <label class="form-check-label small text-white-50" for="rememberMeCheckbox">
-                                Keep me signed in
-                            </label>
-                        </div>
-
-                        <button type="submit" id="btnSignInPassword" class="btn-auth-solid d-flex align-items-center justify-content-center gap-2">
-                            <span>Sign In</span>
-                        </button>
-                    </form>
-
-                    <div class="divider-simbile">
-                        <span>or</span>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="remember" id="rememberMeCheckbox" checked>
+                        <label class="form-check-label small text-white-50" for="rememberMeCheckbox">
+                            Keep me signed in
+                        </label>
                     </div>
 
-                    {{-- Method 2: Email OTP Button --}}
-                    <button type="button" id="btnRequestOtp" class="btn-auth-outline d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-envelope-paper"></i>
-                        <span>Send Login Code to Email</span>
+                    <button type="submit" id="btnSignInPassword" class="btn-auth-solid d-flex align-items-center justify-content-center gap-2">
+                        <span>Sign In</span>
+                    </button>
+                </form>
+
+                <div class="divider-simbile">
+                    <span>or</span>
+                </div>
+
+                {{-- Method 2: Email OTP Button --}}
+                <button type="button" id="btnRequestOtp" class="btn-auth-outline d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-envelope-paper"></i>
+                    <span>Send Login Code to Email</span>
+                </button>
+            </div>
+
+            {{-- =========================================================================
+             STEP 3: 6-DIGIT OTP ENTRY FIELD
+             ========================================================================= --}}
+            <div id="stepOtp" class="fade-step d-none">
+                <div class="text-center mb-3">
+                    <span class="badge bg-primary px-3 py-1.5 rounded-pill mb-2">
+                        <i class="bi bi-envelope-check-fill me-1"></i> Code Sent
+                    </span>
+                    <p class="small text-white-50 mb-0">
+                        We sent a 6-digit code to<br>
+                        <strong class="text-white" id="otpTargetEmail">your email</strong>
+                    </p>
+                </div>
+
+                {{-- 6-Digit OTP Form --}}
+                <form id="formOtpVerify" onsubmit="return false;">
+                    <div class="otp-inputs-grid" id="otpInputsGroup">
+                        <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*" autofocus>
+                        <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*">
+                        <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*">
+                        <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*">
+                        <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*">
+                        <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*">
+                    </div>
+
+                    <button type="submit" id="btnVerifyOtp" class="btn-auth-solid d-flex align-items-center justify-content-center gap-2 mt-3">
+                        <span>Verify & Sign In</span>
+                    </button>
+                </form>
+
+                {{-- Timer & Resend --}}
+                <div class="text-center mt-3">
+                    <div id="otpTimerWrapper" class="small text-white-50">
+                        Resend code in <strong class="text-white" id="otpCountdown">45</strong>s
+                    </div>
+                    <button type="button" id="btnResendOtp" class="btn btn-link text-white fw-bold small p-0 text-decoration-none d-none">
+                        <i class="bi bi-arrow-repeat me-1"></i> Resend OTP Code
                     </button>
                 </div>
 
-                {{-- =========================================================================
-                 STEP 3: 6-DIGIT OTP ENTRY FIELD
-                 ========================================================================= --}}
-                <div id="stepOtp" class="fade-step d-none">
-                    <div class="text-center mb-3">
-                        <span class="badge bg-primary px-3 py-1.5 rounded-pill mb-2">
-                            <i class="bi bi-envelope-check-fill me-1"></i> Code Sent
-                        </span>
-                        <p class="small text-white-50 mb-0">
-                            We sent a 6-digit code to<br>
-                            <strong class="text-white" id="otpTargetEmail">your email</strong>
-                        </p>
-                    </div>
-
-                    {{-- 6-Digit OTP Form --}}
-                    <form id="formOtpVerify" onsubmit="return false;">
-                        <div class="otp-inputs-grid" id="otpInputsGroup">
-                            <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*" autofocus>
-                            <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*">
-                            <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*">
-                            <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*">
-                            <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*">
-                            <input type="text" maxlength="1" class="otp-digit" inputmode="numeric" pattern="[0-9]*">
-                        </div>
-
-                        <button type="submit" id="btnVerifyOtp" class="btn-auth-solid d-flex align-items-center justify-content-center gap-2 mt-3">
-                            <span>Verify & Sign In</span>
-                        </button>
-                    </form>
-
-                    {{-- Timer & Resend --}}
-                    <div class="text-center mt-3">
-                        <div id="otpTimerWrapper" class="small text-white-50">
-                            Resend code in <strong class="text-white" id="otpCountdown">45</strong>s
-                        </div>
-                        <button type="button" id="btnResendOtp" class="btn btn-link text-white fw-bold small p-0 text-decoration-none d-none">
-                            <i class="bi bi-arrow-repeat me-1"></i> Resend OTP Code
-                        </button>
-                    </div>
-
-                    <div class="text-center mt-4 pt-2 border-top border-white-50">
-                        <button type="button" id="btnBackToPassword" class="btn btn-link text-white-50 small text-decoration-none p-0">
-                            <i class="bi bi-arrow-left me-1"></i> Back to Password Sign In
-                        </button>
-                    </div>
+                <div class="text-center mt-4 pt-2 border-top border-white-50">
+                    <button type="button" id="btnBackToPassword" class="btn btn-link text-white-50 small text-decoration-none p-0">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Password Sign In
+                    </button>
                 </div>
-
             </div>
+
+        </div>
+
+        {{-- Bottom Navigation & PWA Install Action --}}
+        <div class="auth-bottom-nav d-flex align-items-center justify-content-center gap-3 mt-4 flex-wrap">
+            <a href="{{ route('home') }}" class="back-home-link">
+                <i class="bi bi-arrow-left"></i>
+                <span>Return to Kauzariyya Home</span>
+            </a>
+
+            <button type="button" id="btnPwaInstall" class="pwa-install-btn" title="Install Kauzariyya Web App" aria-label="Install App">
+                <i class="bi bi-phone"></i>
+                <span>Install App</span>
+            </button>
         </div>
 
     </div>
@@ -1228,5 +1091,166 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// ── Google Identity Services (GSI) Popup & One-Tap Handler ──
+let googleTokenClient = null;
+
+function initGoogleSignIn() {
+    const clientId = "{{ config('services.google.client_id') }}";
+    if (!clientId || typeof google === 'undefined' || !google.accounts) return;
+
+    try {
+        // 1. Initialize Google ID (One-Tap & ID Token)
+        google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleGoogleIdTokenResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true
+        });
+
+        // 2. Initialize OAuth 2.0 Token Client for Popup on Button Click
+        if (google.accounts.oauth2) {
+            googleTokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: clientId,
+                scope: 'email profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+                callback: handleGoogleAccessTokenResponse,
+            });
+        }
+    } catch (err) {
+        console.warn('Google Auth Init Warning:', err);
+    }
+}
+
+function handleGoogleButtonClick(e) {
+    if (e) e.preventDefault();
+    if (googleTokenClient) {
+        googleTokenClient.requestAccessToken({ prompt: 'select_account' });
+    } else if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+        google.accounts.id.prompt();
+    } else {
+        window.location.href = "{{ route('auth.google') }}";
+    }
+}
+
+function handleGoogleIdTokenResponse(response) {
+    if (response && response.credential) {
+        sendGoogleAuthToServer({ credential: response.credential });
+    }
+}
+
+function handleGoogleAccessTokenResponse(tokenResponse) {
+    if (tokenResponse && tokenResponse.access_token) {
+        sendGoogleAuthToServer({ access_token: tokenResponse.access_token });
+    } else if (tokenResponse && tokenResponse.error) {
+        console.error('Google Sign-in Error:', tokenResponse);
+    }
+}
+
+function sendGoogleAuthToServer(payload) {
+    const dynamicAlert = document.getElementById('dynamicAlert');
+    const dynamicAlertMsg = document.getElementById('dynamicAlertMessage');
+    const dynamicAlertIcon = document.getElementById('dynamicAlertIcon');
+
+    if (dynamicAlert) {
+        dynamicAlert.className = 'alert py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 bg-primary text-white';
+        dynamicAlertMsg.innerText = 'Signing in with Google...';
+        dynamicAlertIcon.className = 'spinner-border spinner-border-sm me-2 flex-shrink-0';
+        dynamicAlert.classList.remove('d-none');
+    }
+
+    fetch("{{ route('auth.google.token') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (dynamicAlert) {
+                dynamicAlert.className = 'alert py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 bg-success text-white';
+                dynamicAlertMsg.innerText = data.message || 'Signed in! Redirecting...';
+                dynamicAlertIcon.className = 'bi bi-check-circle-fill me-2 flex-shrink-0';
+            }
+            window.location.href = data.redirect || "{{ route('user.dashboard') }}";
+        } else {
+            if (dynamicAlert) {
+                dynamicAlert.className = 'alert py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 bg-danger text-white';
+                dynamicAlertMsg.innerText = data.message || 'Google sign-in failed. Please try again.';
+                dynamicAlertIcon.className = 'bi bi-exclamation-triangle-fill me-2 flex-shrink-0';
+            } else {
+                alert(data.message || 'Google sign-in failed.');
+            }
+        }
+    })
+    .catch(err => {
+        if (dynamicAlert) {
+            dynamicAlert.className = 'alert py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-0 bg-danger text-white';
+            dynamicAlertMsg.innerText = 'Network error during Google sign-in. Please try again.';
+            dynamicAlertIcon.className = 'bi bi-exclamation-triangle-fill me-2 flex-shrink-0';
+        }
+    });
+}
+
+window.addEventListener('load', function() {
+    initGoogleSignIn();
+    initPwaInstall();
+});
+
+// ── PWA Installation Logic ──
+let deferredPwaPrompt = null;
+
+function initPwaInstall() {
+    const pwaBtn = document.getElementById('btnPwaInstall');
+    if (!pwaBtn) return;
+
+    // Register Service Worker if supported
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(function(err) {
+            console.log('SW registration error:', err);
+        });
+    }
+
+    // Check if already in standalone mode
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isStandalone) {
+        pwaBtn.style.display = 'none';
+        return;
+    }
+
+    // Capture install prompt
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPwaPrompt = e;
+        pwaBtn.style.display = 'inline-flex';
+    });
+
+    window.addEventListener('appinstalled', function() {
+        deferredPwaPrompt = null;
+        pwaBtn.style.display = 'none';
+    });
+
+    pwaBtn.addEventListener('click', async function() {
+        if (deferredPwaPrompt) {
+            deferredPwaPrompt.prompt();
+            const { outcome } = await deferredPwaPrompt.userChoice;
+            if (outcome === 'accepted') {
+                pwaBtn.style.display = 'none';
+            }
+            deferredPwaPrompt = null;
+        } else {
+            // iOS or unsupported fallback hint
+            const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIos) {
+                alert('To install the app on iOS:\n1. Tap the Share button (square with arrow)\n2. Select "Add to Home Screen"');
+            } else {
+                alert('To install the app:\nUse your browser menu (⋮) and tap "Install app" or "Add to Home screen".');
+            }
+        }
+    });
+}
 </script>
 @endpush

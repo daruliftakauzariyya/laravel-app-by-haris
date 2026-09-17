@@ -57,6 +57,7 @@ Route::get('/logout', [LoginController::class, 'logout']);
 // Google OAuth Authentication
 Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('auth.google.callback');
+Route::post('/auth/google/token', [GoogleController::class, 'handleToken'])->name('auth.google.token');
 
 // OTP Verification
 Route::get('/verify-otp', [\App\Http\Controllers\Auth\OtpVerificationController::class, 'showVerifyForm'])->name('otp.verify.form');

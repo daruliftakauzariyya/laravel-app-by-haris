@@ -643,7 +643,7 @@
                                                 </button>
                                             </form>
                                         @else
-                                            <a href="{{ route('user.google.link') }}" class="btn-connect-google">
+                                            <a href="{{ route('user.google.link') }}" id="btnConnectGoogle" onclick="handleGoogleConnectClick(event)" class="btn-connect-google">
                                                 <svg width="18" height="18" viewBox="0 0 18 18">
                                                     <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.616z"/>
                                                     <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
@@ -784,6 +784,79 @@
             }
         }
     });
+
+    // ── Google Connect Popup Handler ──
+    let googleConnectTokenClient = null;
+
+    function initGoogleConnect() {
+        const clientId = "{{ config('services.google.client_id') }}";
+        if (!clientId || typeof google === 'undefined' || !google.accounts) return;
+
+        try {
+            if (google.accounts.oauth2) {
+                googleConnectTokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: clientId,
+                    scope: 'email profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+                    callback: handleGoogleConnectResponse,
+                });
+            }
+        } catch (err) {
+            console.warn('Google Connect Init Warning:', err);
+        }
+    }
+
+    function handleGoogleConnectClick(e) {
+        if (e) e.preventDefault();
+        if (googleConnectTokenClient) {
+            googleConnectTokenClient.requestAccessToken({ prompt: 'select_account' });
+        } else {
+            window.location.href = "{{ route('user.google.link') }}";
+        }
+    }
+
+    function handleGoogleConnectResponse(tokenResponse) {
+        if (tokenResponse && tokenResponse.access_token) {
+            const btn = document.getElementById('btnConnectGoogle');
+            if (btn) {
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Connecting...`;
+            }
+
+            fetch("{{ route('auth.google.token') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    access_token: tokenResponse.access_token,
+                    action: 'link'
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to connect Google account.');
+                    if (btn) {
+                        btn.innerHTML = `<span>Connect with Google</span>`;
+                    }
+                }
+            })
+            .catch(err => {
+                alert('Network error connecting Google account.');
+                if (btn) {
+                    btn.innerHTML = `<span>Connect with Google</span>`;
+                }
+            });
+        }
+    }
+
+    window.addEventListener('load', function() {
+        initGoogleConnect();
+    });
 </script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 @endsection

@@ -65,6 +65,15 @@
         <link rel="preload" as="image" href="{{ asset('assets/img/slider/center.png') }}" fetchpriority="high">
     @endif
 
+    {{-- PWA Manifest & Theme Color --}}
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <meta name="theme-color" content="#295A75">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Darul Ifta">
+    <link rel="apple-touch-icon" href="{{ asset('assets/logo/Darul-Ifta-Logo.png') }}">
+    {{-- Bootstrap & Icons --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1017,6 +1026,15 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                    console.log('SW registration error:', err);
+                });
+            });
+        }
+    </script>
     @stack('scripts')
 </body>
 
