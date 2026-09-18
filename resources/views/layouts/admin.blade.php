@@ -35,7 +35,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;600;700&family=Noto+Serif+Malayalam:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/app-fonts.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/variables.css') }}">
@@ -233,6 +233,16 @@
             color: #fff;
         }
 
+        .badge-status-under_review {
+            background: #fd7e14;
+            color: #fff;
+        }
+
+        .badge-status-drafted {
+            background: #20c997;
+            color: #fff;
+        }
+
         .admin-header-box {
             background: #f8fafc;
             padding: 5px 15px;
@@ -377,13 +387,25 @@
                         class="nav-link {{ request('status') == 'pending' ? 'active' : '' }}">
                         <i class="bi bi-clock-history"></i> Pending (For Review)
                     </a>
+                    <a href="{{ route('admin.questions.index', ['status' => 'accepted']) }}" 
+                        class="nav-link {{ request('status') == 'accepted' ? 'active' : '' }}">
+                        <i class="bi bi-check2-circle"></i> Accepted
+                    </a>
                     <a href="{{ route('admin.questions.index', ['status' => 'assigned']) }}" 
                         class="nav-link {{ request('status') == 'assigned' ? 'active' : '' }}">
                         <i class="bi bi-person-check"></i> Assigned to Mufti
                     </a>
+                    <a href="{{ route('admin.questions.index', ['status' => 'drafted']) }}" 
+                        class="nav-link {{ request('status') == 'drafted' ? 'active' : '' }}">
+                        <i class="bi bi-pencil-square"></i> Mufti Drafted
+                    </a>
                     <a href="{{ route('admin.questions.index', ['status' => 'answered']) }}" 
                         class="nav-link {{ request('status') == 'answered' ? 'active' : '' }}">
                         <i class="bi bi-chat-check"></i> Answered by Mufti
+                    </a>
+                    <a href="{{ route('admin.questions.index', ['status' => 'under_review']) }}" 
+                        class="nav-link {{ request('status') == 'under_review' ? 'active' : '' }}">
+                        <i class="bi bi-arrow-repeat"></i> Under Review (Returned)
                     </a>
                     <a href="{{ route('admin.questions.index', ['status' => 'published']) }}" 
                         class="nav-link {{ request('status') == 'published' ? 'active' : '' }}">

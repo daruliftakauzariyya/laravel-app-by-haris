@@ -72,6 +72,11 @@
             <span id="copyText">Copy Citation</span>
         </button>
 
+        <button type="button" onclick="copyMuftiShortUrl('{{ route('fatwa.short', $question->id) }}')" id="shortUrlBtn" class="px-3 py-1.5 rounded bg-surface-container border border-outline-variant text-primary hover:bg-primary/10 text-[13px] font-medium inline-flex items-center gap-1.5 transition-all shadow-xs" title="Copy Public Short URL: {{ route('fatwa.short', $question->id) }}">
+            <span class="material-symbols-outlined text-[16px]" id="shortUrlIcon">link</span>
+            <span id="shortUrlText">Copy Short URL</span>
+        </button>
+
         <a href="{{ route('mufti.questions.show', $question) }}" class="px-3 py-1.5 rounded bg-surface-container border border-outline-variant text-primary hover:bg-primary/10 text-[13px] font-semibold inline-flex items-center gap-1.5 transition-all shadow-xs" title="Open in Scholarly Drafting Workspace">
             <span class="material-symbols-outlined text-[16px]">edit_note</span>
             <span>Workspace</span>
@@ -335,7 +340,7 @@
         </article>
 
         <!-- Related Fatwas in Same Subject -->
-        @if($relatedFatwas && $relatedFatwas->count() > 0)
+        @if(isset($relatedFatwas) && $relatedFatwas && $relatedFatwas->count() > 0)
         <article class="bg-surface-container-lowest border border-outline-variant/80 rounded-lg p-5 shadow-sm">
             <div class="flex items-center justify-between pb-2.5 border-b border-surface-variant/60 mb-3">
                 <h4 class="font-title-md text-[15px] font-bold text-primary m-0 flex items-center gap-2">
@@ -391,6 +396,21 @@
                 btnText.innerText = 'Copy Citation';
                 icon.innerText = 'content_copy';
             }, 2500);
+        });
+    }
+
+    function copyMuftiShortUrl(url) {
+        navigator.clipboard.writeText(url).then(() => {
+            const btnText = document.getElementById('shortUrlText');
+            const icon = document.getElementById('shortUrlIcon');
+            btnText.innerText = 'Copied!';
+            icon.innerText = 'check';
+            setTimeout(() => {
+                btnText.innerText = 'Copy Short URL';
+                icon.innerText = 'link';
+            }, 2500);
+        }).catch(() => {
+            prompt('Public Short URL:', url);
         });
     }
 </script>

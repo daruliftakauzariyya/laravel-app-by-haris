@@ -29,10 +29,10 @@
         <div class="fatwa-card h-100">
             {{-- Header Image & Madhab Badge --}}
             <div class="fatwa-thumb">
-                <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.jpg') }}"
+                <img src="{{ asset($fatwa->featured_image ?: 'assets/img/fatwa-placeholder.svg') }}"
                      alt="Fatwa"
                      loading="lazy"
-                     onerror="this.src='https://placehold.co/400x180/1a7a4a/fff?text=Fatwa'">
+                     onerror="this.src='{{ asset('assets/img/fatwa-placeholder.svg') }}'">
                 <span class="madhab-badge">
                     {{ $fatwa->madhab?->name == 'Shafii' ? "Shafi'i" : ($fatwa->madhab?->name ?? 'General/Other') }}
                 </span>

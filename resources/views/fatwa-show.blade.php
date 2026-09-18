@@ -130,9 +130,9 @@
         }
 
         .main-wrapper {
-            max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
-            padding: 0 15px;
+            padding: 0;
         }
 
         /* Redesigned Card */
@@ -502,29 +502,188 @@
             color: #718096;
         }
 
-        /* Signatures Section */
+        /* Signatures & Scholarly Certification Section */
         .signature-box {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 25px;
-            margin-top: 40px;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 22px 24px;
+            margin-top: 35px;
             border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+            position: relative;
         }
 
-        .sig-row {
-            margin-bottom: 12px;
-            display: flex;
-            gap: 8px;
-            font-size: 0.95rem;
+        .signature-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #1d4054, #c9a84c);
+            border-radius: 14px 0 0 14px;
         }
 
-        .sig-row b {
-            color: #1a202c;
-        }
-
-        .sig-row span {
-            color: var(--brand-green);
+        .scholarly-cert-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.8rem;
             font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .scholarly-sig-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 14px;
+        }
+
+        .sig-card {
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .sig-card:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .sig-icon-wrap {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+
+        .sig-icon-blue {
+            background: rgba(37, 99, 235, 0.1);
+            color: #2563eb;
+            border: 1px solid rgba(37, 99, 235, 0.2);
+        }
+
+        .sig-icon-green {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .sig-icon-gold {
+            background: rgba(201, 168, 76, 0.15);
+            color: #a8883a;
+            border: 1px solid rgba(201, 168, 76, 0.3);
+        }
+
+        .sig-icon-slate {
+            background: rgba(100, 116, 139, 0.1);
+            color: #475569;
+            border: 1px solid rgba(100, 116, 139, 0.2);
+        }
+
+        .sig-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sig-role-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+
+        .sig-scholar-link {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #1d4054;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s ease;
+            word-break: break-word;
+        }
+
+        .sig-scholar-link:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+
+        /* Action Footer & Like Button Animation */
+        .fatwa-actions-bar {
+            margin-top: 25px;
+            padding-top: 18px;
+            border-top: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .like-btn-animated {
+            position: relative;
+            font-weight: 600;
+            font-size: 0.92rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: visible;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .like-btn-animated:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(220, 53, 69, 0.25);
+        }
+
+        .like-btn-animated .like-icon {
+            display: inline-block;
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .like-btn-animated:hover:not(:disabled) .like-icon {
+            transform: scale(1.22);
+        }
+
+        @keyframes heartPop {
+            0% { transform: scale(1); }
+            20% { transform: scale(1.45) rotate(-12deg); }
+            40% { transform: scale(0.85) rotate(8deg); }
+            65% { transform: scale(1.2) rotate(-4deg); }
+            85% { transform: scale(0.95) rotate(2deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.6); }
+            70% { box-shadow: 0 0 0 12px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+
+        .like-btn-animated.is-animating {
+            animation: pulseGlow 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .like-btn-animated.is-animating .like-icon {
+            animation: heartPop 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
         .ref-card {
@@ -640,7 +799,7 @@
         }
     </style>
 
-    <div class="main-wrapper py-5">
+    <div class="container py-4">
         @if($fatwa->status !== 'published')
             <div class="alert alert-warning border border-warning shadow-sm d-flex align-items-center mb-4 rounded-3 p-3" role="alert">
                 <i class="bi bi-shield-lock-fill fs-3 me-3 text-warning"></i>
@@ -774,48 +933,92 @@
                                 <div class="closing-text">والله أعلم بالصواب</div>
                             </div>
 
-                            <div class="mt-3 no-print d-flex align-items-center gap-2">
+                            {{-- Scholarly Certification & Signatures Box --}}
+                            <div class="signature-box">
+                                <div class="scholarly-cert-title">
+                                    <i class="bi bi-patch-check-fill text-warning me-1"></i>
+                                    <span>Scholarly Verification & Certification</span>
+                                </div>
+
+                                <div class="scholarly-sig-grid">
+                                    {{-- 1. Written by (Single Mufti) --}}
+                                    @if($fatwa->assignedMufti)
+                                        <div class="sig-card">
+                                            <div class="sig-icon-wrap sig-icon-blue"><i class="bi bi-pen-fill"></i></div>
+                                            <div class="sig-content">
+                                                <div class="sig-role-label">Written by</div>
+                                                <a href="{{ route('fatwa.mufti.archive', $fatwa->assignedMufti) }}" class="sig-scholar-link">
+                                                    <span>{{ $fatwa->assignedMufti->name }}</span>
+                                                    <i class="bi bi-arrow-up-right-square ms-1 opacity-75 small"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="sig-card">
+                                            <div class="sig-icon-wrap sig-icon-blue"><i class="bi bi-pen-fill"></i></div>
+                                            <div class="sig-content">
+                                                <div class="sig-role-label">Written by</div>
+                                                <span class="sig-scholar-link text-dark">Darul Ifta Faculty</span>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    {{-- 2. Verified by (Minimum 1, can be multiple Muftis) --}}
+                                    @php
+                                        $verifiers = collect();
+                                        if (!empty($fatwa->verified_by)) {
+                                            $ids = is_array($fatwa->verified_by) ? $fatwa->verified_by : [$fatwa->verified_by];
+                                            $verifiers = \App\Models\User::whereIn('id', $ids)->get();
+                                        }
+                                    @endphp
+                                    @if($verifiers->isNotEmpty())
+                                        <div class="sig-card">
+                                            <div class="sig-icon-wrap sig-icon-green"><i class="bi bi-shield-check"></i></div>
+                                            <div class="sig-content">
+                                                <div class="sig-role-label">Verified by</div>
+                                                <div class="d-flex flex-wrap gap-1 align-items-center">
+                                                    @foreach($verifiers as $v)
+                                                        <a href="{{ route('fatwa.mufti.archive', $v) }}" class="sig-scholar-link">
+                                                            <span>{{ $v->name }}</span>@if(!$loop->last), @endif
+                                                            <i class="bi bi-arrow-up-right-square ms-1 opacity-75 small"></i>
+                                                        </a>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    {{-- 3. Checked & Approved by (Optional, Single Mufti/Scholar) --}}
+                                    @if($fatwa->checked_approved_by && $fatwa->approver)
+                                        <div class="sig-card">
+                                            <div class="sig-icon-wrap sig-icon-gold"><i class="bi bi-award-fill"></i></div>
+                                            <div class="sig-content">
+                                                <div class="sig-role-label">Checked & Approved by</div>
+                                                <a href="{{ route('fatwa.mufti.archive', $fatwa->approver) }}" class="sig-scholar-link">
+                                                    <span>{{ $fatwa->approver->name }}</span>
+                                                    <i class="bi bi-arrow-up-right-square ms-1 opacity-75 small"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Actions Footer: Like & Share --}}
+                            <div class="fatwa-actions-bar no-print">
                                 <button id="likeBtn"
-                                    class="btn {{ ($hasLiked ?? false) ? 'btn-danger' : 'btn-outline-danger' }} px-3 rounded-pill"
+                                    class="btn {{ ($hasLiked ?? false) ? 'btn-danger' : 'btn-outline-danger' }} px-3 rounded-pill like-btn-animated"
                                     onclick="handleLike({{ $fatwa->id }})" {{ ($hasLiked ?? false) ? 'disabled' : '' }}
                                     title="{{ ($hasLiked ?? false) ? 'You already liked this!' : 'Like this Fatwa' }}">
-                                    <i class="bi bi-heart-fill me-1"></i>{{ ($hasLiked ?? false) ? 'Liked' : 'Like' }} <span
-                                        id="likeCount" class="badge bg-danger ms-1">{{ $fatwa->likes }}</span>
+                                    <i class="bi bi-heart-fill like-icon me-1"></i>
+                                    <span class="like-text">{{ ($hasLiked ?? false) ? 'Liked' : 'Like' }}</span>
+                                    <span id="likeCount" class="badge bg-danger ms-1">{{ $fatwa->likes }}</span>
                                 </button>
                                 <button class="btn btn-outline-secondary px-3 rounded-pill" id="shareBtn"
                                     onclick="shareFatwa()">
                                     <i class="bi bi-share me-1"></i>Share
                                 </button>
                             </div>
-                        </div>
-
-
-                        {{-- Signatures --}}
-                        <div class="signature-box">
-                            <div class="sig-row">
-                                <b>Written by:</b> <span>{{ $fatwa->assignedMufti->name ?? 'Darul Ifta' }}</span>
-                            </div>
-                            @php
-                                $verifiersList = [];
-                                if (is_array($fatwa->verified_by) && count($fatwa->verified_by) > 0) {
-                                    $verifiersList = \App\Models\User::whereIn('id', $fatwa->verified_by)->pluck('name')->toArray();
-                                }
-                            @endphp
-                            @if(count($verifiersList) > 0)
-                                <div class="sig-row">
-                                    <b>Verified by:</b> <span>{{ implode(', ', $verifiersList) }}</span>
-                                </div>
-                            @endif
-                            @if($fatwa->checked_approved_by && $fatwa->approver)
-                                <div class="sig-row">
-                                    <b>Checked & Approved by:</b> <span>{{ $fatwa->approver->name }}</span>
-                                </div>
-                            @endif
-                            @if($fatwa->publisher)
-                                <div class="sig-row">
-                                    <b>Published by:</b> <span>{{ $fatwa->publisher->name }}</span>
-                                </div>
-                            @endif
                         </div>
                     </div>
                 </div>
@@ -923,9 +1126,7 @@
                                             {{ $cat->questions_count }}
                                         </span>
                                     </a>
-                                </div>
-                                
-                                @if($cat->children->isNotEmpty())
+                                     @if($cat->children->isNotEmpty())
                                     <ul class="sub-cat-list ps-3 mt-2 {{ $isCurrentOrChildSelected ? 'd-block' : 'd-none' }}" style="list-style: none; padding-left: 1rem;">
                                         @foreach($cat->children as $child)
                                         @php
@@ -954,63 +1155,164 @@
             </div>
         </div>
     </div>
+
+    {{-- Share Fatwa Modal with Short URL --}}
+    <div class="modal fade" id="shareFatwaModal" tabindex="-1" aria-labelledby="shareFatwaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(30, 77, 43, 0.1); color: #1e4d2b;">
+                            <i class="bi bi-share-fill"></i>
+                        </div>
+                        <div>
+                            <h6 class="modal-title fw-bold mb-0" id="shareFatwaModalLabel">Share this Fatwa</h6>
+                            <span class="text-muted small" style="font-size: 0.8rem;">Short link forwarding enabled</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    {{-- Short Link Copy Box --}}
+                    <label class="form-label small fw-semibold text-secondary mb-1">Short URL</label>
+                    <div class="input-group mb-3">
+                        <input type="text" id="fatwaShortUrlInput" class="form-control bg-light border-end-0 font-monospace" style="font-size: 0.88rem;" value="{{ route('fatwa.short', $fatwa->id) }}" readonly onclick="this.select()">
+                        <button class="btn btn-outline-success border-start-0 px-3" type="button" id="modalCopyBtn" onclick="copyShortUrlFromModal()">
+                            <i class="bi bi-clipboard me-1" id="modalCopyIcon"></i><span id="modalCopyText">Copy</span>
+                        </button>
+                    </div>
+
+                    {{-- Social Share Options --}}
+                    <label class="form-label small fw-semibold text-secondary mb-2">Share directly to</label>
+                    <div class="d-grid gap-2">
+                        <a href="https://api.whatsapp.com/send?text={{ rawurlencode(($fatwa->title ?: 'Islamic Fatwa') . "\n\n" . route('fatwa.short', $fatwa->id)) }}" target="_blank" rel="noopener noreferrer" class="btn btn-success d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 text-white">
+                            <i class="bi bi-whatsapp fs-5"></i>
+                            <span class="fw-medium">WhatsApp</span>
+                        </a>
+                        <a href="https://t.me/share/url?url={{ rawurlencode(route('fatwa.short', $fatwa->id)) }}&text={{ rawurlencode($fatwa->title ?: 'Islamic Fatwa') }}" target="_blank" rel="noopener noreferrer" class="btn d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 text-white" style="background-color: #229ED9; border-color: #229ED9;">
+                            <i class="bi bi-telegram fs-5"></i>
+                            <span class="fw-medium">Telegram</span>
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?text={{ rawurlencode($fatwa->title ?: 'Islamic Fatwa') }}&url={{ rawurlencode(route('fatwa.short', $fatwa->id)) }}" target="_blank" rel="noopener noreferrer" class="btn btn-dark d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 text-white">
+                            <i class="bi bi-twitter-x fs-5"></i>
+                            <span class="fw-medium">X (Twitter)</span>
+                        </a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ rawurlencode(route('fatwa.short', $fatwa->id)) }}" target="_blank" rel="noopener noreferrer" class="btn d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 text-white" style="background-color: #1877F2; border-color: #1877F2;">
+                            <i class="bi bi-facebook fs-5"></i>
+                            <span class="fw-medium">Facebook</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
         <script>
-            function handleLike(fatwaId) {
+            function handleLike(id) {
                 const btn = document.getElementById('likeBtn');
                 const countSpan = document.getElementById('likeCount');
+                if (!btn || btn.disabled) return;
 
-                if (btn.disabled) return;
                 btn.disabled = true;
+                btn.classList.add('is-animating');
 
-                fetch(`/fatwa-archive/${fatwaId}/like`, {
+                fetch(`/fatwa-archive/${id}/like`, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     }
                 })
-                    .then(response => response.json())
+                    .then(r => r.json())
                     .then(data => {
-                        countSpan.innerText = data.likes;
-                        if (data.already_liked || data.success) {
+                        if (data.status === 'liked' || data.success) {
                             btn.classList.remove('btn-outline-danger');
                             btn.classList.add('btn-danger');
-                            btn.innerHTML = '<i class="bi bi-heart-fill me-1"></i>Liked <span class="badge bg-danger ms-1">' + data.likes + '</span>';
+                            btn.innerHTML = '<i class="bi bi-heart-fill like-icon me-1"></i><span class="like-text">Liked</span> <span class="badge bg-white text-danger ms-1" id="likeCount">' + data.likes + '</span>';
                             btn.disabled = true;
                             btn.title = 'You already liked this!';
                         }
+                        if (countSpan) {
+                            countSpan.innerText = data.likes;
+                        }
+                        setTimeout(() => {
+                            btn.classList.remove('is-animating');
+                        }, 700);
                     })
                     .catch(() => {
                         btn.disabled = false;
+                        btn.classList.remove('is-animating');
                     });
             }
+
+            const shortFatwaUrl = @json(route('fatwa.short', $fatwa->id));
+            const fatwaShareTitle = @json($fatwa->title ?: 'Islamic Fatwa - Darul Ifta Kauzariyya');
 
             function shareFatwa() {
                 const shareData = {
-                    title: document.title,
-                    text: 'Read this Fatwa from Darul Ifta Kauzariyya',
-                    url: window.location.href
+                    title: fatwaShareTitle,
+                    text: fatwaShareTitle + "\n\nRead full Fatwa at:\n",
+                    url: shortFatwaUrl
                 };
+
                 if (navigator.share) {
-                    navigator.share(shareData).catch(() => { });
-                } else {
-                    // Clipboard fallback
-                    navigator.clipboard.writeText(window.location.href).then(() => {
-                        const btn = document.getElementById('shareBtn');
-                        const original = btn.innerHTML;
-                        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Copied!';
-                        btn.classList.add('btn-success');
-                        btn.classList.remove('btn-outline-secondary');
-                        setTimeout(() => {
-                            btn.innerHTML = original;
-                            btn.classList.remove('btn-success');
-                            btn.classList.add('btn-outline-secondary');
-                        }, 2000);
+                    navigator.share(shareData).catch((err) => {
+                        if (err.name !== 'AbortError') {
+                            openShareModal();
+                        }
                     });
+                } else {
+                    openShareModal();
                 }
             }
 
+            function openShareModal() {
+                const modalEl = document.getElementById('shareFatwaModal');
+                if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                } else {
+                    copyShortUrlFallback();
+                }
+            }
+
+            function copyShortUrlFromModal() {
+                const input = document.getElementById('fatwaShortUrlInput');
+                if (!input) return;
+                navigator.clipboard.writeText(input.value).then(() => {
+                    const text = document.getElementById('modalCopyText');
+                    const icon = document.getElementById('modalCopyIcon');
+                    if (text && icon) {
+                        text.innerText = 'Copied!';
+                        icon.className = 'bi bi-check2-circle text-success';
+                        setTimeout(() => {
+                            text.innerText = 'Copy';
+                            icon.className = 'bi bi-clipboard';
+                        }, 2000);
+                    }
+                }).catch(() => {
+                    input.select();
+                    document.execCommand('copy');
+                });
+            }
+
+            function copyShortUrlFallback() {
+                navigator.clipboard.writeText(shortFatwaUrl).then(() => {
+                    const btn = document.getElementById('shareBtn');
+                    if (!btn) return;
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '<i class="bi bi-check2-circle me-1 text-success"></i>Link Copied!';
+                    btn.classList.add('btn-light', 'border-success');
+                    btn.classList.remove('btn-outline-secondary');
+                    setTimeout(() => {
+                        btn.innerHTML = original;
+                        btn.classList.remove('btn-light', 'border-success');
+                        btn.classList.add('btn-outline-secondary');
+                    }, 2000);
+                });
+            }
         </script>
     @endpush
 @endsection

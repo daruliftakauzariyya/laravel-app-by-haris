@@ -13,8 +13,17 @@
         <div class="col-md-3">
             <select name="status" class="form-select form-select-sm">
                 <option value="">All Statuses</option>
-                @foreach(['pending','accepted','assigned','answered','under_review','published','rejected'] as $s)
-                    <option value="{{ $s }}" {{ request('status') == $s ? 'selected' : '' }}>{{ ucfirst(str_replace('_',' ',$s)) }}</option>
+                @foreach([
+                    'pending' => 'Pending',
+                    'accepted' => 'Accepted',
+                    'assigned' => 'Assigned',
+                    'drafted' => 'Mufti Drafted',
+                    'answered' => 'Answered',
+                    'under_review' => 'Under Review',
+                    'published' => 'Published',
+                    'rejected' => 'Rejected'
+                ] as $val => $label)
+                    <option value="{{ $val }}" {{ request('status') == $val ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
         </div>
@@ -54,10 +63,22 @@
                     <td><span class="badge bg-secondary">{{ $q->question_id }}</span></td>
                     <td>{{ $q->user->name }}<br><small class="text-muted">{{ $q->user->email }}</small></td>
                     <td>
-                        <div class="fw-bold text-dark">{{ $q->title ?: 'No Summary' }}</div>
-                        <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;">
-                            {{ Str::limit(strip_tags($q->body), 50) }}
-                        </small>
+                        @php
+                            $textSample = ($q->title ?? '') . ' ' . strip_tags($q->body ?? '');
+                            $isMalayalam = (bool) preg_match('/[\x{0D00}-\x{0D7F}]/u', $textSample) || strtolower($q->language ?? '') === 'malayalam';
+                            $isArabic = (bool) preg_match('/[\x{0600}-\x{06FF}]/u', $textSample) || in_array(strtolower($q->language ?? ''), ['arabic', 'ar']);
+                            $isUrdu = strtolower($q->language ?? '') === 'urdu';
+
+                            $fontClass = $isMalayalam ? 'font-malayalam' : ($isUrdu ? 'font-urdu' : ($isArabic ? 'font-arabic' : 'font-eng'));
+                        @endphp
+                        <div class="fw-bold text-dark {{ $fontClass }}" style="{{ $isMalayalam ? 'line-height: 1.55; font-size: 0.95rem;' : ($isArabic || $isUrdu ? 'line-height: 1.7; font-size: 1.05rem;' : 'font-size: 0.92rem;') }}">
+                            {{ $q->title ?: 'No Summary' }}
+                        </div>
+                        @if($q->body)
+                            <small class="text-muted text-truncate d-inline-block {{ $fontClass }}" style="max-width: 320px; {{ $isMalayalam ? 'line-height: 1.45; font-size: 0.82rem;' : '' }}">
+                                {{ Str::limit(strip_tags($q->body), 60) }}
+                            </small>
+                        @endif
                     </td>
                     <td>{{ $q->madhab?->name ?? '—' }}</td>
                     <td>{{ $q->assignedMufti?->name ?? '—' }}</td>

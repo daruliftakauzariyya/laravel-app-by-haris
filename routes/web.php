@@ -25,7 +25,8 @@ Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
 Route::get('/team', [HomeController::class, 'team'])->name('team');
 
-// Fatwa Archive
+// Fatwa Archive & Short URL
+Route::get('/f/{code}', [FatwaController::class, 'shortUrlRedirect'])->name('fatwa.short');
 Route::get('/fatwa-archive', [FatwaController::class, 'index'])->name('fatwa.archive');
 Route::get('/fatwa-archive/{fatwa}', [FatwaController::class, 'show'])->name('fatwa.show');
 Route::get('/fatwa/madhab', [FatwaController::class, 'madhabArchive'])->name('fatwa.madhab');
@@ -36,6 +37,17 @@ Route::get('/privacy', [HomeController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [HomeController::class, 'terms'])->name('terms');
 Route::get('/sitemap.xml', [HomeController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [HomeController::class, 'robotsTxt'])->name('robots.txt');
+
+// Live Activity Signal Heartbeat
+Route::match(['get', 'post'], '/user-heartbeat', function () {
+    if (auth()->check()) {
+        \App\Models\User::where('id', auth()->id())->update([
+            'last_seen_at' => now(),
+        ]);
+        return response()->json(['status' => 'ok', 'online' => true, 'time' => now()->toIso8601String()]);
+    }
+    return response()->json(['status' => 'guest']);
+})->name('user.heartbeat');
 
 /*
 |--------------------------------------------------------------------------
@@ -110,7 +122,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/visitor-insights', [DashboardController::class, 'visitorInsights'])->name('visitor.insights');
 
-    // Import Old Fatwas
+    // Import Old Fatwas & PDF Export
+    Route::get('/fatwas/export-pdf', [DashboardController::class, 'exportPdf'])->name('fatwas.export.pdf');
     Route::get('/fatwas/import-old', [ImportOldFatwaController::class, 'create'])->name('fatwas.import-old');
     Route::post('/fatwas/import-old', [ImportOldFatwaController::class, 'store'])->name('fatwas.import-old.store');
     Route::post('/fatwas/quick-create-questioner', [ImportOldFatwaController::class, 'quickCreateQuestioner'])->name('fatwas.quick-create-questioner');
@@ -157,6 +170,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/muftis/{user}', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'destroy'])->name('muftis.destroy');
     Route::patch('/muftis/{user}/toggle-status', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'toggleStatus'])->name('muftis.toggle-status');
     Route::get('/muftis/{user}/activity', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'activity'])->name('muftis.activity');
+    Route::get('/muftis/{user}/history', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'history'])->name('muftis.history');
     Route::post('/muftis/{user}/approve-avatar', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'approveAvatar'])->name('muftis.approve-avatar');
     Route::post('/muftis/{user}/reject-avatar', [\App\Http\Controllers\Admin\MuftiManagementController::class, 'rejectAvatar'])->name('muftis.reject-avatar');
 

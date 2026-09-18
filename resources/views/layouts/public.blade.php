@@ -167,15 +167,61 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--bg-light);
+            background-color: var(--bg-light);
             color: var(--text-main);
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            position: relative;
+        }
+
+        .site-bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('{{ asset("assets/img/site-bg.png") }}');
+            background-size: cover;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            opacity: 0.20;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .navbar, main, footer, .offcanvas {
+            position: relative;
+            z-index: 1;
         }
 
         main {
             flex: 1 0 auto;
+        }
+
+        /* Unified Main Area Layout with Increased Side Padding (68% Width on Header, Content & Footer) */
+        @media (min-width: 992px) {
+            .container,
+            .container-lg,
+            .container-xl,
+            .container-xxl {
+                max-width: 1280px !important;
+                width: 68% !important;
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+        }
+
+        @media (min-width: 1600px) {
+            .container,
+            .container-lg,
+            .container-xl,
+            .container-xxl {
+                max-width: 1360px !important;
+                width: 68% !important;
+            }
         }
 
         /* Typography Utility Classes */
@@ -748,6 +794,9 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBPW3VHH" height="0" width="0"
             style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
+
+    {{-- Website Main Background (20% Opacity) --}}
+    <div class="site-bg-overlay" aria-hidden="true"></div>
 
     {{-- Navbar --}}
     <nav class="navbar navbar-expand-lg navbar-light navbar-sticky shadow-sm">

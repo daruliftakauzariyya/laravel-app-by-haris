@@ -20,6 +20,81 @@ Route::get('/stats', [PublicStatsController::class, 'index']);
 Route::get('/public/stats', [PublicStatsController::class, 'index']);
 Route::get('/public/stats/cards', [PublicStatsController::class, 'cards']);
 
+// Public: Search Filters (Madhabs & Popular Categories with Fatwa Count) API
+Route::get('/public/search-filters', function () {
+    $filters = \Illuminate\Support\Facades\Cache::remember('api_public_search_filters_v3', 1800, function () {
+        $madhabs = \App\Models\Madhab::orderBy('id')->get(['id', 'name', 'slug']);
+        
+        // Fetch top 6-8 popular categories with published fatwas count
+        $popularCategories = \App\Models\Category::withCount(['questions' => function ($q) {
+                $q->where('status', 'published');
+            }])
+            ->having('questions_count', '>', 0)
+            ->orderByDesc('questions_count')
+            ->limit(8)
+            ->get(['id', 'name', 'slug']);
+
+        // Backfill with top categories if fewer than 6 have published fatwas
+        if ($popularCategories->count() < 6) {
+            $existingIds = $popularCategories->pluck('id')->toArray();
+            $needed = 8 - $popularCategories->count();
+            $fillers = \App\Models\Category::whereNotIn('id', $existingIds)
+                ->whereNull('parent_id')
+                ->withCount(['questions' => function ($q) {
+                    $q->where('status', 'published');
+                }])
+                ->orderBy('sort_order')
+                ->limit($needed)
+                ->get(['id', 'name', 'slug']);
+            $popularCategories = $popularCategories->concat($fillers);
+        }
+
+        return [
+            'madhabs' => $madhabs,
+            'popular_categories' => $popularCategories->take(8)->values()
+        ];
+    });
+
+    return response()->json([
+        'status' => 'success',
+        'data' => $filters
+    ]);
+});
+
+Route::get('/public/madhabs', function () {
+    $madhabs = \Illuminate\Support\Facades\Cache::remember('api_public_madhabs', 3600, function () {
+        return \App\Models\Madhab::orderBy('id')->get(['id', 'name', 'slug']);
+    });
+    return response()->json(['status' => 'success', 'data' => $madhabs]);
+});
+
+Route::get('/public/popular-categories', function () {
+    $categories = \Illuminate\Support\Facades\Cache::remember('api_public_popular_categories_v3', 1800, function () {
+        $popular = \App\Models\Category::withCount(['questions' => function ($q) {
+                $q->where('status', 'published');
+            }])
+            ->having('questions_count', '>', 0)
+            ->orderByDesc('questions_count')
+            ->limit(8)
+            ->get(['id', 'name', 'slug']);
+
+        if ($popular->count() < 6) {
+            $existingIds = $popular->pluck('id')->toArray();
+            $fillers = \App\Models\Category::whereNotIn('id', $existingIds)
+                ->whereNull('parent_id')
+                ->withCount(['questions' => function ($q) {
+                    $q->where('status', 'published');
+                }])
+                ->orderBy('sort_order')
+                ->limit(8 - $popular->count())
+                ->get(['id', 'name', 'slug']);
+            $popular = $popular->concat($fillers);
+        }
+        return $popular->take(8)->values();
+    });
+    return response()->json(['status' => 'success', 'data' => $categories]);
+});
+
 // Include Dedicated Mufti Mobile App API Routes
 require __DIR__ . '/mufti_mobile_app_api.php';
 

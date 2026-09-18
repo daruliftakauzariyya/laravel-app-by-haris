@@ -30,7 +30,7 @@
                     </div>
                     <div class="search-divider"></div>
                     <div class="search-dropdown-col">
-                        <select name="madhab" class="form-select border-0 shadow-none bg-transparent font-eng">
+                        <select name="madhab" id="heroMadhabSelect" class="form-select border-0 shadow-none bg-transparent font-eng">
                             <option value="">All Madhabs</option>
                             <option value="Shafii" {{ request('madhab') == 'Shafii' ? 'selected' : '' }}>Shafi'i</option>
                             <option value="Hanafi" {{ request('madhab') == 'Hanafi' ? 'selected' : '' }}>Hanafi</option>
@@ -42,16 +42,11 @@
                 </div>
             </form>
 
-            <!-- Popular Search Pills -->
+            <!-- Popular Categories Pills -->
             <div class="hero-popular-searches mt-3">
-                <span class="popular-label">Popular Searches:</span>
-                <div class="popular-pills">
-                    <a href="{{ route('fatwa.archive', ['search' => 'salah']) }}" class="search-pill-btn">Salah</a>
-                    <a href="{{ route('fatwa.archive', ['search' => 'zakat']) }}" class="search-pill-btn">Zakat</a>
-                    <a href="{{ route('fatwa.archive', ['search' => 'marriage']) }}" class="search-pill-btn">Marriage</a>
-                    <a href="{{ route('fatwa.archive', ['search' => 'fasting']) }}" class="search-pill-btn">Fasting</a>
-                    <a href="{{ route('fatwa.archive', ['search' => 'inheritance']) }}" class="search-pill-btn">Inheritance</a>
-                    <a href="{{ route('fatwa.archive', ['search' => 'qurbani']) }}" class="search-pill-btn">Qurbani</a>
+                <span class="popular-label">Popular Categories:</span>
+                <div class="popular-pills" id="heroPopularPills">
+                    {{-- Populated dynamically via API --}}
                 </div>
             </div>
 
@@ -597,13 +592,30 @@ $scholars = [
         font-size: 0.78rem;
         font-weight: 700;
         text-decoration: none;
-        padding: 4px 15px;
+        padding: 4px 14px;
         border-radius: 100px;
         transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
     }
     .search-pill-btn:hover {
         background: #e2e8f0;
         color: #1e293b;
+    }
+    .pill-count-badge {
+        background: rgba(37, 99, 235, 0.12);
+        color: #1d4ed8;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 999px;
+        line-height: 1.2;
+        transition: all 0.2s ease;
+    }
+    .search-pill-btn:hover .pill-count-badge {
+        background: #2563eb;
+        color: #ffffff;
     }
 
     /* Actions bottom bar */
@@ -1547,6 +1559,51 @@ $scholars = [
         }
     }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const madhabSelect = document.getElementById('heroMadhabSelect');
+    const popularPills = document.getElementById('heroPopularPills');
+    const currentMadhab = "{{ request('madhab') }}";
+    const archiveBaseUrl = "{{ route('fatwa.archive') }}";
+
+    // Fetch dynamic search meta (Madhabs & Popular Categories) from API
+    fetch('/api/public/search-filters')
+        .then(response => response.json())
+        .then(res => {
+            if (res.status === 'success' && res.data) {
+                // 1. Populate Madhabs dropdown dynamically
+                if (madhabSelect && res.data.madhabs && res.data.madhabs.length > 0) {
+                    let madhabOptions = '<option value="">All Madhabs</option>';
+                    res.data.madhabs.forEach(madhab => {
+                        const isSelected = (currentMadhab === madhab.slug || currentMadhab === madhab.name || currentMadhab == madhab.id) ? 'selected' : '';
+                        const displayName = (madhab.name === 'Shafii') ? "Shafi'i" : madhab.name;
+                        madhabOptions += `<option value="${madhab.slug}" ${isSelected}>${displayName}</option>`;
+                    });
+                    madhabSelect.innerHTML = madhabOptions;
+                }
+
+                // 2. Populate Popular Categories pills dynamically (6 to 8 with published fatwa count)
+                if (popularPills && res.data.popular_categories && res.data.popular_categories.length > 0) {
+                    let pillsHtml = '';
+                    res.data.popular_categories.slice(0, 8).forEach(cat => {
+                        const targetUrl = `${archiveBaseUrl}?category=${encodeURIComponent(cat.slug)}`;
+                        const countBadge = (cat.questions_count !== undefined && cat.questions_count !== null)
+                            ? `<span class="pill-count-badge">${cat.questions_count}</span>`
+                            : '';
+                        pillsHtml += `<a href="${targetUrl}" class="search-pill-btn"><span>${cat.name}</span>${countBadge}</a>`;
+                    });
+                    popularPills.innerHTML = pillsHtml;
+                }
+            }
+        })
+        .catch(err => {
+            console.warn('[Home API] Search filters load error:', err);
+        });
+});
+</script>
 @endpush
 
 @endsection

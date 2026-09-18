@@ -331,6 +331,14 @@ class QuestionAndAnswer extends Model
     }
 
     /**
+     * Get the clean short URL for this fatwa: /f/{id}
+     */
+    public function getShortUrlAttribute(): string
+    {
+        return route('fatwa.short', $this->id);
+    }
+
+    /**
      * Resolve route binding from URL identifier
      * Supports:
      * 1. Slug format: '6-ruling-on-fasting' -> ID: 6

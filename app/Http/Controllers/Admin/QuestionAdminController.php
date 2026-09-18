@@ -25,7 +25,15 @@ class QuestionAdminController extends Controller
         $query = QuestionAndAnswer::with('user', 'category', 'assignedMufti', 'madhab')->latest();
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if ($request->status === 'drafted' || $request->status === 'draft') {
+                $query->where(function ($q) {
+                    $q->whereNotNull('draft_answer')
+                      ->where('draft_answer', '!=', '')
+                      ->whereNotIn('status', ['published', 'rejected']);
+                });
+            } else {
+                $query->where('status', $request->status);
+            }
         }
         if ($request->filled('madhab_id')) {
             $query->where('madhab_id', $request->madhab_id);

@@ -16,10 +16,24 @@
                             <div class="avatar-ring"></div>
                             <img src="{{ $user->avatar ? asset($user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background=1a7a4a&color=fff&size=120' }}" 
                                  class="rounded-circle shadow-lg main-avatar" width="120" height="120">
-                            <div class="status-pulse bg-success"></div>
+                            @php
+                                $isLive = $user->isOnline(5);
+                            @endphp
+                            <div class="status-pulse {{ $isLive ? 'bg-success shadow-success' : 'bg-secondary opacity-50' }}" title="{{ $isLive ? 'Currently Online in Mufti Dashboard' : 'Offline' }}"></div>
                         </div>
                         <div class="profile-info-text text-white">
-                            <h2 class="fw-black mb-1 display-6">{{ $user->name }}</h2>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <h2 class="fw-black mb-0 display-6">{{ $user->name }}</h2>
+                                @if($isLive)
+                                    <span class="badge bg-success bg-opacity-75 text-white border border-white border-opacity-25 rounded-pill px-3 py-1 small fw-bold">
+                                        <i class="bi bi-broadcast me-1"></i>LIVE ONLINE
+                                    </span>
+                                @else
+                                    <span class="badge bg-dark bg-opacity-50 text-white border border-white border-opacity-25 rounded-pill px-3 py-1 small fw-normal">
+                                        {{ $user->last_seen_at ? 'Last seen ' . $user->last_seen_at->diffForHumans() : 'Offline' }}
+                                    </span>
+                                @endif
+                            </div>
                             <div class="d-flex align-items-center opacity-75 mb-3">
                                 <i class="bi bi-geo-alt-fill me-2"></i>
                                 <span class="fw-medium">{{ $user->country ?? 'Global Scholar' }}</span>
@@ -27,14 +41,18 @@
                                 <span class="fw-medium font-inter">{{ $user->email }}</span>
                             </div>
                             <div class="d-flex flex-wrap gap-2">
-                                <span class="glass-pill"><i class="bi bi-check2-circle me-1"></i>Active Scholar</span>
+                                <span class="glass-pill"><i class="bi bi-box-arrow-in-right me-1 text-warning"></i>{{ number_format($user->login_count ?? 0) }} Total Logins</span>
+                                <span class="glass-pill"><i class="bi bi-clock-history me-1"></i>Last Login: {{ $user->last_login_at ? $user->last_login_at->diffForHumans() : 'Never' }}</span>
                                 <span class="glass-pill"><i class="bi bi-book me-1"></i>{{ $user->madhab?->name ? $user->madhab->name . ' Madhab' : 'Islamic Jurisprudence' }}</span>
                                 @if($user->can_check_approve)
                                     <span class="glass-pill gold-border"><i class="bi bi-shield-check me-1"></i>Senior Checker</span>
                                 @endif
                             </div>
                         </div>
-                        <div class="ms-auto mt-4 mt-md-0">
+                        <div class="ms-auto mt-4 mt-md-0 d-flex flex-wrap gap-2">
+                            <a href="{{ route('admin.muftis.history', $user) }}" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 shadow-sm">
+                                <i class="bi bi-clock-history me-2"></i>Work History
+                            </a>
                             <a href="{{ route('admin.muftis.edit', $user) }}" class="btn glass-btn rounded-pill px-4 py-2">
                                 <i class="bi bi-pencil-square me-2"></i>Edit Profile
                             </a>

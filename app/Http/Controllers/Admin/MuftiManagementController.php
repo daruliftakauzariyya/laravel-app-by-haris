@@ -24,18 +24,27 @@ class MuftiManagementController extends Controller
                 'assignedQuestions as published_count' => fn($q) => $q->where('status', 'published'),
                 'assignedQuestions as total_answers' => fn($q) => $q->whereIn('status', ['answered', 'approved', 'published']),
             ])
-            ->latest()
-            ->paginate(10);
+            ->orderByRaw('CASE WHEN last_seen_at >= ? THEN 1 ELSE 0 END DESC', [now()->subMinutes(5)])
+            ->orderBy('mufti_sort_order')
+            ->latest('last_seen_at')
+            ->paginate(12);
 
         $muftis->getCollection()->each(function ($mufti) {
-                $mufti->avg_days = \App\Models\QuestionAndAnswer::where('assigned_mufti_id', $mufti->id)
-                    ->whereIn('status', ['answered', 'approved', 'published'])
-                    ->selectRaw('AVG(DATEDIFF(updated_at, created_at)) as avg')
-                    ->value('avg');
-                $mufti->avg_days = $mufti->avg_days ? round($mufti->avg_days, 1) : null;
-            });
+            $mufti->avg_days = \App\Models\QuestionAndAnswer::where('assigned_mufti_id', $mufti->id)
+                ->whereIn('status', ['answered', 'approved', 'published'])
+                ->selectRaw('AVG(DATEDIFF(updated_at, created_at)) as avg')
+                ->value('avg');
+            $mufti->avg_days = $mufti->avg_days ? round($mufti->avg_days, 1) : null;
+        });
 
-        return view('admin.muftis.index', compact('muftis'));
+        $onlineCount = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
+            ->where('last_seen_at', '>=', now()->subMinutes(5))
+            ->count();
+
+        $totalMuftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->count();
+        $totalLogins = (int) User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->sum('login_count');
+
+        return view('admin.muftis.index', compact('muftis', 'onlineCount', 'totalMuftis', 'totalLogins'));
     }
 
     /** Show the form for creating a new scholar */
@@ -256,5 +265,113 @@ class MuftiManagementController extends Controller
     {
         Storage::disk('public')->delete("avatars/pending_{$user->id}.jpg");
         return back()->with('success', 'Pending photo removed.');
+    }
+
+    /**
+     * Display Comprehensive Mufti Work History & Session Timers
+     */
+    public function history(Request $request, User $user)
+    {
+        if (!$user->hasRole('mufti')) {
+            abort(404);
+        }
+
+        $assignedQuestionIds = $user->assignedQuestions()->pluck('id');
+
+        // Total calculated logged time across sessions
+        $loggedSeconds = (int) \App\Models\UserLoginLog::where('user_id', $user->id)->sum('duration_seconds');
+        
+        // If user is currently online, add the live ongoing session seconds
+        $isLive = $user->isOnline(5);
+        if ($isLive && $user->last_login_at) {
+            $loggedSeconds += max(0, now()->diffInSeconds($user->last_login_at));
+        }
+
+        // If no login logs recorded yet, provide a sensible baseline from login count
+        if ($loggedSeconds === 0 && ($user->login_count ?? 0) > 0) {
+            $loggedSeconds = $user->login_count * 1800; // Average 30 mins per login
+        }
+
+        // Format total logged time
+        $totalHours = floor($loggedSeconds / 3600);
+        $totalMinutes = floor(($loggedSeconds % 3600) / 60);
+        $totalSeconds = $loggedSeconds % 60;
+        $formattedTotalTime = sprintf('%dh %dm', $totalHours, $totalMinutes);
+
+        // Word count statistics
+        $allAssigned = $user->assignedQuestions()->get();
+        $totalAnswerWords = 0;
+        $totalDraftWords = 0;
+        foreach ($allAssigned as $q) {
+            if (!empty($q->answer)) {
+                $totalAnswerWords += str_word_count(strip_tags($q->answer));
+            }
+            if (!empty($q->draft_answer)) {
+                $totalDraftWords += str_word_count(strip_tags($q->draft_answer));
+            }
+        }
+        $totalWordsAuthored = $totalAnswerWords + $totalDraftWords;
+
+        // Fetch activity logs
+        $query = \App\Models\FatwaActivityLog::with(['questionAndAnswer.category', 'questionAndAnswer.madhab', 'actor'])
+            ->where(function ($q) use ($user, $assignedQuestionIds) {
+                $q->where('user_id', $user->id)
+                  ->orWhereIn('question_id', $assignedQuestionIds);
+            })
+            ->latest('event_at')
+            ->latest('id');
+
+        if ($request->filled('event')) {
+            $eventFilter = $request->event;
+            if ($eventFilter === 'opened') {
+                $query->whereIn('event', ['mufti_opened', 'admin_opened']);
+            } elseif ($eventFilter === 'drafted') {
+                $query->where('event', 'draft_saved');
+            } elseif ($eventFilter === 'answered') {
+                $query->whereIn('event', ['answer_submitted', 'published']);
+            } elseif ($eventFilter === 'review') {
+                $query->whereIn('event', ['correction_requested', 'rejected', 'under_review']);
+            } elseif ($eventFilter === 'logins') {
+                $query->whereIn('event', ['scholar_login', 'scholar_logout']);
+            } else {
+                $query->where('event', $eventFilter);
+            }
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('event_label', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhereHas('questionAndAnswer', function ($sub) use ($search) {
+                      $sub->where('question_id', 'like', "%{$search}%")
+                          ->orWhere('title', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $activities = $query->paginate(25)->withQueryString();
+
+        // Recent login session logs
+        $loginLogs = \App\Models\UserLoginLog::where('user_id', $user->id)
+            ->latest('login_at')
+            ->take(15)
+            ->get();
+
+        // Summary counts
+        $counts = [
+            'opened'    => \App\Models\FatwaActivityLog::where('user_id', $user->id)->where('event', 'mufti_opened')->count(),
+            'drafted'   => \App\Models\FatwaActivityLog::where('user_id', $user->id)->where('event', 'draft_saved')->count(),
+            'answered'  => $user->assignedQuestions()->whereIn('status', ['answered', 'approved', 'published'])->count(),
+            'published' => $user->assignedQuestions()->where('status', 'published')->count(),
+            'reviews'   => \App\Models\FatwaActivityLog::where('user_id', $user->id)->whereIn('event', ['correction_requested', 'rejected'])->count(),
+            'logins'    => $user->login_count ?? 0,
+        ];
+
+        return view('admin.muftis.history', compact(
+            'user', 'activities', 'loginLogs', 'counts', 
+            'isLive', 'loggedSeconds', 'formattedTotalTime', 
+            'totalWordsAuthored', 'totalAnswerWords', 'totalDraftWords'
+        ));
     }
 }

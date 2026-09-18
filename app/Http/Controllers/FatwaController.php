@@ -14,8 +14,16 @@ class FatwaController extends Controller
         set_time_limit(300); // 5 min — needed for remote DB connections
         $query = QuestionAndAnswer::with(['category', 'assignedMufti', 'references'])->where('status', 'published');
 
-        // Filter by Madhab
-        if ($request->filled('madhab_id')) {
+        // Filter by Madhab (Supports slug, name, or numeric ID)
+        if ($request->filled('madhab')) {
+            $madhabParam = $request->madhab;
+            $madhab = is_numeric($madhabParam)
+                ? \App\Models\Madhab::find($madhabParam)
+                : \App\Models\Madhab::where('slug', $madhabParam)->orWhere('name', $madhabParam)->first();
+            if ($madhab) {
+                $query->where('madhab_id', $madhab->id);
+            }
+        } elseif ($request->filled('madhab_id')) {
             $query->where('madhab_id', $request->madhab_id);
         }
 
@@ -347,4 +355,40 @@ class FatwaController extends Controller
 
         return response()->json($results);
     }
+
+    /**
+     * Redirect short URL (e.g. /f/116 or /f/Q0116) to canonical fatwa show URL.
+     */
+    public function shortUrlRedirect(string $code)
+    {
+        $fatwa = null;
+
+        // 1. Direct Integer ID check
+        if (is_numeric($code)) {
+            $fatwa = QuestionAndAnswer::find($code);
+        }
+
+        // 2. Direct Question ID lookup (e.g., Q0116 or A0001)
+        if (!$fatwa) {
+            $fatwa = QuestionAndAnswer::where('question_id', $code)->first();
+        }
+
+        // 3. Padded Question ID if numeric (e.g., 116 -> Q0116)
+        if (!$fatwa && is_numeric($code)) {
+            $padded = sprintf('Q%04d', (int)$code);
+            $fatwa = QuestionAndAnswer::where('question_id', $padded)->first();
+        }
+
+        // 4. Model resolve fallback (e.g., 116-slug)
+        if (!$fatwa) {
+            $fatwa = (new QuestionAndAnswer)->resolveRouteBinding($code);
+        }
+
+        if (!$fatwa) {
+            abort(404, 'Fatwa not found');
+        }
+
+        return redirect()->route('fatwa.show', $fatwa, 301);
+    }
 }
+

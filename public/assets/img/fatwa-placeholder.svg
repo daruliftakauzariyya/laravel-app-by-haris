@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 270" width="600" height="270">
+  <defs>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f2b3e" />
+      <stop offset="50%" stop-color="#1D4054" />
+      <stop offset="100%" stop-color="#091b29" />
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2563eb" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#1D4054" stop-opacity="0" />
+    </radialGradient>
+    <pattern id="archGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 0 30 Q 15 0 30 30" fill="none" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Dark Blue Background -->
+  <rect width="600" height="270" fill="url(#blueGrad)" />
+  <rect width="600" height="270" fill="url(#glow)" />
+  <rect width="600" height="270" fill="url(#archGrid)" />
+
+  <!-- Subtle Emblem & Typography -->
+  <g transform="translate(300, 120)" text-anchor="middle">
+    <!-- Center Book/Islamic Icon -->
+    <path d="M-22,-14 C-10,-20 0,-14 0,-14 C0,-14 10,-20 22,-14 L22,14 C10,8 0,14 0,14 C0,14 -10,8 -22,14 Z" 
+          fill="none" stroke="#c9a84c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+    <line x1="0" y1="-14" x2="0" y2="14" stroke="#c9a84c" stroke-width="2" opacity="0.85"/>
+    
+    <!-- Title & Arabic -->
+    <text y="46" font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="20" font-weight="700" fill="#ffffff" letter-spacing="1">
+      DARUL IFTA KAUZARIYYA
+    </text>
+    <text y="68" font-family="'Amiri', 'Noto Naskh Arabic', serif" font-size="16" fill="#c9a84c" opacity="0.9">
+      دار الإفتاء الكوثرية
+    </text>
+  </g>
+</svg>

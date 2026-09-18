@@ -32,6 +32,9 @@ class User extends Authenticatable
         'profile_completed',
         'is_active',
         'can_check_approve',
+        'login_count',
+        'last_login_at',
+        'last_seen_at',
         'otp',
         'otp_expires_at',
     ];
@@ -48,7 +51,28 @@ class User extends Authenticatable
             'password' => 'hashed',
             'profile_completed' => 'boolean',
             'is_active' => 'boolean',
+            'can_check_approve' => 'boolean',
+            'login_count' => 'integer',
+            'last_login_at' => 'datetime',
+            'last_seen_at' => 'datetime',
         ];
+    }
+
+    public function recordLogin(): void
+    {
+        $this->increment('login_count');
+        $this->updateQuietly([
+            'last_login_at' => now(),
+            'last_seen_at'  => now(),
+        ]);
+    }
+
+    public function isOnline(int $minutes = 5): bool
+    {
+        if (!$this->last_seen_at) {
+            return false;
+        }
+        return $this->last_seen_at->greaterThanOrEqualTo(now()->subMinutes($minutes));
     }
 
     // Relationships

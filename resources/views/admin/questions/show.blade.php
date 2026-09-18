@@ -6,13 +6,28 @@
     {{-- Left: Question detail --}}
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
                     <span class="badge bg-secondary me-2">{{ $question->question_id }}</span>
                     <span class="badge badge-status-{{ $question->status }} me-2">{{ ucfirst(str_replace('_',' ',$question->status)) }}</span>
                     <span class="badge bg-warning text-dark px-2 border-0"><i class="bi bi-hourglass-split me-1"></i>{{ floor($question->created_at->diffInDays(now())) }} Days Ago</span>
                 </div>
-                <div class="d-flex gap-2 no-print">
+                <div class="d-flex gap-2 no-print flex-wrap align-items-center">
+                    {{-- Copy Public Short URL Button --}}
+                    <button type="button" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1" id="copyShortUrlBtn"
+                        onclick="copyAdminShortUrl('{{ route('fatwa.short', $question->id) }}')" 
+                        title="Copy Public Short URL: {{ route('fatwa.short', $question->id) }}">
+                        <i class="bi bi-link-45deg fs-6" id="copyShortUrlIcon"></i>
+                        <span id="copyShortUrlText">Copy Short URL</span>
+                    </button>
+
+                    @if($question->status === 'published')
+                    <a href="{{ route('fatwa.show', $question) }}" target="_blank" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" title="Open Public Fatwa Page">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                        <span>Public View</span>
+                    </a>
+                    @endif
+
                     <a href="{{ route('admin.questions.history', $question) }}" class="btn btn-sm btn-outline-info">
                         <i class="bi bi-clock-history me-1"></i>History
                     </a>
@@ -100,6 +115,40 @@
 
     {{-- Right: Actions --}}
     <div class="col-lg-4 no-print">
+        {{-- Public & Short Link Access Card --}}
+        <div class="card border-0 shadow-sm mb-3" style="border-left: 4px solid #10b981 !important;">
+            <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold text-success">
+                    <i class="bi bi-link-45deg me-1"></i>Public Short URL
+                </h6>
+                @if($question->status === 'published')
+                    <span class="badge bg-success">Published Live</span>
+                @else
+                    <span class="badge bg-secondary">{{ ucfirst($question->status) }}</span>
+                @endif
+            </div>
+            <div class="card-body small">
+                <label class="form-label text-muted fw-semibold mb-1" style="font-size: 0.75rem;">Short Forwarding Link:</label>
+                <div class="input-group input-group-sm mb-2">
+                    <input type="text" class="form-control bg-light font-monospace" style="font-size: 0.8rem;" value="{{ route('fatwa.short', $question->id) }}" id="sidebarShortUrlInput" readonly onclick="this.select()">
+                    <button class="btn btn-success" type="button" onclick="copySidebarShortUrl()">
+                        <i class="bi bi-clipboard me-1" id="sidebarCopyIcon"></i><span id="sidebarCopyText">Copy</span>
+                    </button>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-1">
+                    <a href="{{ route('fatwa.short', $question->id) }}" target="_blank" class="text-decoration-none small text-primary fw-medium">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Test Short Link
+                    </a>
+                    @if($question->status === 'published')
+                    <a href="{{ route('fatwa.show', $question) }}" target="_blank" class="text-decoration-none small text-success fw-medium">
+                        <i class="bi bi-globe me-1"></i>Full Public View
+                    </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+
         {{-- Assign Mufti --}}
         @if(in_array($question->status, ['accepted','assigned']))
         <div class="card border-0 shadow-sm mb-3">
@@ -180,7 +229,6 @@
         </div>
 
         {{-- Question detail info --}}
-        {{-- Question detail info --}}
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body small">
                 <p class="mb-1"><strong>Language:</strong> {{ $question->language ?? 'Not set' }}</p>
@@ -227,7 +275,7 @@
 
         {{-- Fatwa Log History --}}
         @php
-            $displayLogs = isset($logs) && $logs->isNotEmpty() ? $logs->sortByDesc(fn($l) => $l->event_at ?? $l->created_at) : FatwaActivityLog::getComprehensiveTimeline($question)->sortByDesc(fn($l) => $l->event_at ?? $l->created_at);
+            $displayLogs = isset($logs) && $logs->isNotEmpty() ? $logs->sortByDesc(fn($l) => $l->event_at ?? $l->created_at) : \App\Models\FatwaActivityLog::getComprehensiveTimeline($question)->sortByDesc(fn($l) => $l->event_at ?? $l->created_at);
         @endphp
         <div class="card border-0 shadow-sm overflow-hidden mb-4">
             <div class="card-header bg-white border-0 py-2.5 d-flex justify-content-between align-items-center">
@@ -284,5 +332,51 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    function copyAdminShortUrl(url) {
+        navigator.clipboard.writeText(url).then(() => {
+            const btnText = document.getElementById('copyShortUrlText');
+            const btnIcon = document.getElementById('copyShortUrlIcon');
+            const btn = document.getElementById('copyShortUrlBtn');
+            if (btnText && btnIcon) {
+                btnText.innerText = 'Copied!';
+                btnIcon.className = 'bi bi-check2-circle';
+                btn.classList.remove('btn-outline-success');
+                btn.classList.add('btn-success', 'text-white');
+                setTimeout(() => {
+                    btnText.innerText = 'Copy Short URL';
+                    btnIcon.className = 'bi bi-link-45deg fs-6';
+                    btn.classList.add('btn-outline-success');
+                    btn.classList.remove('btn-success', 'text-white');
+                }, 2000);
+            }
+        }).catch(() => {
+            prompt('Public Short URL:', url);
+        });
+    }
+
+    function copySidebarShortUrl() {
+        const input = document.getElementById('sidebarShortUrlInput');
+        if (!input) return;
+        navigator.clipboard.writeText(input.value).then(() => {
+            const text = document.getElementById('sidebarCopyText');
+            const icon = document.getElementById('sidebarCopyIcon');
+            if (text && icon) {
+                text.innerText = 'Copied!';
+                icon.className = 'bi bi-check2-circle';
+                setTimeout(() => {
+                    text.innerText = 'Copy';
+                    icon.className = 'bi bi-clipboard me-1';
+                }, 2000);
+            }
+        }).catch(() => {
+            input.select();
+            document.execCommand('copy');
+        });
+    }
+</script>
+@endpush
 
 @endsection

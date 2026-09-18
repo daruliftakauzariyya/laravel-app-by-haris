@@ -16,22 +16,23 @@
             {{-- Editable Question Details --}}
             <div class="card border mb-4 bg-light shadow-none">
                 <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
-                    <span class="fw-bold text-secondary small"><i class="bi bi-pencil-square me-1"></i>Edit Question Text (Optional)</span>
+                    <span class="fw-bold text-secondary small"><i class="bi bi-pencil-square me-1"></i>Edit Question Text & Summary (HTML Supported)</span>
                     <span class="badge bg-secondary">Original Questioner Input</span>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small">Questioner Name / Heading</label>
-                        <input type="text" name="question_title" class="form-control form-control-sm" value="{{ old('question_title', $question->title) }}" placeholder="e.g. Questioner Title...">
+                        <label class="form-label fw-semibold small">Question Summary / Title <span class="text-danger">*</span></label>
+                        <input type="text" name="question_title" class="form-control @error('question_title') is-invalid @enderror" value="{{ old('question_title', $question->title) }}" placeholder="e.g. Concise summary / title of the question..." required>
+                        @error('question_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div>
-                        <label class="form-label fw-semibold small">Question Body</label>
-                        <textarea name="question_body" rows="4" class="form-control form-control-sm" placeholder="Original question text...">{{ old('question_body', $question->body) }}</textarea>
+                        <label class="form-label fw-semibold small">Question Body (Full Inquiry Details — Rich HTML Editor)</label>
+                        <textarea name="question_body" id="summernote-question" class="form-control" placeholder="Original question text...">{{ old('question_body', $question->body) }}</textarea>
                     </div>
                 </div>
             </div>
 
-            <div class="mb-3">
+            <div class="mb-4">
                 <label class="form-label fw-semibold">Answering Mufti <span class="text-danger">*</span></label>
                 <select name="mufti_id" class="form-select @error('mufti_id') is-invalid @enderror" required>
                     <option value="">Select Mufti...</option>
@@ -49,22 +50,16 @@
                 </select>
                 @error('mufti_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Question Summary / Title <span class="text-danger">*</span></label>
-                <input type="text" name="question_title" class="form-control @error('question_title') is-invalid @enderror"
-                       placeholder="Brief one-line summary of the question" value="{{ old('question_title', $question->title) }}" required>
-                @error('question_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
 
             <div class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="form-label fw-semibold mb-0">Full Answer <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold mb-0">Full Fatwa Answer (HTML Supported) <span class="text-danger">*</span></label>
                     <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-3"
-                            onclick="window.openFatwaMentionPicker($('textarea[name=full_answer]'), '', true)">
+                            onclick="window.openFatwaMentionPicker($('#summernote'), '', true)">
                         <i class="bi bi-at me-1"></i> Reference Published Fatwa
                     </button>
                 </div>
-                <textarea name="full_answer" rows="8" class="form-control @error('full_answer') is-invalid @enderror"
+                <textarea name="full_answer" id="summernote" rows="8" class="form-control @error('full_answer') is-invalid @enderror"
                           placeholder="Write the full fatwa answer here... (Type @ to search and reference published fatwas)" required>{{ old('full_answer', $question->draft_answer ?? $question->answer) }}</textarea>
                 @error('full_answer')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 <div class="form-text small mt-1 text-muted">
@@ -200,22 +195,49 @@ $(document).ready(function() {
             contents: '<i class="bi bi-at text-success fw-bold"></i> Ref Fatwa',
             tooltip: 'Insert Published Fatwa Reference (@ID)',
             click: function () {
-                window.openFatwaMentionPicker($('textarea[name="full_answer"]'), '', true);
+                window.openFatwaMentionPicker($('#summernote'), '', true);
             }
         });
         return button.render();
     };
 
-    $('textarea[name="full_answer"]').summernote({
-        height: 300,
-        placeholder: 'Write the full fatwa answer here... (Type @ to search and reference published fatwas)',
+    // 1. Question Body HTML Editor
+    $('#summernote-question').summernote({
+        height: 200,
+        placeholder: 'Original question text with rich HTML formatting...',
+        dialogsInBody: true,
         toolbar: [
             ['style', ['style']],
-            ['font', ['bold', 'italic', 'underline', 'clear']],
+            ['font', ['bold', 'italic', 'underline', 'strikethrough', 'clear']],
+            ['fontname', ['fontname']],
+            ['fontsize', ['fontsize']],
+            ['color', ['color']],
             ['para', ['ul', 'ol', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link', 'hr']],
+            ['view', ['fullscreen', 'codeview', 'help']]
+        ],
+        styleTags: ['p', 'h4', 'h5', 'h6', 'blockquote']
+    });
+
+    // 2. Full Fatwa Answer HTML Editor
+    $('#summernote').summernote({
+        height: 380,
+        placeholder: 'Write the full scholarly fatwa answer here... (Type @ to search and reference published fatwas)',
+        dialogsInBody: true,
+        toolbar: [
+            ['style', ['style']],
+            ['font', ['bold', 'italic', 'underline', 'strikethrough', 'clear']],
+            ['fontname', ['fontname']],
+            ['fontsize', ['fontsize']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link', 'hr']],
             ['custom', ['mentionRef']],
             ['view', ['fullscreen', 'codeview', 'help']]
         ],
+        styleTags: ['p', 'h3', 'h4', 'h5', 'h6', 'blockquote'],
         buttons: {
             mentionRef: MentionButton
         },
@@ -239,6 +261,16 @@ $(document).ready(function() {
             content: function (item) {
                 return '@{' + item.question_id + '} ';
             }
+        }
+    });
+
+    // Sync Summernote code before form submit
+    $('form').on('submit', function() {
+        if ($('#summernote-question').length && $('#summernote-question').summernote) {
+            $('#summernote-question').val($('#summernote-question').summernote('code'));
+        }
+        if ($('#summernote').length && $('#summernote').summernote) {
+            $('#summernote').val($('#summernote').summernote('code'));
         }
     });
 });

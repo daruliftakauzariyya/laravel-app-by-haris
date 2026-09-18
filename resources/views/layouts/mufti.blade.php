@@ -654,6 +654,22 @@
                 }[m];
             });
         }
+
+        // Real-time Activity Signal for Scholar Dashboard
+        (function() {
+            function pingActivity() {
+                if (!document.hidden) {
+                    fetch('{{ route('user.heartbeat') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    }).catch(function() {});
+                }
+            }
+            setInterval(pingActivity, 60000); // Ping every 60 seconds while active
+        })();
     </script>
     @stack('scripts')
 </body>

@@ -52,15 +52,16 @@
                     <div class="scholar-visual">
                         <img src="{{ $mufti->avatar ? asset($mufti->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($mufti->name).'&background=1a7a4a&color=fff&size=512' }}" 
                              class="scholar-image" alt="{{ $mufti->name }}">
-                        <div class="verified-ribbon">
-                            <i class="bi bi-patch-check-fill"></i>
-                        </div>
                     </div>
 
                     {{-- Content Area --}}
                     <div class="scholar-details">
                         <div class="details-top">
-                            <h5 class="scholar-name-heading">{{ $mufti->name }}</h5>
+                            <h5 class="scholar-name-heading">
+                                <span>{{ $mufti->name }}</span>
+                                <i class="bi bi-patch-check-fill verified-badge {{ $mufti->can_check_approve ? 'badge-approver' : 'badge-regular' }}" 
+                                   title="{{ $mufti->can_check_approve ? 'Authorized to Check & Approve' : 'Verified Mufti' }}"></i>
+                            </h5>
                             <p class="scholar-tagline small text-muted">
                                 <i class="bi bi-geo-alt me-1"></i>{{ $mufti->country ?? 'Scholar Faculty' }}
                             </p>
@@ -72,7 +73,7 @@
                                 <span class="node-lbl">Fatwas</span>
                             </div>
                             <div class="impact-node border-start">
-                                <span class="node-val">{{ number_format($mufti->mufti_answers_count) }}</span>
+                                <span class="node-val">{{ number_format($mufti->assigned_questions_count ?? $mufti->published_fatwas_count) }}</span>
                                 <span class="node-lbl">Impact</span>
                             </div>
                         </div>
@@ -198,23 +199,6 @@
         transform: scale(1.05);
     }
 
-    .verified-ribbon {
-        position: absolute;
-        bottom: 45%;
-        right: 1.5rem;
-        background: #fff;
-        color: #10b981;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        z-index: 5;
-    }
-
     .scholar-details {
         position: absolute;
         bottom: 0;
@@ -235,7 +219,23 @@
         color: #ffffff;
         margin-bottom: 2px;
         letter-spacing: -0.5px;
-        line-height: 1.1;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .verified-badge {
+        font-size: 0.9em;
+        display: inline-flex;
+        align-items: center;
+        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+    }
+    .verified-badge.badge-approver {
+        color: #10b981 !important;
+    }
+    .verified-badge.badge-regular {
+        color: #3b82f6 !important;
     }
     .scholar-tagline {
         font-weight: 700;

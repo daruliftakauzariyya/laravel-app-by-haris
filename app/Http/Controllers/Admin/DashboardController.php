@@ -90,27 +90,66 @@ class DashboardController extends Controller
                 ],
             ];
 
-            // Questions submitted per month (last 6 months)
-            $monthlyData = QuestionAndAnswer::select(
-                    DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
-                    DB::raw('COUNT(*) as count')
-                )
-                ->where('created_at', '>=', now()->subMonths(6))
-                ->groupBy('month')
-                ->orderBy('month')
-                ->get()
-                ->keyBy('month');
+            // Lifelong Yearly Progression (2019 to Present)
+            $yearlyData = QuestionAndAnswer::selectRaw("
+                    DATE_FORMAT(created_at, '%Y') as yr,
+                    COUNT(*) as total_count,
+                    SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published_count
+                ")
+                ->whereNotNull('created_at')
+                ->groupBy('yr')
+                ->orderBy('yr')
+                ->get();
 
-            $monthlyLabels = [];
-            $monthlyCounts = [];
-            for ($i = 5; $i >= 0; $i--) {
-                $key = now()->subMonths($i)->format('Y-m');
-                $label = now()->subMonths($i)->format('M Y');
-                $monthlyLabels[] = $label;
-                $monthlyCounts[] = $monthlyData[$key]->count ?? 0;
+            $lifelongYears = $yearlyData->pluck('yr')->toArray();
+            $lifelongTotalCounts = $yearlyData->pluck('total_count')->map(fn($v) => (int)$v)->toArray();
+            $lifelongPublishedCounts = $yearlyData->pluck('published_count')->map(fn($v) => (int)$v)->toArray();
+
+            // Lifelong Monthly Progression
+            $monthlyLifelongData = QuestionAndAnswer::selectRaw("
+                    DATE_FORMAT(created_at, '%Y-%m') as ym,
+                    DATE_FORMAT(created_at, '%b %Y') as label,
+                    COUNT(*) as total_count
+                ")
+                ->whereNotNull('created_at')
+                ->groupBy('ym', 'label')
+                ->orderBy('ym')
+                ->get();
+
+            $lifelongMonthLabels = $monthlyLifelongData->pluck('label')->toArray();
+            $lifelongMonthCounts = $monthlyLifelongData->pluck('total_count')->map(fn($v) => (int)$v)->toArray();
+
+            // Lifelong Cumulative Trend
+            $cumulativeCounts = [];
+            $runningSum = 0;
+            foreach ($lifelongMonthCounts as $c) {
+                $runningSum += $c;
+                $cumulativeCounts[] = $runningSum;
             }
 
-            return compact('stats', 'topCategory', 'geoReach', 'monthlyLabels', 'monthlyCounts');
+            $lifelongSpan = !empty($lifelongYears) ? (reset($lifelongYears) . ' – ' . end($lifelongYears)) : 'All-Time';
+            $peakYear = $yearlyData->sortByDesc('total_count')->first();
+            $peakYearLabel = $peakYear ? ($peakYear->yr . ' (' . $peakYear->total_count . ' inq)') : '—';
+
+            // Backward-compatible variables
+            $monthlyLabels = $lifelongYears;
+            $monthlyCounts = $lifelongTotalCounts;
+
+            return compact(
+                'stats', 
+                'topCategory', 
+                'geoReach', 
+                'monthlyLabels', 
+                'monthlyCounts',
+                'lifelongYears',
+                'lifelongTotalCounts',
+                'lifelongPublishedCounts',
+                'lifelongMonthLabels',
+                'lifelongMonthCounts',
+                'cumulativeCounts',
+                'lifelongSpan',
+                'peakYearLabel'
+            );
         });
 
         $recentQuestions = QuestionAndAnswer::with(['user', 'madhab', 'category', 'assignedMufti'])
@@ -124,7 +163,24 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.dashboard', array_merge($data, compact('recentQuestions', 'recentPublishedFatwas')));
+        $facultyMuftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
+            ->withCount([
+                'assignedQuestions as total_assigned',
+                'assignedQuestions as pending_count' => fn($q) => $q->where('status', 'assigned'),
+                'assignedQuestions as answered_count' => fn($q) => $q->whereIn('status', ['answered', 'approved', 'published']),
+                'assignedQuestions as published_count' => fn($q) => $q->where('status', 'published'),
+            ])
+            ->orderByRaw('CASE WHEN last_seen_at >= ? THEN 1 ELSE 0 END DESC', [now()->subMinutes(5)])
+            ->orderBy('mufti_sort_order')
+            ->latest('last_seen_at')
+            ->get();
+
+        $onlineMuftisCount = $facultyMuftis->filter(fn($m) => $m->isOnline(5))->count();
+
+        $categories = Category::orderBy('name')->get();
+        $madhabs = \App\Models\Madhab::all();
+
+        return view('admin.dashboard', array_merge($data, compact('recentQuestions', 'recentPublishedFatwas', 'facultyMuftis', 'onlineMuftisCount', 'categories', 'madhabs')));
     }
 
     /**
@@ -279,4 +335,97 @@ class DashboardController extends Controller
             return back()->with('error', 'Maintenance Error: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Bulk PDF Export for Fatwas & Inquiries
+     * Supports multi-status (e.g. pending, accepted), dynamic language fonts, and 1-per-page formatting.
+     */
+    public function exportPdf(Request $request)
+    {
+        set_time_limit(300); // 5 min for large PDF generation sets
+
+        $query = QuestionAndAnswer::with([
+            'user',
+            'category',
+            'madhab',
+            'assignedMufti',
+            'references',
+            'approver',
+            'publisher',
+        ]);
+
+        // 1. Status Filter
+        $statusParam = $request->get('status', 'pending,accepted');
+        $selectedStatuses = [];
+        if (!empty($statusParam)) {
+            $rawList = is_array($statusParam) ? $statusParam : (is_string($statusParam) && strtolower(trim($statusParam)) !== 'all' ? explode(',', $statusParam) : []);
+            foreach ($rawList as $s) {
+                if (is_string($s)) {
+                    $val = strtolower(trim($s));
+                    if ($val !== '' && $val !== 'all') {
+                        $selectedStatuses[] = $val;
+                    }
+                }
+            }
+            if (!empty($selectedStatuses)) {
+                $query->whereIn('status', $selectedStatuses);
+            }
+        }
+
+        // 2. Language Filter
+        $langParam = is_string($request->get('language')) ? trim($request->get('language')) : '';
+        if ($langParam !== '' && strtolower($langParam) !== 'all') {
+            $query->where('language', $langParam);
+        }
+
+        // 3. Madhab Filter
+        if ($request->filled('madhab_id')) {
+            $query->where('madhab_id', $request->madhab_id);
+        }
+
+        // 4. Category Filter
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        // 5. Search keyword filter (optional)
+        if ($request->filled('search')) {
+            $term = $request->search;
+            $query->where(function ($q) use ($term) {
+                $q->where('title', 'like', "%{$term}%")
+                  ->orWhere('body', 'like', "%{$term}%")
+                  ->orWhere('question_id', 'like', "%{$term}%");
+            });
+        }
+
+        // 6. Sorting
+        $sort = $request->get('sort', 'asc');
+        if ($sort === 'desc' || $sort === 'latest') {
+            $query->latest('id');
+        } else {
+            $query->oldest('id');
+        }
+
+        $limit = (int) $request->get('limit', 500);
+        $questions = $query->take($limit)->get();
+
+        // Build human-friendly label for report header
+        $statusLabels = !empty($selectedStatuses) 
+            ? implode(' & ', array_map('ucfirst', $selectedStatuses)) 
+            : 'All Statuses';
+        
+        $langLabel = ($langParam && strtolower($langParam) !== 'all') ? ucfirst($langParam) : 'Multi-Language (Auto Font)';
+
+        $autoPrint = $request->boolean('auto_print', true);
+
+        return view('admin.fatwas.export-pdf', compact(
+            'questions',
+            'statusLabels',
+            'langLabel',
+            'selectedStatuses',
+            'langParam',
+            'autoPrint'
+        ));
+    }
 }
+
