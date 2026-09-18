@@ -57,21 +57,40 @@ class MuftiManagementController extends Controller
     /** Store a newly created scholar in storage */
     public function store(Request $request)
     {
+        $minDob = now()->subYears(18)->format('Y-m-d');
+
         $request->validate([
             'name'             => ['required', 'string', 'max:255'],
+            'despl_name'       => ['nullable', 'string', 'max:255'],
             'email'            => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password'         => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+            'gender'           => ['nullable', 'string', 'in:Male,Female,Other'],
+            'dob'              => ['nullable', 'date', 'before_or_equal:' . $minDob],
+            'country_code'     => ['nullable', 'string', 'max:10'],
+            'mobile'           => ['nullable', 'string', 'max:20'],
             'country'          => ['nullable', 'string', 'max:100'],
+            'state'            => ['nullable', 'string', 'max:100'],
+            'district'         => ['nullable', 'string', 'max:100'],
+            'address_line_1'   => ['nullable', 'string', 'max:255'],
             'madhab'           => ['nullable', 'array'],
             'mufti_sort_order' => ['nullable', 'integer', 'min:0', 'max:9998'],
+        ], [
+            'dob.before_or_equal' => 'Scholar must be at least 18 years of age (Date of birth cannot be under 18 years old).',
         ]);
 
         $user = User::create([
             'name'              => $request->name,
-            'despl_name'        => $request->name,
+            'despl_name'        => $request->filled('despl_name') ? $request->despl_name : $request->name,
             'email'             => $request->email,
             'password'          => Hash::make($request->password),
-            'country'           => $request->country,
+            'gender'            => $request->gender,
+            'dob'               => $request->dob ?: null,
+            'country_code'      => $request->input('country_code', '+91'),
+            'mobile'            => $request->mobile,
+            'country'           => $request->input('country', 'India'),
+            'state'             => $request->state,
+            'district'          => $request->district,
+            'address_line_1'    => $request->address_line_1 ?: $request->district,
             'madhab_id'         => !empty($request->madhab) ? head($request->madhab) : null,
             'is_active'         => $request->has('is_active'),
             'can_check_approve' => $request->has('can_check_approve'),
@@ -112,19 +131,39 @@ class MuftiManagementController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $minDob = now()->subYears(18)->format('Y-m-d');
+
         $request->validate([
             'name'             => ['required', 'string', 'max:255'],
+            'despl_name'       => ['nullable', 'string', 'max:255'],
             'email'            => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'password'         => ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+            'gender'           => ['nullable', 'string', 'in:Male,Female,Other'],
+            'dob'              => ['nullable', 'date', 'before_or_equal:' . $minDob],
+            'country_code'     => ['nullable', 'string', 'max:10'],
+            'mobile'           => ['nullable', 'string', 'max:20'],
             'country'          => ['nullable', 'string', 'max:100'],
+            'state'            => ['nullable', 'string', 'max:100'],
+            'district'         => ['nullable', 'string', 'max:100'],
+            'address_line_1'   => ['nullable', 'string', 'max:255'],
             'madhab'           => ['nullable', 'array'],
             'mufti_sort_order' => ['nullable', 'integer', 'min:0', 'max:9998'],
+        ], [
+            'dob.before_or_equal' => 'Scholar must be at least 18 years of age (Date of birth cannot be under 18 years old).',
         ]);
 
         $data = [
             'name'              => $request->name,
+            'despl_name'        => $request->filled('despl_name') ? $request->despl_name : $request->name,
             'email'             => $request->email,
-            'country'           => $request->country,
+            'gender'            => $request->gender,
+            'dob'               => $request->dob ?: null,
+            'country_code'      => $request->input('country_code', '+91'),
+            'mobile'            => $request->mobile,
+            'country'           => $request->input('country', 'India'),
+            'state'             => $request->state,
+            'district'          => $request->district,
+            'address_line_1'    => $request->address_line_1 ?: $request->district,
             'madhab_id'         => !empty($request->madhab) ? head($request->madhab) : null,
             'is_active'         => $request->has('is_active'),
             'can_check_approve' => $request->has('can_check_approve'),
@@ -350,7 +389,7 @@ class MuftiManagementController extends Controller
             });
         }
 
-        $activities = $query->paginate(25)->withQueryString();
+        $activities = $query->paginate(12)->withQueryString();
 
         // Recent login session logs
         $loginLogs = \App\Models\UserLoginLog::where('user_id', $user->id)

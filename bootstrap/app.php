@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register global web middleware
         $middleware->web(append: [
             \App\Http\Middleware\TrackVisitor::class,
+            \App\Http\Middleware\JsonLdMiddleware::class,
         ]);
 
         // Register alias middleware

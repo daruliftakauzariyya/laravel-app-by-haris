@@ -35,8 +35,15 @@ Route::post('/fatwa-archive/{fatwa}/like', [FatwaController::class, 'like'])->na
 Route::get('/fatwas/mention-search', [FatwaController::class, 'mentionSearch'])->name('fatwa.mention.search');
 Route::get('/privacy', [HomeController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [HomeController::class, 'terms'])->name('terms');
-Route::get('/sitemap.xml', [HomeController::class, 'sitemap'])->name('sitemap');
-Route::get('/robots.txt', [HomeController::class, 'robotsTxt'])->name('robots.txt');
+
+// SEO, AI & Sitemaps Architecture
+Route::get('/robots.txt', [\App\Http\Controllers\SeoAndAiController::class, 'robotsTxt'])->name('robots.txt');
+Route::get('/llms.txt', [\App\Http\Controllers\SeoAndAiController::class, 'llmsTxt'])->name('llms.txt');
+Route::get('/sitemap.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapIndex'])->name('sitemap');
+Route::get('/sitemap-fatwa.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapFatwas'])->name('sitemap.fatwas');
+Route::get('/sitemap-category.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapCategories'])->name('sitemap.categories');
+Route::get('/sitemap-author.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapAuthors'])->name('sitemap.authors');
+Route::get('/sitemap-pages.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapPages'])->name('sitemap.pages');
 
 // Live Activity Signal Heartbeat
 Route::match(['get', 'post'], '/user-heartbeat', function () {

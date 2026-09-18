@@ -13,18 +13,79 @@
                 <form method="POST" action="{{ route('admin.muftis.store') }}">
                     @csrf
                     
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-muted small">Full Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
-                               placeholder="e.g. Mufti Ahmed Raza" value="{{ old('name') }}" required autofocus>
-                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
+                                   placeholder="e.g. Mufti Ahmed Raza" value="{{ old('name') }}" required autofocus>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Display Name / Title</label>
+                            <input type="text" name="despl_name" class="form-control @error('despl_name') is-invalid @enderror" 
+                                   placeholder="e.g. Ahmed Raza Kausari" value="{{ old('despl_name') }}">
+                            @error('despl_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-muted small">Email Address <span class="text-danger">*</span></label>
-                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
-                               placeholder="scholar@darulifta.com" value="{{ old('email') }}" required>
-                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
+                                   placeholder="scholar@darulifta.com" value="{{ old('email') }}" required>
+                            @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Gender</label>
+                            <select name="gender" class="form-select @error('gender') is-invalid @enderror">
+                                <option value="Male" {{ old('gender') === 'Male' ? 'selected' : '' }}>Male</option>
+                                <option value="Female" {{ old('gender') === 'Female' ? 'selected' : '' }}>Female</option>
+                            </select>
+                            @error('gender')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Mobile Number</label>
+                            <div class="input-group">
+                                <select name="country_code" class="form-select" style="max-width: 140px;">
+                                    <option value="+91" {{ old('country_code', '+91') == '+91' ? 'selected' : '' }}>🇮🇳 +91 (India)</option>
+                                </select>
+                                <input type="text" name="mobile" class="form-control @error('mobile') is-invalid @enderror" 
+                                       value="{{ old('mobile') }}" placeholder="10-digit mobile number">
+                            </div>
+                            @error('mobile')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Date of Birth (DOB)</label>
+                            <input type="date" name="dob" class="form-control @error('dob') is-invalid @enderror" 
+                                   value="{{ old('dob') }}" 
+                                   max="{{ now()->subYears(18)->format('Y-m-d') }}">
+                            <div class="form-text small text-muted">Must be at least 18 years of age (under 18 not allowed).</div>
+                            @error('dob')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Scholar's Country</label>
+                            <input type="text" name="country" class="form-control @error('country') is-invalid @enderror" 
+                                   value="{{ old('country', 'India') }}" placeholder="e.g. India">
+                            @error('country')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold text-muted small">State</label>
+                            <input type="text" name="state" class="form-control @error('state') is-invalid @enderror" 
+                                   value="{{ old('state', 'Kerala') }}" placeholder="e.g. Kerala">
+                            @error('state')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Location / District</label>
+                            <input type="text" name="district" class="form-control @error('district') is-invalid @enderror" 
+                                   value="{{ old('district') }}" placeholder="e.g. Malappuram">
+                            @error('district')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
                     </div>
 
                     <div class="row mb-3">

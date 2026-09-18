@@ -50,6 +50,11 @@
     <meta name="twitter:image" content="@yield('og_image', asset('assets/img/slider/center.png'))">
 
     @stack('meta')
+    @if(isset($globalJsonLd))
+    <script type="application/ld+json">
+    {!! json_encode($globalJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+    </script>
+    @endif
     @stack('schema')
 
     <script type="text/javascript">
@@ -173,26 +178,6 @@
             flex-direction: column;
             min-height: 100vh;
             position: relative;
-        }
-
-        .site-bg-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('{{ asset("assets/img/site-bg.png") }}');
-            background-size: cover;
-            background-position: center bottom;
-            background-repeat: no-repeat;
-            opacity: 0.20;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .navbar, main, footer, .offcanvas {
-            position: relative;
-            z-index: 1;
         }
 
         main {
@@ -794,9 +779,6 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBPW3VHH" height="0" width="0"
             style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
-
-    {{-- Website Main Background (20% Opacity) --}}
-    <div class="site-bg-overlay" aria-hidden="true"></div>
 
     {{-- Navbar --}}
     <nav class="navbar navbar-expand-lg navbar-light navbar-sticky shadow-sm">

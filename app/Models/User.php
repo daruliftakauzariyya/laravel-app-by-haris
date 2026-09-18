@@ -20,6 +20,7 @@ class User extends Authenticatable
         'google_id',
         'avatar',
         'gender',
+        'dob',
         'country',
         'country_code',
         'mobile',
@@ -48,6 +49,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'dob' => 'date',
             'password' => 'hashed',
             'profile_completed' => 'boolean',
             'is_active' => 'boolean',

@@ -1,2 +1,64 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /mufti/
+Disallow: /login/
+Disallow: /register/
+Disallow: /dashboard/
+Disallow: /user/
+Disallow: /api/
+Disallow: /password/
+
+# Sitemaps
+Sitemap: https://daruliftakauzariyya.com/sitemap.xml
+
+# LLM & AI Knowledge Standard
+# Learn more at https://llmstxt.org/
+
+# OpenAI Crawlers & ChatGPT Live Search
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /mufti/
+Disallow: /user/
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic Claude Crawlers
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+Disallow: /mufti/
+Disallow: /user/
+Disallow: /api/
+
+User-agent: Claude-Web
+Allow: /
+
+# Perplexity AI Search
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /mufti/
+Disallow: /user/
+Disallow: /api/
+
+# Google AI & Gemini Crawlers
+User-agent: Google-Extended
+Allow: /
+
+# Apple Intelligence & Siri
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Cohere & Meta AI
+User-agent: cohere-ai
+Allow: /
+
+User-agent: FacebookBot
+Allow: /

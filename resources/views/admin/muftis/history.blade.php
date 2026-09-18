@@ -33,9 +33,18 @@
                             @endif
                         </div>
                         <div class="d-flex align-items-center opacity-75 small gap-3 flex-wrap">
-                            <span><i class="bi bi-geo-alt-fill me-1"></i>{{ $user->state ? $user->state . ', ' . ($user->country ?? 'India') : ($user->country ?? 'Kerala, India') }}</span>
+                            @if($user->despl_name && $user->despl_name !== $user->name)
+                                <span><i class="bi bi-person-badge-fill me-1"></i><strong>Title:</strong> {{ $user->despl_name }}</span>
+                            @endif
+                            @if($user->mobile)
+                                <span><i class="bi bi-telephone-fill me-1"></i>{{ $user->country_code ?? '+91' }} {{ $user->mobile }}</span>
+                            @endif
+                            <span><i class="bi bi-geo-alt-fill me-1"></i>{{ ($user->district ? $user->district . ', ' : '') . ($user->state ? $user->state . ', ' : '') . ($user->country ?? 'India') }}</span>
                             <span><i class="bi bi-envelope-fill me-1"></i>{{ $user->email }}</span>
                             <span><i class="bi bi-book-fill me-1"></i>{{ $user->madhab?->name ?? 'Fiqh Scholar' }}</span>
+                            @if($user->dob)
+                                <span><i class="bi bi-calendar-event me-1"></i>DOB: {{ $user->dob->format('d M Y') }} ({{ $user->dob->age }} yrs)</span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -264,10 +273,14 @@
                             @endforeach
                         </div>
 
-                        {{-- Pagination --}}
-                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
-                            <span class="small text-muted">Showing {{ $activities->firstItem() }} to {{ $activities->lastItem() }} of {{ $activities->total() }} records</span>
-                            {{ $activities->links() }}
+                        {{-- Pagination (12 records per page) --}}
+                        <div class="mt-4 pt-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <span class="small text-muted">
+                                Showing <strong>{{ $activities->firstItem() ?? 0 }}</strong> to <strong>{{ $activities->lastItem() ?? 0 }}</strong> of <strong>{{ $activities->total() }}</strong> events (12 per page)
+                            </span>
+                            <div class="pagination-sm-wrapper">
+                                {{ $activities->links() }}
+                            </div>
                         </div>
                     @else
                         <div class="text-center py-5 text-muted">

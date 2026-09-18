@@ -17,21 +17,83 @@
                     
                     <input type="hidden" name="avatar_data" id="avatar_data">
                     
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-muted small">Full Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
-                               value="{{ old('name', $user->name) }}" required>
-                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
+                                   value="{{ old('name', $user->name) }}" placeholder="e.g. Mufti Haris Kausari" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Display Name / Title</label>
+                            <input type="text" name="despl_name" class="form-control @error('despl_name') is-invalid @enderror" 
+                                   value="{{ old('despl_name', $user->despl_name ?: $user->name) }}" placeholder="e.g. Haris Moulavi Kausari">
+                            <div class="form-text small text-muted">Public display name shown in fatwas & scholar profiles.</div>
+                            @error('despl_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-muted small">Email Address <span class="text-danger">*</span></label>
-                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
-                               value="{{ old('email', $user->email) }}" required>
-                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
+                                   value="{{ old('email', $user->email) }}" required>
+                            @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Gender</label>
+                            <select name="gender" class="form-select @error('gender') is-invalid @enderror">
+                                <option value="Male" {{ old('gender', $user->gender) === 'Male' ? 'selected' : '' }}>Male</option>
+                                <option value="Female" {{ old('gender', $user->gender) === 'Female' ? 'selected' : '' }}>Female</option>
+                            </select>
+                            @error('gender')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
                     </div>
 
-                    <div class="bg-light p-3 rounded-3 mb-4 mt-4">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Mobile Number</label>
+                            <div class="input-group">
+                                <select name="country_code" class="form-select" style="max-width: 140px;">
+                                    <option value="+91" {{ old('country_code', $user->country_code ?? '+91') == '+91' ? 'selected' : '' }}>🇮🇳 +91 (India)</option>
+                                </select>
+                                <input type="text" name="mobile" class="form-control @error('mobile') is-invalid @enderror" 
+                                       value="{{ old('mobile', $user->mobile) }}" placeholder="10-digit mobile number">
+                            </div>
+                            @error('mobile')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Date of Birth (DOB)</label>
+                            <input type="date" name="dob" class="form-control @error('dob') is-invalid @enderror" 
+                                   value="{{ old('dob', $user->dob ? (is_string($user->dob) ? $user->dob : $user->dob->format('Y-m-d')) : '') }}" 
+                                   max="{{ now()->subYears(18)->format('Y-m-d') }}">
+                            <div class="form-text small text-muted">Must be at least 18 years of age (under 18 not allowed).</div>
+                            @error('dob')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Scholar's Country</label>
+                            <input type="text" name="country" class="form-control @error('country') is-invalid @enderror" 
+                                   value="{{ old('country', $user->country ?? 'India') }}" placeholder="e.g. India">
+                            @error('country')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold text-muted small">State</label>
+                            <input type="text" name="state" class="form-control @error('state') is-invalid @enderror" 
+                                   value="{{ old('state', $user->state ?? 'Kerala') }}" placeholder="e.g. Kerala">
+                            @error('state')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold text-muted small">Location / District</label>
+                            <input type="text" name="district" class="form-control @error('district') is-invalid @enderror" 
+                                   value="{{ old('district', $user->district ?: $user->address_line_1) }}" placeholder="e.g. Malappuram">
+                            @error('district')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-3 mb-4 mt-2">
                         <h6 class="fw-bold small mb-3"><i class="bi bi-shield-lock me-2"></i>Change Password (Optional)</h6>
                         <div class="row">
                             <div class="col-md-6 mb-2 mb-md-0">
@@ -47,26 +109,16 @@
                         <div class="form-text mt-1 small">Leave blank to keep the current password.</div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold text-muted small">Scholar's Country</label>
-                                <input type="text" name="country" class="form-control" value="{{ old('country', $user->country) }}" placeholder="e.g. South Africa">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold text-muted small">Select Madhhab(s)</label>
-                                <div class="d-flex flex-wrap gap-3 mt-1">
-                                    @php $selectedMadhabs = (array) old('madhab', $user->madhab_id ? [$user->madhab_id] : []); @endphp
-                                    @foreach($madhabs as $m)
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="madhab[]" value="{{ $m->id }}" id="madhab_{{ $m->id }}" {{ in_array($m->id, $selectedMadhabs) ? 'checked' : '' }}>
-                                            <label class="form-check-label small" for="madhab_{{ $m->id }}">{{ $m->name }}</label>
-                                        </div>
-                                    @endforeach
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small">Select Madhhab(s)</label>
+                        <div class="d-flex flex-wrap gap-3 mt-1">
+                            @php $selectedMadhabs = (array) old('madhab', $user->madhab_id ? [$user->madhab_id] : []); @endphp
+                            @foreach($madhabs as $m)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="madhab[]" value="{{ $m->id }}" id="madhab_{{ $m->id }}" {{ in_array($m->id, $selectedMadhabs) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="madhab_{{ $m->id }}">{{ $m->name }}</label>
                                 </div>
-                            </div>
+                            @endforeach
                         </div>
                     </div>
 
