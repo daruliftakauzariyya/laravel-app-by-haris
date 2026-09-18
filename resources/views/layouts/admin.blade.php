@@ -708,6 +708,9 @@
         </div>
     </div>
 
+    {{-- High-Security Fatwa Deletion Modal --}}
+    @include('components.fatwa-delete-security-modal')
+
     @stack('scripts')
 </body>
 </html>

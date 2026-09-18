@@ -82,6 +82,7 @@
                     </td>
                     <td>{{ $q->madhab?->name ?? '—' }}</td>
                     <td>{{ $q->assignedMufti?->name ?? '—' }}</td>
+                    <td>{{ $q->created_at ? $q->created_at->format('d M Y') : '—' }}</td>
                     <td>
                         <span class="badge badge-status-{{ $q->status }}">{{ ucfirst(str_replace('_',' ',$q->status)) }}</span>
                         @if($q->status === 'published')
@@ -95,7 +96,16 @@
                         @endif
                     </td>
                     <td>
-                        <a href="{{ route('admin.questions.show', $q) }}" class="btn btn-sm btn-outline-primary">View</a>
+                        <div class="d-flex align-items-center gap-1">
+                            <a href="{{ route('admin.questions.show', $q) }}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" title="High-Security Delete Fatwa"
+                                onclick="openSecurityDeleteModal({{ $q->id }}, '{{ $q->question_id }}', '{{ addslashes(strip_tags($q->title ?: $q->body)) }}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+
                     </td>
                 </tr>
                 @empty

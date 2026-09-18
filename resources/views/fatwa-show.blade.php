@@ -42,6 +42,50 @@
         ],
     ];
 
+    // Structured FAQPage Schema (For Google FAQ Rich Snippets & AI Citations)
+    $faqSchema = [
+        "@context" => "https://schema.org",
+        "@type" => "FAQPage",
+        "mainEntity" => [
+            [
+                "@type" => "Question",
+                "name" => $fatwa->title ?: 'Islamic Ruling: ' . \Illuminate\Support\Str::limit(strip_tags($fatwa->body), 80),
+                "acceptedAnswer" => [
+                    "@type" => "Answer",
+                    "text" => strip_tags($fatwa->answer),
+                ],
+            ],
+        ],
+    ];
+
+    // Structured Article Schema
+    $articleSchema = [
+        "@context" => "https://schema.org",
+        "@type" => "Article",
+        "headline" => $fatwa->title ?: 'Islamic Ruling #' . $fatwa->question_id,
+        "description" => $metaDescription,
+        "image" => [$featuredImg],
+        "datePublished" => $fatwa->published_at ? $fatwa->published_at->toIso8601String() : now()->toIso8601String(),
+        "dateModified" => $fatwa->updated_at ? $fatwa->updated_at->toIso8601String() : now()->toIso8601String(),
+        "author" => [
+            "@type" => "Person",
+            "name" => $fatwa->assignedMufti?->name ?? 'Mufti of Darul Ifta Kauzariyya',
+            "url" => $fatwa->assignedMufti ? route('fatwa.mufti.archive', $fatwa->assignedMufti->id) : url('/team'),
+        ],
+        "publisher" => [
+            "@type" => "Organization",
+            "name" => "Darul Ifta Kauzariyya",
+            "logo" => [
+                "@type" => "ImageObject",
+                "url" => asset('assets/img/logo/logo.png'),
+            ],
+        ],
+        "mainEntityOfPage" => [
+            "@type" => "WebPage",
+            "@id" => $canonicalUrl,
+        ],
+    ];
+
     // Structured Breadcrumbs Schema
     $breadcrumbItems = [
         [
@@ -96,13 +140,21 @@
 @section('og_image', $featuredImg)
 
 @push('schema')
+<link rel="alternate" type="text/markdown" href="{{ route('fatwa.markdown', $fatwa) }}" title="Fatwa Plain Text & Markdown for AI" />
 <script type="application/ld+json">
 {!! json_encode($qaSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+</script>
+<script type="application/ld+json">
+{!! json_encode($faqSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+</script>
+<script type="application/ld+json">
+{!! json_encode($articleSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 <script type="application/ld+json">
 {!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 @endpush
+
 
 @section('content')
     @php
@@ -822,10 +874,49 @@
             </div>
         @endif
 
+        {{-- Admin Controls Bar --}}
+        @if(auth()->check() && (auth()->user()->role?->name === 'admin' || auth()->user()->role_id == 1))
+            <div class="card border-0 shadow-sm mb-4 no-print" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: #fff; border-radius: 12px;">
+                <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary px-2 py-1"><i class="bi bi-shield-lock me-1"></i>Admin Controls</span>
+                        <span class="small text-light opacity-75">Fatwa #{{ $fatwa->question_id }}</span>
+                        @if($fatwa->status === 'published')
+                            @if($fatwa->is_public)
+                                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50">Public Archive</span>
+                            @else
+                                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50">Private Link</span>
+                            @endif
+                        @else
+                            <span class="badge bg-secondary text-uppercase">{{ $fatwa->status }}</span>
+                        @endif
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <a href="{{ route('admin.questions.show', $fatwa) }}" class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-sliders"></i>
+                            <span>Admin View</span>
+                        </a>
+                        <a href="{{ route('admin.questions.answer', $fatwa) }}" class="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-pencil-square"></i>
+                            <span>Edit Answer</span>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-danger d-inline-flex align-items-center gap-1"
+                            onclick="openSecurityDeleteModal({{ $fatwa->id }}, '{{ $fatwa->question_id }}', '{{ addslashes(strip_tags($fatwa->title ?: $fatwa->body)) }}')">
+                            <i class="bi bi-trash"></i>
+                            <span>Delete Fatwa</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        @endif
+
+
         <div class="row">
             {{-- Left Column: Main Content --}}
             <div class="col-lg-8">
                 <div class="fatwa-card">
+
                     {{-- 1. Featured Image --}}
                     @if($fatwa->featured_image)
                         <div class="featured-image-wrapper">
@@ -1028,6 +1119,14 @@
                                     onclick="shareFatwa()">
                                     <i class="bi bi-share me-1"></i>Share
                                 </button>
+                                @if(auth()->check() && (auth()->user()->role?->name === 'admin' || auth()->user()->role_id == 1))
+                                    <button type="button" class="btn btn-outline-danger px-3 rounded-pill" title="Delete Fatwa (Admin Only)"
+                                        onclick="openSecurityDeleteModal({{ $fatwa->id }}, '{{ $fatwa->question_id }}', '{{ addslashes(strip_tags($fatwa->title ?: $fatwa->body)) }}')">
+                                        <i class="bi bi-trash me-1"></i>Delete Fatwa
+                                    </button>
+                                @endif
+
+
                             </div>
                         </div>
                     </div>
@@ -1325,4 +1424,8 @@
             }
         </script>
     @endpush
+
+    @if(auth()->check() && (auth()->user()->role?->name === 'admin' || auth()->user()->role_id == 1))
+        @include('components.fatwa-delete-security-modal')
+    @endif
 @endsection

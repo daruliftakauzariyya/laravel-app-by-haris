@@ -23,10 +23,10 @@ class DashboardController extends Controller
             $totalCount = array_sum($statusCounts);
 
             // Active Live Users calculation
-            $recentActiveUsers = User::where('updated_at', '>=', now()->subMinutes(15))->count();
-            $liveByIdentity = max(1, $recentActiveUsers);
+            $liveData = self::getRealtimeLiveVisitorsCount();
+            $liveByIdentity = $liveData['byIdentity'];
             $totalReadsCount = (int) QuestionAndAnswer::sum('views');
-            $liveByIp = max(2, min(45, (int) round(($totalReadsCount / 100) + 2)));
+            $liveByIp = $liveData['byIp'];
 
             // Core stats
             $stats = [
@@ -303,21 +303,39 @@ class DashboardController extends Controller
     }
 
     /**
+     * Calculate true real-time unique active visitor count (sliding 5-minute window)
+     */
+    public static function getRealtimeLiveVisitorsCount(): array
+    {
+        $cutoff = time() - 300; // 5 minute active window
+        $activeIps = \Illuminate\Support\Facades\Cache::get('live_visitors_pool', []);
+        if (!is_array($activeIps)) {
+            $activeIps = [];
+        }
+        $validIps = array_filter($activeIps, fn($t) => is_numeric($t) && $t >= $cutoff);
+        $activeIpCount = count($validIps);
+
+        // Count authenticated users active in last 5 minutes
+        $recentActiveUsers = User::where('last_seen_at', '>=', now()->subMinutes(5))
+            ->orWhere('updated_at', '>=', now()->subMinutes(5))
+            ->count();
+
+        // At least 1 active visitor (the current user/admin viewing)
+        $liveByIp = max(1, $activeIpCount);
+        $liveByIdentity = max(1, $recentActiveUsers);
+
+        return [
+            'byIp'       => $liveByIp,
+            'byIdentity' => $liveByIdentity,
+        ];
+    }
+
+    /**
      * REST API for real-time live users polling
      */
     public function liveUsersApi()
     {
-        $data = \Illuminate\Support\Facades\Cache::remember('admin_live_stats_data', 15, function () {
-            $recentActiveUsers = User::where('updated_at', '>=', now()->subMinutes(15))->count();
-            $totalReadsCount = (int) QuestionAndAnswer::sum('views');
-            $liveByIp = max(2, min(45, (int) round(($totalReadsCount / 100) + 2)));
-
-            return [
-                'byIp'       => $liveByIp,
-                'byIdentity' => max(1, $recentActiveUsers),
-            ];
-        });
-
+        $data = self::getRealtimeLiveVisitorsCount();
         return response()->json($data);
     }
 

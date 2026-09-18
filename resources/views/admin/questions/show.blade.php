@@ -39,10 +39,19 @@
                         <i class="bi bi-clock-history me-1"></i>History
                     </a>
                     <button onclick="window.print()" class="btn btn-sm btn-outline-dark"><i class="bi bi-printer me-1"></i>Print</button>
+                    
+                    <button type="button" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1" title="High-Security Delete Fatwa"
+                        onclick="openSecurityDeleteModal({{ $question->id }}, '{{ $question->question_id }}', '{{ addslashes(strip_tags($question->title ?: $question->body)) }}')">
+                        <i class="bi bi-trash"></i>
+                        <span>Delete</span>
+                    </button>
+
+
                     <a href="{{ route('admin.questions.index') }}" class="btn btn-sm btn-outline-secondary">← Back</a>
                     @if(in_array($question->status, ['pending']))
                     <a href="{{ route('admin.questions.accept.form', $question) }}" class="btn btn-sm btn-primary">Accept</a>
                     @endif
+
                 </div>
             </div>
             @php

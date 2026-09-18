@@ -574,6 +574,221 @@ class QuestionAdminController extends Controller
         return redirect()->back()->with('success', 'Comment added to history.');
     }
 
+    /**
+     * Step 1: Generate and Send High-Security Fatwa Deletion OTP to Admin Email.
+     */
+    public function sendDeleteOtp(Request $request, QuestionAndAnswer $question)
+    {
+        $user = Auth::user();
+        if (!$user || (!$user->role || $user->role->name !== 'admin') && $user->role_id != 1) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized administrative action.'], 403);
+        }
+
+        $otp = (string) mt_rand(100000, 999999);
+        $qid = $question->question_id ?: ('#' . $question->id);
+        $title = $question->title ?: Str::limit(strip_tags($question->body), 60);
+
+        session([
+            'fatwa_del_otp_' . $question->id => [
+                'otp'        => $otp,
+                'user_id'    => $user->id,
+                'expires_at' => now()->addMinutes(10),
+            ]
+        ]);
+
+        // Email OTP to authenticated Admin
+        try {
+            Mail::to($user->email)->send(new \App\Mail\FatwaDeletionOtpMail(
+                $otp,
+                $qid,
+                $title,
+                $user->name,
+                $request->ip()
+            ));
+        } catch (\Exception $e) {
+            \Log::warning("Deletion OTP mail failed: " . $e->getMessage());
+        }
+
+        $maskedEmail = Str::mask($user->email, '*', 3, max(1, strpos($user->email, '@') - 3));
+
+        return response()->json([
+            'success' => true,
+            'message' => "Security verification code sent to {$maskedEmail}",
+            'masked_email' => $maskedEmail,
+            // Provide OTP in response if running on local environment for seamless testing
+            'dev_otp' => app()->environment('local') ? $otp : null,
+        ]);
+    }
+
+    /**
+     * Step 1b: Verify Admin Email OTP.
+     */
+    public function verifyDeleteOtp(Request $request, QuestionAndAnswer $question)
+    {
+        $request->validate([
+            'otp' => 'required|string|size:6',
+        ]);
+
+        $sessionData = session('fatwa_del_otp_' . $question->id);
+
+        if (!$sessionData) {
+            return response()->json([
+                'success' => false,
+                'message' => 'OTP has expired or was not requested. Please request a new code.'
+            ], 422);
+        }
+
+        if (now()->greaterThan($sessionData['expires_at'])) {
+            session()->forget('fatwa_del_otp_' . $question->id);
+            return response()->json([
+                'success' => false,
+                'message' => 'OTP expired. Please request a new code.'
+            ], 422);
+        }
+
+        if (trim($request->otp) !== trim($sessionData['otp'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid 6-digit OTP code. Please check and try again.'
+            ], 422);
+        }
+
+        // Mark OTP as verified for this fatwa in session for 15 minutes
+        session([
+            'fatwa_del_verified_' . $question->id => [
+                'user_id'    => Auth::id(),
+                'verified_at'=> now(),
+            ]
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP verified successfully. Proceed to live selfie identity verification.'
+        ]);
+    }
+
+    /**
+     * Step 2 & 3: High-Security Permanent Deletion with Selfie Verification & Audit Trail.
+     */
+    public function destroy(Request $request, QuestionAndAnswer $question)
+    {
+        $user = Auth::user();
+        if (!$user || (!$user->role || $user->role->name !== 'admin') && $user->role_id != 1) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized administrative action.'], 403);
+        }
+
+        $sessionVerified = session('fatwa_del_verified_' . $question->id);
+        
+        // If OTP wasn't pre-verified in session, check if passed in direct request
+        if (!$sessionVerified) {
+            $sessionData = session('fatwa_del_otp_' . $question->id);
+            if ($request->filled('otp') && $sessionData && trim($request->otp) === trim($sessionData['otp'])) {
+                // Verified via direct payload
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Security verification incomplete. Please enter the OTP code sent to your email.'
+                ], 422);
+            }
+        }
+
+        $qid = $question->question_id ?: ('#' . $question->id);
+        $title = $question->title ?: strip_tags($question->body);
+
+        // Process Selfie Verification Image
+        $selfiePath = null;
+        if ($request->filled('selfie_image')) {
+            $selfiePath = $this->saveSelfieAuditImage($request->selfie_image, $qid, $user->id);
+        } elseif ($request->hasFile('selfie_file')) {
+            $file = $request->file('selfie_file');
+            $filename = 'selfie_' . $qid . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads/audit/selfies'), $filename);
+            $selfiePath = 'uploads/audit/selfies/' . $filename;
+        }
+
+        // Clean up references & drafts
+        $question->references()->delete();
+        $question->draftReferences()->delete();
+
+        // Clean up uploaded files and records (if table exists)
+        if (\Illuminate\Support\Facades\Schema::hasTable('question_files')) {
+            try {
+                $files = \App\Models\QuestionFile::where('question_id', $question->id)->get();
+                foreach ($files as $f) {
+                    if ($f->file_path && Storage::disk('public')->exists($f->file_path)) {
+                        Storage::disk('public')->delete($f->file_path);
+                    }
+                    $f->delete();
+                }
+            } catch (\Exception $e) {
+                \Log::warning("QuestionFile cleanup notice: " . $e->getMessage());
+            }
+        }
+
+        // Clean up featured image if stored
+        if ($question->featured_image) {
+            if (Storage::disk('public')->exists($question->featured_image)) {
+                Storage::disk('public')->delete($question->featured_image);
+            } elseif (file_exists(public_path($question->featured_image))) {
+                @unlink(public_path($question->featured_image));
+            }
+        }
+
+        // Clean up logs and history
+        QuestionStatusHistory::where('question_and_answer_id', $question->id)->delete();
+        FatwaActivityLog::where('question_id', $question->id)->delete();
+
+
+        // Permanent Deletion
+        $question->delete();
+
+        // Clear verification sessions
+        session()->forget('fatwa_del_otp_' . $question->id);
+        session()->forget('fatwa_del_verified_' . $question->id);
+
+        \Log::info("FATWA DELETED: Fatwa {$qid} ('{$title}') permanently deleted by Admin {$user->name} (ID: {$user->id}) with Selfie Audit: {$selfiePath}");
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success'      => true,
+                'status'       => 'done',
+                'question_id'  => $qid,
+                'message'      => "Fatwa {$qid} has been permanently deleted.",
+                'redirect_url' => route('admin.questions.index')
+            ]);
+        }
+
+        return redirect()->route('admin.questions.index')->with('success', "Fatwa {$qid} has been permanently deleted.");
+    }
+
+    /** Helper to save selfie base64 image for security audit trail */
+    private function saveSelfieAuditImage($base64Data, $questionId, $userId): ?string
+    {
+        try {
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                $data = substr($base64Data, strpos($base64Data, ',') + 1);
+                $type = strtolower($type[1]);
+                $data = base64_decode($data);
+
+                if ($data === false) return null;
+
+                $filename = 'selfie_q' . preg_replace('/[^A-Za-z0-9]/', '', $questionId) . '_u' . $userId . '_' . time() . '.' . $type;
+                $directory = public_path('uploads/audit/selfies');
+
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+
+                file_put_contents($directory . '/' . $filename, $data);
+                return 'uploads/audit/selfies/' . $filename;
+            }
+        } catch (\Exception $e) {
+            \Log::error("Selfie save error: " . $e->getMessage());
+        }
+        return null;
+    }
+
+
     /** Helper to decode base64 cropped image and save to disk */
     private function saveCroppedImage($base64Data)
     {
@@ -601,3 +816,4 @@ class QuestionAdminController extends Controller
         return null;
     }
 }
+

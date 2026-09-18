@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\JsonLdMiddleware::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'user-heartbeat',
+        ]);
+
         // Register alias middleware
         $middleware->alias([
             'profile.completed' => \App\Http\Middleware\ProfileCompleted::class,

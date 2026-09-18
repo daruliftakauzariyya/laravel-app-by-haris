@@ -36,24 +36,47 @@ Route::get('/fatwas/mention-search', [FatwaController::class, 'mentionSearch'])-
 Route::get('/privacy', [HomeController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [HomeController::class, 'terms'])->name('terms');
 
-// SEO, AI & Sitemaps Architecture
+// SEO, AI, Markdown & Modular Sitemaps Architecture
 Route::get('/robots.txt', [\App\Http\Controllers\SeoAndAiController::class, 'robotsTxt'])->name('robots.txt');
 Route::get('/llms.txt', [\App\Http\Controllers\SeoAndAiController::class, 'llmsTxt'])->name('llms.txt');
 Route::get('/sitemap.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapIndex'])->name('sitemap');
+Route::get('/sitemap-news.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapNews'])->name('sitemap.news');
+Route::get('/sitemap-ai.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapAi'])->name('sitemap.ai');
 Route::get('/sitemap-fatwa.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapFatwas'])->name('sitemap.fatwas');
 Route::get('/sitemap-category.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapCategories'])->name('sitemap.categories');
 Route::get('/sitemap-author.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapAuthors'])->name('sitemap.authors');
+Route::get('/sitemap-en.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapEn'])->name('sitemap.en');
+Route::get('/sitemap-image.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapImages'])->name('sitemap.images');
 Route::get('/sitemap-pages.xml', [\App\Http\Controllers\SeoAndAiController::class, 'sitemapPages'])->name('sitemap.pages');
 
+// AI-friendly Clean Markdown endpoints
+Route::get('/fatwa-archive/{fatwa}/markdown', [\App\Http\Controllers\SeoAndAiController::class, 'fatwaMarkdown'])->name('fatwa.markdown');
+Route::get('/fatwa-archive/{fatwa}.md', [\App\Http\Controllers\SeoAndAiController::class, 'fatwaMarkdown'])->name('fatwa.md');
+
 // Live Activity Signal Heartbeat
-Route::match(['get', 'post'], '/user-heartbeat', function () {
+Route::match(['get', 'post'], '/user-heartbeat', function (\Illuminate\Http\Request $request) {
+    try {
+        $ip = $request->ip();
+        if ($ip) {
+            $now = time();
+            $cutoff = $now - 300;
+            $activeIps = \Illuminate\Support\Facades\Cache::get('live_visitors_pool', []);
+            if (!is_array($activeIps)) {
+                $activeIps = [];
+            }
+            $activeIps = array_filter($activeIps, fn($t) => is_numeric($t) && $t >= $cutoff);
+            $activeIps[md5($ip)] = $now;
+            \Illuminate\Support\Facades\Cache::put('live_visitors_pool', $activeIps, now()->addMinutes(10));
+        }
+    } catch (\Exception $e) {}
+
     if (auth()->check()) {
         \App\Models\User::where('id', auth()->id())->update([
             'last_seen_at' => now(),
         ]);
         return response()->json(['status' => 'ok', 'online' => true, 'time' => now()->toIso8601String()]);
     }
-    return response()->json(['status' => 'guest']);
+    return response()->json(['status' => 'guest', 'online' => true]);
 })->name('user.heartbeat');
 
 /*
@@ -154,6 +177,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/questions/{question}/reject', [QuestionAdminController::class, 'reject'])->name('questions.reject');
     Route::post('/questions/{question}/correction', [QuestionAdminController::class, 'requestCorrection'])->name('questions.correction');
     Route::get('/questions/{question}/history', [QuestionAdminController::class, 'history'])->name('questions.history');
+    Route::post('/questions/{question}/delete-otp/send', [QuestionAdminController::class, 'sendDeleteOtp'])->name('questions.delete.otp.send');
+    Route::post('/questions/{question}/delete-otp/verify', [QuestionAdminController::class, 'verifyDeleteOtp'])->name('questions.delete.otp.verify');
+    Route::delete('/questions/{question}', [QuestionAdminController::class, 'destroy'])->name('questions.destroy');
 
     Route::post('/questions/{question}/history/comment', [QuestionAdminController::class, 'addHistoryComment'])->name('history.comment');
 

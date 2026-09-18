@@ -117,37 +117,43 @@
                     $liveMuftis = collect($facultyMuftis ?? [])->filter(fn($m) => $m->isOnline(5));
                 @endphp
 
-                {{-- Live Muftis Alert / Small Card Strip (Only Appears When Muftis Are Live) --}}
+                {{-- Live Muftis Alert / Prominent Card Strip (Appears When Muftis Are Live) --}}
                 @if($liveMuftis->count() > 0)
-                <div class="px-4 py-2 bg-success bg-opacity-10 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2" style="background-color: rgba(16, 185, 129, 0.08) !important;">
+                <div class="px-4 py-3 bg-success bg-opacity-10 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: linear-gradient(90deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.04)) !important; border-bottom: 1.5px solid rgba(16, 185, 129, 0.25) !important;">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="pulse-dot" style="width: 8px; height: 8px; background: #10b981;"></span>
-                        <span class="x-small fw-800 text-success text-uppercase tracking-wider" style="font-size: 11px;">
-                            Live in Mufti Dashboard ({{ $liveMuftis->count() }}):
+                        <span class="pulse-dot" style="width: 11px; height: 11px; background: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25);"></span>
+                        <span class="fw-800 text-success text-uppercase tracking-wider" style="font-size: 0.88rem; letter-spacing: 0.6px;">
+                            <i class="bi bi-broadcast me-1"></i>Live in Mufti Dashboard ({{ $liveMuftis->count() }}):
                         </span>
                     </div>
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         @foreach($liveMuftis as $lMufti)
-                        <a href="{{ route('admin.muftis.history', $lMufti) }}" class="text-decoration-none" title="Live Now · Click to view Live Work History & Sessions">
-                            <div class="d-flex align-items-center gap-2 py-1 px-3 bg-white border border-success border-opacity-25 rounded-pill shadow-xs hover-scale" style="transition: all 0.2s ease;">
+                        <a href="{{ route('admin.muftis.history', $lMufti) }}" class="text-decoration-none" title="Live Now · Click to view Work History & Live Session Details">
+                            <div class="d-flex align-items-center gap-3 py-2 px-3 bg-white border border-success border-opacity-35 rounded-pill shadow-sm hover-scale" style="transition: all 0.2s ease;">
                                 <div class="position-relative">
-                                    <img src="{{ $lMufti->avatar ? asset($lMufti->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($lMufti->name).'&background=1a7a4a&color=fff&size=48' }}" 
-                                         alt="{{ $lMufti->name }}" class="rounded-circle" width="22" height="22" style="object-fit: cover;">
-                                    <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 6px; height: 6px;"></span>
+                                    <img src="{{ $lMufti->avatar ? asset($lMufti->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($lMufti->name).'&background=1a7a4a&color=fff&size=96' }}" 
+                                         alt="{{ $lMufti->name }}" class="rounded-circle border border-2 border-success" width="34" height="34" style="object-fit: cover;">
+                                    <span class="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle" style="width: 10px; height: 10px;"></span>
                                 </div>
-                                <span class="small fw-bold text-dark" style="font-size: 0.82rem;">{{ $lMufti->name }}</span>
-                                <span class="badge bg-success bg-opacity-15 text-success rounded-pill px-2 py-0 fw-800" style="font-size: 9px;">
-                                    <span class="live-pulse-dot me-1" style="width: 4px; height: 4px;"></span>LIVE
+                                
+                                <span class="fw-800 text-dark" style="font-size: 0.98rem; letter-spacing: -0.2px;">{{ $lMufti->name }}</span>
+                                
+                                <span class="badge bg-success bg-opacity-20 text-success rounded-pill px-2.5 py-1 fw-800 d-inline-flex align-items-center gap-1" style="font-size: 11px; border: 1px solid rgba(16, 185, 129, 0.35);">
+                                    <span class="live-pulse-dot" style="width: 6px; height: 6px;"></span>LIVE
                                 </span>
+
                                 {{-- Running Timer Pill --}}
-                                <span class="badge bg-success text-white rounded-pill px-2 py-0 font-monospace dash-live-timer shadow-xs" 
+                                <span class="badge bg-success text-white rounded-pill px-3 py-1 font-monospace dash-live-timer shadow-xs d-inline-flex align-items-center" 
                                       data-start-time="{{ ($lMufti->last_login_at ?? now())->timestamp * 1000 }}" 
-                                      style="font-size: 10px; font-weight: 700;">
+                                      style="font-size: 12px; font-weight: 800; letter-spacing: 0.5px;">
                                     <i class="bi bi-stopwatch me-1"></i>00:00:00
                                 </span>
-                                <span class="text-muted x-small d-flex align-items-center gap-1" style="font-size: 10px;" title="Dashboard Logins">
-                                    <i class="bi bi-box-arrow-in-right text-warning"></i> {{ number_format($lMufti->login_count ?? 0) }}
+
+                                <span class="badge bg-warning bg-opacity-20 text-dark border border-warning border-opacity-30 rounded-pill px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1" style="font-size: 11px;" title="Total Dashboard Logins">
+                                    <i class="bi bi-box-arrow-in-right text-warning fw-bold"></i> {{ number_format($lMufti->login_count ?? 0) }} logins
                                 </span>
+
+                                <i class="bi bi-chevron-right text-muted small ms-1" style="font-size: 11px;"></i>
                             </div>
                         </a>
                         @endforeach
@@ -155,13 +161,13 @@
                 </div>
                 @endif
 
-                <div class="p-4 flex-grow-1 d-flex flex-column justify-content-between">
-                    <div style="position: relative; height: 230px; width: 100%;">
+                <div class="p-4 flex-grow-1 d-flex flex-column">
+                    <div class="flex-grow-1 position-relative mb-2" style="min-height: 330px; width: 100%;">
                         <canvas id="lifelongChart"></canvas>
                     </div>
 
                     {{-- Lifelong Quick Metric Ribbon --}}
-                    <div class="row g-2 mt-3 pt-3 border-top">
+                    <div class="row g-2 mt-auto pt-3 border-top">
                         <div class="col-sm-3 col-6">
                             <div class="p-2 rounded bg-light border text-center">
                                 <div class="x-small text-muted text-uppercase fw-bold" style="font-size: 9px;">Total Inquiries</div>
@@ -721,11 +727,15 @@ async function fetchLiveUsers() {
         const response = await fetch('{{ route("admin.live-stats.api") }}');
         const data = await response.json();
         if (data && document.getElementById('live-users-count')) {
-            document.getElementById('live-users-count').innerText = data.byIp;
+            const countEl = document.getElementById('live-users-count');
+            if (countEl.innerText !== String(data.byIp)) {
+                countEl.innerText = data.byIp;
+            }
         }
     } catch (error) {}
 }
-setInterval(fetchLiveUsers, 30000);
+fetchLiveUsers();
+setInterval(fetchLiveUsers, 5000);
 
 // Live Running Session Timers
 function updateDashLiveTimers() {
