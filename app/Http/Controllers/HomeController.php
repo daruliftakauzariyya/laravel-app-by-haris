@@ -26,6 +26,7 @@ class HomeController extends Controller
         $latestFatwas = \Illuminate\Support\Facades\Cache::remember('latest_fatwas', 1800, function () {
             return QuestionAndAnswer::with(['madhab', 'category', 'assignedMufti'])
                                  ->where('status', 'published')
+                                 ->where('is_public', true)
                                  ->latest('published_at')
                                  ->take(6)
                                  ->get();
@@ -104,6 +105,7 @@ class HomeController extends Controller
     public function sitemap()
     {
         $fatwas = QuestionAndAnswer::where('status', 'published')
+            ->where('is_public', true)
             ->latest('published_at')
             ->get(['id', 'title', 'body', 'updated_at', 'published_at']);
 

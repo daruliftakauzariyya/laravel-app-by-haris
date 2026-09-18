@@ -82,8 +82,18 @@
                     </td>
                     <td>{{ $q->madhab?->name ?? '—' }}</td>
                     <td>{{ $q->assignedMufti?->name ?? '—' }}</td>
-                    <td><small class="text-muted">{{ $q->created_at->format('d M Y') }}</small></td>
-                    <td><span class="badge badge-status-{{ $q->status }}">{{ ucfirst(str_replace('_',' ',$q->status)) }}</span></td>
+                    <td>
+                        <span class="badge badge-status-{{ $q->status }}">{{ ucfirst(str_replace('_',' ',$q->status)) }}</span>
+                        @if($q->status === 'published')
+                            <div class="mt-1">
+                                @if($q->is_public)
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 0.68rem;" title="Public Archive"><i class="bi bi-globe2 me-1"></i>Public</span>
+                                @else
+                                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25" style="font-size: 0.68rem;" title="Private (Shared link only)"><i class="bi bi-shield-lock-fill me-1"></i>Private</span>
+                                @endif
+                            </div>
+                        @endif
+                    </td>
                     <td>
                         <a href="{{ route('admin.questions.show', $q) }}" class="btn btn-sm btn-outline-primary">View</a>
                     </td>

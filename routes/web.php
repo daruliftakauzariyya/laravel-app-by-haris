@@ -142,6 +142,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Verification
     Route::get('/questions/{question}/verify', [QuestionAdminController::class, 'verify'])->name('questions.verify');
     Route::post('/questions/{question}/approve', [QuestionAdminController::class, 'approve'])->name('questions.approve');
+    Route::post('/questions/{question}/toggle-public', [QuestionAdminController::class, 'togglePublicVisibility'])->name('questions.toggle-public');
+    Route::post('/questions/{question}/unpublish', [QuestionAdminController::class, 'unpublish'])->name('questions.unpublish');
     Route::post('/questions/{question}/reject', [QuestionAdminController::class, 'reject'])->name('questions.reject');
     Route::post('/questions/{question}/correction', [QuestionAdminController::class, 'requestCorrection'])->name('questions.correction');
     Route::get('/questions/{question}/history', [QuestionAdminController::class, 'history'])->name('questions.history');

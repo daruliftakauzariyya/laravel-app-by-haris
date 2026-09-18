@@ -23,6 +23,7 @@ class QuestionAndAnswer extends Model
         'language_id',
         'status',
         'status_id',
+        'is_public',
         'answer',
         'draft_answer',
         'published_by',
@@ -38,9 +39,18 @@ class QuestionAndAnswer extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
-        'tags' => 'array',
-        'verified_by' => 'array',
+        'tags'         => 'array',
+        'verified_by'  => 'array',
+        'is_public'    => 'boolean',
     ];
+
+    /**
+     * Scope query to only public archive fatwas (published and publicly visible).
+     */
+    public function scopePublicArchive($query)
+    {
+        return $query->where('status', 'published')->where('is_public', true);
+    }
 
     protected static function boot()
     {

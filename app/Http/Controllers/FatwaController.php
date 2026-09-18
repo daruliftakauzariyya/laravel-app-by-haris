@@ -12,7 +12,9 @@ class FatwaController extends Controller
     public function index(Request $request)
     {
         set_time_limit(300); // 5 min — needed for remote DB connections
-        $query = QuestionAndAnswer::with(['category', 'assignedMufti', 'references'])->where('status', 'published');
+        $query = QuestionAndAnswer::with(['category', 'assignedMufti', 'references'])
+            ->where('status', 'published')
+            ->where('is_public', true);
 
         // Filter by Madhab (Supports slug, name, or numeric ID)
         if ($request->filled('madhab')) {
@@ -98,7 +100,7 @@ class FatwaController extends Controller
             'publisher'
         ]);
         
-        // Restrict access if not published: must be logged in and possess authorized role
+        // 1. Restrict access if not published: must be logged in and possess authorized role
         if ($fatwa->status !== 'published') {
             $user = auth()->user();
             if (!$user) {
@@ -119,16 +121,25 @@ class FatwaController extends Controller
             }
         }
 
-        // Fetch related fatwas from the same category
+        // 2. Private Fatwa (is_public = false): Accessible to Questioner & Shared Link recipients, but MUST be logged in.
+        if ($fatwa->status === 'published' && !$fatwa->is_public) {
+            if (!auth()->check()) {
+                return redirect()->guest(route('login'))->with('warning', 'ഈ ഫത്വ വായിക്കാൻ ദയവായി ലോഗിൻ ചെയ്യുക (Please login to read this private/shared fatwa).');
+            }
+        }
+
+        // Fetch related fatwas from the same category (public only)
         $relatedFatwas = QuestionAndAnswer::where('status', 'published')
+            ->where('is_public', true)
             ->where('category_id', $fatwa->category_id)
             ->where('id', '!=', $fatwa->id)
             ->latest('published_at')
             ->take(5)
             ->get();
 
-        // New sidebar data
+        // New sidebar data (public only)
         $recentFatwas = QuestionAndAnswer::where('status', 'published')
+            ->where('is_public', true)
             ->where('id', '!=', $fatwa->id)
             ->latest('published_at')
             ->take(5)
@@ -187,17 +198,19 @@ class FatwaController extends Controller
     {
         $user->loadCount([
             'assignedQuestions as assigned_questions_count',
-            'assignedQuestions as published_fatwas_count' => fn($q) => $q->where('status', 'published')
+            'assignedQuestions as published_fatwas_count' => fn($q) => $q->where('status', 'published')->where('is_public', true)
         ]);
         
         $fatwasQuery = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
             ->where('status', 'published')
+            ->where('is_public', true)
             ->with(['category', 'assignedMufti']);
 
         $totalLikes = (clone $fatwasQuery)->sum('likes');
         $totalViews = (clone $fatwasQuery)->sum('views');
         $totalTopics = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
             ->where('status', 'published')
+            ->where('is_public', true)
             ->distinct('category_id')
             ->count('category_id');
         $totalAnswers = $user->published_fatwas_count;
@@ -299,7 +312,7 @@ class FatwaController extends Controller
     private function getCategoryHierarchy()
     {
         return \Illuminate\Support\Facades\Cache::remember('category_hierarchy', 3600, function () {
-            $categoriesList = \App\Models\Category::withCount(['questions' => fn($q) => $q->where('status', 'published')])->get();
+            $categoriesList = \App\Models\Category::withCount(['questions' => fn($q) => $q->where('status', 'published')->where('is_public', true)])->get();
             
             $allCategories = $categoriesList->whereNull('parent_id')->sortBy('sort_order');
             foreach ($allCategories as $cat) {

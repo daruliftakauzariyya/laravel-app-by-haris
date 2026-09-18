@@ -90,7 +90,7 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label class="form-label small fw-bold">Checked & Approved by:</label>
                         <select name="checked_approved_by" id="checked_approved_by" class="form-select form-select-sm">
                             <option value="">-- Select Approver --</option>
@@ -98,6 +98,26 @@
                                 <option value="{{ $mufti->id }}" {{ $question->checked_approved_by == $mufti->id ? 'selected' : '' }}>{{ $mufti->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <div class="mb-4 p-3 rounded bg-light border">
+                        <label class="form-label small fw-bold d-block mb-2 text-dark">
+                            <i class="bi bi-eye me-1"></i>Publish Visibility:
+                        </label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="publish_visibility" id="vis_public" value="public" checked>
+                            <label class="form-check-label small fw-semibold" for="vis_public">
+                                <i class="bi bi-globe2 text-primary me-1"></i>Public Archive (Default)
+                            </label>
+                            <div class="form-text small text-muted ms-4">Visible to everyone in website search, home page, and public fatwa archives.</div>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="publish_visibility" id="vis_private" value="private">
+                            <label class="form-check-label small fw-semibold" for="vis_private">
+                                <i class="bi bi-shield-lock-fill text-warning me-1"></i>Questioner & Shared Link Only
+                            </label>
+                            <div class="form-text small text-muted ms-4">Hidden from public archive/search. Only the questioner and recipients with the shared link (who log in) can read this fatwa.</div>
+                        </div>
                     </div>
 
                     <button class="btn btn-success w-100" id="publish-btn">

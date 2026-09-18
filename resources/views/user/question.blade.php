@@ -295,11 +295,47 @@
             {{-- 4. Scholarly Answer / Fatwa Section (If answered/published) --}}
             @if(($question->answer || $question->draft_answer) && in_array($question->status, ['answered', 'approved', 'published']))
                 <div class="query-content-pane bg-light bg-opacity-50">
-                    <div class="d-flex align-items-center justify-content-between mb-4">
-                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fw-bold" style="font-size: 0.75rem;">
-                            <i class="bi bi-patch-check-fill me-1"></i> Official Scholarly Ruling (Fatwa)
-                        </span>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1.5 rounded-pill fw-bold" style="font-size: 0.75rem;">
+                                <i class="bi bi-patch-check-fill me-1"></i> Official Scholarly Ruling (Fatwa)
+                            </span>
+                            @if($question->status === 'published')
+                                @if($question->is_public)
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-1.5 rounded-pill fw-semibold" style="font-size: 0.75rem;">
+                                        <i class="bi bi-globe2 me-1"></i> Public Archive
+                                    </span>
+                                @else
+                                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25 px-3 py-1.5 rounded-pill fw-semibold" style="font-size: 0.75rem;">
+                                        <i class="bi bi-shield-lock-fill me-1"></i> Private (Shareable via Link)
+                                    </span>
+                                @endif
+                            @endif
+                        </div>
+
+                        @if($question->status === 'published')
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-sm d-inline-flex align-items-center gap-1.5"
+                                    data-bs-toggle="modal" data-bs-target="#userShareModal">
+                                <i class="bi bi-share-fill"></i>
+                                <span>Share Fatwa</span>
+                            </button>
+                            <a href="{{ route('fatwa.show', $question) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1.5">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                <span>View Fatwa Page</span>
+                            </a>
+                        </div>
+                        @endif
                     </div>
+
+                    @if($question->status === 'published' && !$question->is_public)
+                    <div class="alert alert-info py-2 px-3 mb-4 rounded-3 border-0 small d-flex align-items-center gap-2" style="background-color: #f0f9ff; color: #0369a1;">
+                        <i class="bi bi-info-circle-fill fs-5"></i>
+                        <div>
+                            <strong>Private Fatwa:</strong> ഈ ഫത്വ പബ്ലിക് ആർക്കൈവിൽ ലിസ്റ്റ് ചെയ്തിട്ടില്ല. നിങ്ങൾ ഷെയർ ബട്ടൺ വഴി നൽകുന്ന ലിങ്ക് വഴി മറ്റുള്ളവർക്ക് (ലോഗിൻ ചെയ്ത ശേഷം) ഇത് വായിക്കാൻ കഴിയും.
+                        </div>
+                    </div>
+                    @endif
 
                     {{-- Arabic Opening --}}
                     <div class="text-end mb-4" dir="rtl">
@@ -374,5 +410,84 @@
 
     </div>
 </div>
+
+{{-- Share Modal for Questioner --}}
+@if($question->status === 'published')
+<div class="modal fade" id="userShareModal" tabindex="-1" aria-labelledby="userShareModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(30, 77, 43, 0.1); color: #1e4d2b;">
+                        <i class="bi bi-share-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold mb-0" id="userShareModalLabel">Share this Fatwa</h6>
+                        <span class="text-muted small" style="font-size: 0.8rem;">Direct forwarding link</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                @if(!$question->is_public)
+                    <div class="alert alert-warning py-2 px-3 mb-3 border-0 rounded-3 small">
+                        <i class="bi bi-shield-lock-fill me-1"></i><strong>Private Fatwa:</strong> ഈ ലിങ്ക് ലഭിച്ചവർക്ക് ഫത്വ വായിക്കാൻ ലോഗിൻ ചെയ്യേണ്ടതുണ്ട് (Recipients must log in to read this fatwa).
+                    </div>
+                @endif
+
+                {{-- Short Link Copy Box --}}
+                <label class="form-label small fw-semibold text-secondary mb-1">Fatwa Link</label>
+                <div class="input-group mb-3">
+                    <input type="text" id="userFatwaUrlInput" class="form-control bg-light border-end-0 font-monospace" style="font-size: 0.88rem;" value="{{ route('fatwa.short', $question->id) }}" readonly onclick="this.select()">
+                    <button class="btn btn-outline-success border-start-0 px-3" type="button" onclick="copyUserFatwaUrl()">
+                        <i class="bi bi-clipboard me-1" id="userCopyIcon"></i><span id="userCopyText">Copy</span>
+                    </button>
+                </div>
+
+                {{-- Social Share Options --}}
+                <label class="form-label small fw-semibold text-secondary mb-2">Share directly to</label>
+                <div class="d-grid gap-2">
+                    <a href="https://api.whatsapp.com/send?text={{ rawurlencode(($question->title ?: 'Islamic Fatwa') . "\n\n" . route('fatwa.short', $question->id)) }}" target="_blank" rel="noopener noreferrer" class="btn btn-success d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 text-white">
+                        <i class="bi bi-whatsapp fs-5"></i>
+                        <span class="fw-medium">WhatsApp</span>
+                    </a>
+                    <a href="https://t.me/share/url?url={{ rawurlencode(route('fatwa.short', $question->id)) }}&text={{ rawurlencode($question->title ?: 'Islamic Fatwa') }}" target="_blank" rel="noopener noreferrer" class="btn d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 text-white" style="background-color: #229ED9; border-color: #229ED9;">
+                        <i class="bi bi-telegram fs-5"></i>
+                        <span class="fw-medium">Telegram</span>
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?text={{ rawurlencode($question->title ?: 'Islamic Fatwa') }}&url={{ rawurlencode(route('fatwa.short', $question->id)) }}" target="_blank" rel="noopener noreferrer" class="btn btn-dark d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 text-white">
+                        <i class="bi bi-twitter-x fs-5"></i>
+                        <span class="fw-medium">X (Twitter)</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    function copyUserFatwaUrl() {
+        const input = document.getElementById('userFatwaUrlInput');
+        if (!input) return;
+        navigator.clipboard.writeText(input.value).then(() => {
+            const text = document.getElementById('userCopyText');
+            const icon = document.getElementById('userCopyIcon');
+            if (text && icon) {
+                text.innerText = 'Copied!';
+                icon.className = 'bi bi-check2-circle text-success';
+                setTimeout(() => {
+                    text.innerText = 'Copy';
+                    icon.className = 'bi bi-clipboard';
+                }, 2000);
+            }
+        }).catch(() => {
+            input.select();
+            document.execCommand('copy');
+        });
+    }
+</script>
+@endpush
+@endif
 
 @endsection

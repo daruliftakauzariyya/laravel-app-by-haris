@@ -810,6 +810,16 @@
                     </div>
                 </div>
             </div>
+        @elseif(!$fatwa->is_public)
+            <div class="alert alert-info border border-info shadow-sm d-flex align-items-center mb-4 rounded-3 p-3" role="alert" style="background-color: #f0f9ff; border-color: #bae6fd !important;">
+                <i class="bi bi-shield-lock-fill fs-3 me-3 text-primary"></i>
+                <div>
+                    <div class="fw-bold text-dark fs-6">Private Fatwa (Shared Link Access Only)</div>
+                    <div class="small text-muted">
+                        ഈ ഫത്വ പബ്ലിക് ആർക്കൈവിൽ ലഭ്യമല്ല. ചോദ്യ കർത്താവിനും ഈ ലിങ്ക് ലഭിച്ചവർക്കും (ലോഗിൻ ചെയ്ത ശേഷം) മാത്രമേ ഇത് വായിക്കാൻ സാധിക്കൂ. (This fatwa is not in the public archive. Accessible via shared link; login required).
+                    </div>
+                </div>
+            </div>
         @endif
 
         <div class="row">

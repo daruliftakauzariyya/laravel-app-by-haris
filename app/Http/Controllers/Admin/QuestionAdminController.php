@@ -380,8 +380,11 @@ class QuestionAdminController extends Controller
 
         $previousStatus = $question->status;
 
+        $isPublic = $request->input('publish_visibility', 'public') !== 'private'; // Default is Public (is_public = true)
+
         $updateData = [
             'status'              => 'published',
+            'is_public'           => $isPublic,
             'answer'              => $question->draft_answer ?? $question->answer,
             'draft_answer'        => null,
             'published_by'        => Auth::id(),
@@ -399,10 +402,12 @@ class QuestionAdminController extends Controller
         $question->references()->delete(); // Clear existing live ones
         $question->draftReferences()->update(['is_draft' => false]); // Make draft references live
 
+        $pubTypeLabel = $isPublic ? 'Fatwa Published Publicly' : 'Fatwa Published Privately (Questioner & Shared Link Only)';
+
         FatwaActivityLog::log(
-            $question->id, 'published', 'Fatwa Published Publicly',
+            $question->id, 'published', $pubTypeLabel,
             'bi-patch-check-fill', 'success',
-            'Published by: ' . Auth::user()->name .
+            $pubTypeLabel . ' by: ' . Auth::user()->name .
             (count($request->verified_by) > 0 ? ' | Verified by: ' . User::whereIn('id', $request->verified_by)->pluck('name')->implode(', ') : '') .
             ($request->checked_approved_by ? ' | Approved by: ' . optional(User::find($request->checked_approved_by))->name : ''),
             Auth::id()
@@ -413,7 +418,7 @@ class QuestionAdminController extends Controller
             'previous_status'        => $previousStatus,
             'new_status'             => 'published',
             'user_id'                => Auth::id(),
-            'remarks'                => 'Fatwa published publicly. Published by: ' . Auth::user()->name . 
+            'remarks'                => $pubTypeLabel . '. Published by: ' . Auth::user()->name . 
                                        (count($request->verified_by) > 0 ? ' | Verified by: ' . User::whereIn('id', $request->verified_by)->pluck('name')->implode(', ') : '') . 
                                        ($request->checked_approved_by ? ' | Approved by: ' . optional(User::find($request->checked_approved_by))->name : ''),
         ]);
@@ -425,7 +430,73 @@ class QuestionAdminController extends Controller
             // Fail silently if mail server is not configured
         }
 
-        return redirect()->route('admin.questions.index')->with('success', 'Fatwa published successfully!');
+        return redirect()->route('admin.questions.index')->with('success', $isPublic ? 'Fatwa published publicly to archive successfully!' : 'Fatwa published privately for questioner & shared-link recipients!');
+    }
+
+    /**
+     * Toggle public archive visibility for a published fatwa
+     */
+    public function togglePublicVisibility(Request $request, QuestionAndAnswer $question)
+    {
+        $newVisibility = !$question->is_public;
+        $question->update(['is_public' => $newVisibility]);
+
+        $label = $newVisibility 
+            ? 'Fatwa Made Publicly Visible in Archive' 
+            : 'Fatwa Unpublished from Public (Now Private to Questioner & Shared Link)';
+        
+        FatwaActivityLog::log(
+            $question->id, 'visibility_changed', $label,
+            $newVisibility ? 'bi-globe' : 'bi-lock-fill',
+            $newVisibility ? 'success' : 'warning',
+            'Visibility updated by Admin ' . Auth::user()->name,
+            Auth::id()
+        );
+
+        QuestionStatusHistory::create([
+            'question_and_answer_id' => $question->id,
+            'previous_status'        => $question->status,
+            'new_status'             => $question->status,
+            'user_id'                => Auth::id(),
+            'remarks'                => $label . ' by ' . Auth::user()->name,
+        ]);
+
+        return redirect()->back()->with('success', $newVisibility 
+            ? 'Fatwa is now published publicly in the global archive and search.' 
+            : 'Fatwa unpublished from public archive. (Accessible only to questioner & logged-in shared link users).');
+    }
+
+    /**
+     * Unpublish fatwa completely back to answered/under_review
+     */
+    public function unpublish(Request $request, QuestionAndAnswer $question)
+    {
+        $previousStatus = $question->status;
+        $targetStatus = $request->input('target_status', 'answered');
+
+        $question->update([
+            'status'       => $targetStatus,
+            'is_public'    => false,
+            'published_at' => null,
+            'draft_answer' => $question->answer,
+        ]);
+
+        FatwaActivityLog::log(
+            $question->id, 'unpublished', 'Fatwa Unpublished from Public',
+            'bi-eye-slash-fill', 'warning',
+            'Fatwa status reverted from ' . $previousStatus . ' to ' . $targetStatus . ' by Admin ' . Auth::user()->name,
+            Auth::id()
+        );
+
+        QuestionStatusHistory::create([
+            'question_and_answer_id' => $question->id,
+            'previous_status'        => $previousStatus,
+            'new_status'             => $targetStatus,
+            'user_id'                => Auth::id(),
+            'remarks'                => 'Fatwa unpublished and moved back to ' . $targetStatus . ' by ' . Auth::user()->name,
+        ]);
+
+        return redirect()->back()->with('success', 'Fatwa unpublished and moved back to ' . ucfirst($targetStatus) . '.');
     }
 
     public function reject(Request $request, QuestionAndAnswer $question)

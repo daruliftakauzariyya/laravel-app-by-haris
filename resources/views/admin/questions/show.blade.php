@@ -10,21 +10,28 @@
                 <div>
                     <span class="badge bg-secondary me-2">{{ $question->question_id }}</span>
                     <span class="badge badge-status-{{ $question->status }} me-2">{{ ucfirst(str_replace('_',' ',$question->status)) }}</span>
+                    @if($question->status === 'published')
+                        @if($question->is_public)
+                            <span class="badge bg-success me-2" title="Visible to everyone in public archive & search"><i class="bi bi-globe2 me-1"></i>Public Archive</span>
+                        @else
+                            <span class="badge bg-warning text-dark me-2" title="Hidden from public archive. Accessible via shared link with login."><i class="bi bi-shield-lock-fill me-1"></i>Private (Shared Link Only)</span>
+                        @endif
+                    @endif
                     <span class="badge bg-warning text-dark px-2 border-0"><i class="bi bi-hourglass-split me-1"></i>{{ floor($question->created_at->diffInDays(now())) }} Days Ago</span>
                 </div>
                 <div class="d-flex gap-2 no-print flex-wrap align-items-center">
                     {{-- Copy Public Short URL Button --}}
                     <button type="button" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1" id="copyShortUrlBtn"
                         onclick="copyAdminShortUrl('{{ route('fatwa.short', $question->id) }}')" 
-                        title="Copy Public Short URL: {{ route('fatwa.short', $question->id) }}">
+                        title="Copy Short URL: {{ route('fatwa.short', $question->id) }}">
                         <i class="bi bi-link-45deg fs-6" id="copyShortUrlIcon"></i>
-                        <span id="copyShortUrlText">Copy Short URL</span>
+                        <span id="copyShortUrlText">Copy Link</span>
                     </button>
 
                     @if($question->status === 'published')
-                    <a href="{{ route('fatwa.show', $question) }}" target="_blank" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" title="Open Public Fatwa Page">
+                    <a href="{{ route('fatwa.show', $question) }}" target="_blank" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" title="Open Fatwa Page">
                         <i class="bi bi-box-arrow-up-right"></i>
-                        <span>Public View</span>
+                        <span>View Fatwa</span>
                     </a>
                     @endif
 
@@ -116,19 +123,29 @@
     {{-- Right: Actions --}}
     <div class="col-lg-4 no-print">
         {{-- Public & Short Link Access Card --}}
-        <div class="card border-0 shadow-sm mb-3" style="border-left: 4px solid #10b981 !important;">
+        <div class="card border-0 shadow-sm mb-3" style="border-left: 4px solid {{ $question->is_public ? '#10b981' : '#f59e0b' }} !important;">
             <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold text-success">
-                    <i class="bi bi-link-45deg me-1"></i>Public Short URL
+                <h6 class="mb-0 fw-bold {{ $question->is_public ? 'text-success' : 'text-warning' }}">
+                    <i class="bi bi-link-45deg me-1"></i>Fatwa Access & URL
                 </h6>
                 @if($question->status === 'published')
-                    <span class="badge bg-success">Published Live</span>
+                    @if($question->is_public)
+                        <span class="badge bg-success"><i class="bi bi-globe2 me-1"></i>Public</span>
+                    @else
+                        <span class="badge bg-warning text-dark"><i class="bi bi-shield-lock-fill me-1"></i>Private Link</span>
+                    @endif
                 @else
                     <span class="badge bg-secondary">{{ ucfirst($question->status) }}</span>
                 @endif
             </div>
             <div class="card-body small">
-                <label class="form-label text-muted fw-semibold mb-1" style="font-size: 0.75rem;">Short Forwarding Link:</label>
+                @if($question->status === 'published' && !$question->is_public)
+                    <div class="alert alert-warning py-1.5 px-2 mb-2 border-0 small" style="font-size: 0.75rem;">
+                        <i class="bi bi-info-circle me-1"></i><strong>Private Fatwa:</strong> Hidden from public archive. Anyone visiting this link must be logged in to read it.
+                    </div>
+                @endif
+
+                <label class="form-label text-muted fw-semibold mb-1" style="font-size: 0.75rem;">Fatwa Direct Link:</label>
                 <div class="input-group input-group-sm mb-2">
                     <input type="text" class="form-control bg-light font-monospace" style="font-size: 0.8rem;" value="{{ route('fatwa.short', $question->id) }}" id="sidebarShortUrlInput" readonly onclick="this.select()">
                     <button class="btn btn-success" type="button" onclick="copySidebarShortUrl()">
@@ -142,12 +159,50 @@
                     </a>
                     @if($question->status === 'published')
                     <a href="{{ route('fatwa.show', $question) }}" target="_blank" class="text-decoration-none small text-success fw-medium">
-                        <i class="bi bi-globe me-1"></i>Full Public View
+                        <i class="bi bi-eye me-1"></i>Open Full Page
                     </a>
                     @endif
                 </div>
             </div>
         </div>
+
+        {{-- Visibility & Publishing Controls (For Published Fatwas) --}}
+        @if($question->status === 'published')
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-0 py-2">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-sliders me-1"></i>Visibility & Publishing</h6>
+            </div>
+            <div class="card-body small">
+                {{-- Toggle Public / Private --}}
+                <form method="POST" action="{{ route('admin.questions.toggle-public', $question) }}" class="mb-2">
+                    @csrf
+                    @if($question->is_public)
+                        <button type="submit" class="btn btn-sm btn-outline-warning w-100 text-start d-flex align-items-center justify-content-between"
+                                onclick="return confirm('Make this fatwa PRIVATE? It will be hidden from the public archive and search, but accessible via shared link (requires login).')">
+                            <span><i class="bi bi-eye-slash me-2"></i>Hide from Public Archive</span>
+                            <span class="badge bg-warning text-dark">Make Private</span>
+                        </button>
+                    @else
+                        <button type="submit" class="btn btn-sm btn-outline-success w-100 text-start d-flex align-items-center justify-content-between"
+                                onclick="return confirm('Make this fatwa PUBLIC? It will appear in public archives, searches, and the home page.')">
+                            <span><i class="bi bi-globe2 me-2"></i>Publish to Public Archive</span>
+                            <span class="badge bg-success">Make Public</span>
+                        </button>
+                    @endif
+                </form>
+
+                {{-- Unpublish Entirely --}}
+                <form method="POST" action="{{ route('admin.questions.unpublish', $question) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-outline-danger w-100 text-start d-flex align-items-center justify-content-between"
+                            onclick="return confirm('Are you sure you want to UNPUBLISH this fatwa? Its status will revert to Answered / Draft and it will no longer be accessible as published.')">
+                        <span><i class="bi bi-arrow-counterclockwise me-2"></i>Unpublish Fatwa</span>
+                        <span class="badge bg-danger">Revert</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        @endif
 
         {{-- Assign Mufti --}}
         @if(in_array($question->status, ['accepted','assigned']))
