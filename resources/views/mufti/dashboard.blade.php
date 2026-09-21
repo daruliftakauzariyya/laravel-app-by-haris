@@ -20,6 +20,36 @@
     </div>
 </section>
 
+
+<!-- Mobile App APK Download Quick Banner -->
+<section class="bg-gradient-to-r from-[#092217] via-[#143d2c] to-[#092217] border border-[#745a26]/40 rounded-xl p-4 md:p-5 text-white shadow-md relative overflow-hidden my-2">
+    <div class="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-[#745a26]/20 to-transparent pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-xl bg-white/10 border border-[#e4c283]/40 p-1 flex items-center justify-center flex-shrink-0 shadow-inner">
+                <img src="/app-logo.png" alt="Mufti App" class="w-full h-full object-contain rounded-lg" onerror="this.src='/assets/logo/fevi.png'">
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h3 class="font-headline text-lg font-bold text-white tracking-tight">Darul Ifta Mufti Mobile Application</h3>
+                    <span class="bg-[#dcfce7] text-[#166534] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Android APK</span>
+                </div>
+                <p class="text-xs text-white/80 mt-0.5">
+                    Real-time incoming call alerts, research workbench, and instant OTP access on your Android phone.
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 w-full md:w-auto">
+            <a href="{{ asset('downloads/mufti-app.apk') }}" download="Darul-Ifta-Mufti-App.apk" class="inline-flex items-center justify-center gap-2 bg-[#745a26] hover:bg-[#8e6e2f] active:scale-95 text-white font-semibold text-xs md:text-sm px-4 py-2.5 rounded-lg shadow-sm transition-all duration-150 border border-[#e4c283]/50 w-full md:w-auto text-decoration-none">
+                <span class="material-symbols-outlined text-[18px]">download</span>
+                <span>Download Android APK (7.6 MB)</span>
+            </a>
+        </div>
+    </div>
+</section>
+
 <!-- Key Metrics / Stats Row (3 Minimal Light Cards) -->
 <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <!-- Card 1: ACTIVE TRACK -->
