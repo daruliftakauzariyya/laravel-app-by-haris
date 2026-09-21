@@ -12,9 +12,6 @@ class MuftiQuestionApiController extends Controller
 {
     /**
      * Check for live incoming assignments (for mobile app call alerts)
-     * Rule 1: Once a Mufti opens/views a fatwa, call notifications for it must STOP.
-     * Rule 2: If 1 fatwa is newly assigned -> Forward to that specific fatwa.
-     * Rule 3: If >1 fatwas are newly assigned -> Forward to the Mufti Dashboard.
      */
     public function checkIncomingCalls(Request $request)
     {
@@ -23,13 +20,11 @@ class MuftiQuestionApiController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthenticated'], 401);
         }
 
-        // 1. Get IDs of all fatwas already opened/viewed by this Mufti
         $openedQuestionIds = FatwaActivityLog::where('user_id', $user->id)
             ->where('action', 'mufti_opened')
             ->pluck('question_and_answer_id')
             ->toArray();
 
-        // 2. Fetch pending assigned questions that have NOT been opened yet
         $unopenedAssignedQuery = QuestionAndAnswer::with(['category', 'madhab', 'user'])
             ->where('assigned_mufti_id', $user->id)
             ->where('status', 'assigned');
@@ -50,7 +45,6 @@ class MuftiQuestionApiController extends Controller
             ]);
         }
 
-        // Rule: Exactly 1 newly assigned fatwa -> Forward directly to that fatwa details screen
         if ($count === 1) {
             $single = $unopenedAssigned->first();
             return response()->json([
@@ -76,7 +70,6 @@ class MuftiQuestionApiController extends Controller
             ]);
         }
 
-        // Rule: More than 1 newly assigned fatwas -> Forward to Mufti Dashboard
         $firstItem = $unopenedAssigned->first();
         return response()->json([
             'status'            => 'success',
@@ -102,7 +95,7 @@ class MuftiQuestionApiController extends Controller
     }
 
     /**
-     * Mark Question as Opened by Mufti (silences future call notifications)
+     * Mark Question as Opened
      */
     public function markOpened(Request $request, $id)
     {
@@ -133,16 +126,24 @@ class MuftiQuestionApiController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $tab = $request->get('tab', 'assigned'); // assigned | verified | approved
+        $tab = $request->get('tab', 'assigned');
         $search = $request->get('search', '');
         $madhabId = $request->get('madhab_id');
         $categoryId = $request->get('category_id');
 
-        // Counts across all tabs
+        $countsData = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+            ->selectRaw('status, count(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status')
+            ->toArray();
+
+        $publishedCount = $countsData['published'] ?? 0;
+        $totalEver = array_sum($countsData);
+        $assignedActiveCount = $totalEver - $publishedCount;
+
         $counts = [
-            'assigned' => QuestionAndAnswer::where('assigned_mufti_id', $user->id)
-                ->where('status', 'assigned')
-                ->count(),
+            'assigned' => $assignedActiveCount,
+            'pending'  => $assignedActiveCount,
             'verified' => QuestionAndAnswer::where(function ($q) use ($user) {
                 $q->where('checked_approved_by', $user->id)
                   ->orWhereHas('statusHistory', fn($h) => $h->where('user_id', $user->id)->where('new_status', 'approved'));
@@ -153,8 +154,7 @@ class MuftiQuestionApiController extends Controller
             })->whereIn('status', ['approved', 'published'])->count(),
         ];
 
-        // Base query for current tab
-        $query = QuestionAndAnswer::with(['user', 'category', 'madhab', 'references']);
+        $query = QuestionAndAnswer::with(['user', 'category', 'madhab', 'references', 'statusHistory']);
 
         if ($tab === 'verified') {
             $query->where(function ($q) use ($user) {
@@ -167,14 +167,16 @@ class MuftiQuestionApiController extends Controller
                   ->orWhere('checked_approved_by', $user->id);
             })->whereIn('status', ['approved', 'published']);
         } else {
-            // Default: assigned inquiries
-            $query->where('assigned_mufti_id', $user->id);
-            if ($request->has('status') && $request->status !== 'all') {
-                $query->where('status', $request->status);
-            }
+            // Default: All active non-published inquiries assigned to this scholar
+            $query->where('assigned_mufti_id', $user->id)
+                  ->where('status', '!=', 'published')
+                  ->orderByRaw("CASE 
+                      WHEN status = 'assigned' AND (draft_answer IS NULL OR draft_answer = '') THEN 1 
+                      WHEN status = 'assigned' AND (draft_answer IS NOT NULL AND draft_answer != '') THEN 2 
+                      WHEN status = 'answered' THEN 3 
+                      ELSE 4 END ASC");
         }
 
-        // Search Filter
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('question_id', 'like', "%{$search}%")
@@ -183,7 +185,6 @@ class MuftiQuestionApiController extends Controller
             });
         }
 
-        // Madhab & Category Filter
         if (!empty($madhabId)) {
             $query->where('madhab_id', $madhabId);
         }
@@ -191,7 +192,7 @@ class MuftiQuestionApiController extends Controller
             $query->where('category_id', $categoryId);
         }
 
-        $questions = $query->latest()->paginate(15);
+        $questions = $query->latest('updated_at')->paginate(20);
 
         return response()->json([
             'status' => 'success',
@@ -202,7 +203,7 @@ class MuftiQuestionApiController extends Controller
     }
 
     /**
-     * Show Specific Inquiry & Research Workspace Data
+     * Show Specific Inquiry
      */
     public function show($id)
     {
@@ -248,7 +249,6 @@ class MuftiQuestionApiController extends Controller
             'status'       => 'answered',
         ]);
 
-        // Sync references
         if ($request->has('references') && is_array($request->references)) {
             if (method_exists($question, 'draftReferences')) {
                 $question->draftReferences()->delete();

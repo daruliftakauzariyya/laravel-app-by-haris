@@ -19,64 +19,34 @@ class MuftiReportApiController extends Controller
         $user = Auth::user();
         $dateRange = $request->get('date_range', 'all');
 
-        $startDate = match ($dateRange) {
-            'today'        => Carbon::today(),
-            'this_week'    => Carbon::now()->startOfWeek(),
-            'this_month'   => Carbon::now()->startOfMonth(),
-            'last_30_days' => Carbon::now()->subDays(30),
-            'this_year'    => Carbon::now()->startOfYear(),
-            default        => null,
-        };
+        $countsData = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
+            ->selectRaw('status, count(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status')
+            ->toArray();
 
-        // Query builders with date range
-        $assignedQuery = QuestionAndAnswer::where('assigned_mufti_id', $user->id);
-        $answeredQuery = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
-            ->whereIn('status', ['answered', 'approved', 'published']);
-        $publishedQuery = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
-            ->where('status', 'published');
-        $pendingQuery = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
-            ->where('status', 'assigned');
+        $publishedCount = $countsData['published'] ?? 0;
+        $totalEver = array_sum($countsData);
+        $activeCount = $totalEver - $publishedCount;
+        $answeredCount = ($countsData['answered'] ?? 0) + ($countsData['approved'] ?? 0) + $publishedCount;
 
-        if ($startDate) {
-            $assignedQuery->where('created_at', '>=', $startDate);
-            $answeredQuery->where('updated_at', '>=', $startDate);
-            $publishedQuery->where('updated_at', '>=', $startDate);
-        }
+        $verifiedCount = QuestionAndAnswer::where(function ($q) use ($user) {
+            $q->where('checked_approved_by', $user->id)
+              ->orWhereHas('statusHistory', fn($h) => $h->where('user_id', $user->id)->where('new_status', 'approved'));
+        })->count();
 
-        $assignedCount  = $assignedQuery->count();
-        $answeredCount  = $answeredQuery->count();
-        $publishedCount = $publishedQuery->count();
-        $pendingCount   = $pendingQuery->count();
-
-        // Monthly publication velocity (past 6 months)
-        $monthlyVelocity = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $monthStart = Carbon::now()->subMonths($i)->startOfMonth();
-            $monthEnd   = Carbon::now()->subMonths($i)->endOfMonth();
-            $monthLabel = $monthStart->format('M Y');
-
-            $count = QuestionAndAnswer::where('assigned_mufti_id', $user->id)
-                ->whereIn('status', ['answered', 'approved', 'published'])
-                ->whereBetween('updated_at', [$monthStart, $monthEnd])
-                ->count();
-
-            $monthlyVelocity[] = [
-                'month' => $monthLabel,
-                'count' => $count,
-            ];
-        }
+        $kpis = [
+            'assigned'  => $activeCount,
+            'pending'   => $activeCount,
+            'answered'  => $answeredCount,
+            'published' => $publishedCount,
+            'verified'  => $verifiedCount,
+        ];
 
         return response()->json([
             'status' => 'success',
             'data'   => [
-                'date_range' => $dateRange,
-                'kpis' => [
-                    'assigned'  => $assignedCount,
-                    'answered'  => $answeredCount,
-                    'published' => $publishedCount,
-                    'pending'   => $pendingCount,
-                ],
-                'monthly_velocity' => $monthlyVelocity,
+                'kpis' => $kpis,
             ]
         ]);
     }
