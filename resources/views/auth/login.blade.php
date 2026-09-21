@@ -1,5 +1,5 @@
 @extends('layouts.auth')
-@section('title', 'Sign In')
+@section('title', 'Join')
 
 @php
     $portalStats = \App\Http\Controllers\Api\PublicStatsController::getStatsData();
@@ -348,8 +348,44 @@
         font-weight: 700;
         color: #ffffff;
         letter-spacing: -0.025em;
-        margin-bottom: 0.85rem;
+        margin-bottom: 0.35rem;
         line-height: 1.3;
+    }
+
+    .user-role-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0.28rem 0.85rem;
+        border-radius: 9999px;
+        margin-bottom: 0.65rem;
+        backdrop-filter: blur(8px);
+        transition: all 0.2s ease;
+    }
+
+    .user-role-pill.role-admin {
+        background: rgba(220, 38, 38, 0.18);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.45);
+        box-shadow: 0 2px 10px rgba(220, 38, 38, 0.2);
+    }
+
+    .user-role-pill.role-mufti {
+        background: rgba(16, 185, 129, 0.18);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.45);
+        box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
+    }
+
+    .user-role-pill.role-questioner {
+        background: rgba(59, 130, 246, 0.18);
+        color: #93c5fd;
+        border: 1px solid rgba(59, 130, 246, 0.45);
+        box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);
     }
 
     .user-avatar-preview {
@@ -458,13 +494,24 @@
 
     @media (max-width: 576px) {
         .auth-fullscreen-wrap {
-            padding: 2rem 1rem 3rem;
+            padding: 2.25rem 1.25rem 3rem;
+        }
+        .auth-logo-center {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+        .auth-logo-link {
+            width: 100%;
+            justify-content: center;
         }
         .auth-logo-img {
-            max-height: 56px;
+            width: 65vw !important;
+            max-width: 65vw !important;
+            height: auto !important;
+            max-height: none !important;
         }
         .auth-card-title {
-            font-size: 1.6rem;
+            font-size: 1.65rem;
         }
     }
 </style>
@@ -491,8 +538,8 @@
 
             {{-- Form Header --}}
             <div class="auth-card-header text-center">
-                <h1 class="auth-card-title">Sign In</h1>
-                <p class="auth-card-desc">Welcome back! Please enter your details to continue.</p>
+                <h1 class="auth-card-title">Join</h1>
+                <p class="auth-card-desc">Enter your email or mobile to continue.</p>
             </div>
 
             {{-- Flash Alerts --}}
@@ -554,10 +601,6 @@
                     </svg>
                     <span>Sign in with Google</span>
                 </a>
-
-                <p class="glass-footer-text">
-                    Are you new? <a href="{{ route('register') }}">Create an Account</a>
-                </p>
             </div>
 
             {{-- =========================================================================
@@ -575,8 +618,14 @@
                     {{-- 1. Arabic Greeting --}}
                     <div class="arabic-greeting">السلام عليكم</div>
 
-                    {{-- 2. User Name --}}
+                    {{-- 2. User Name & Role Badge --}}
                     <h2 class="user-greeting-name" id="userDisplayName">--</h2>
+                    <div class="d-flex justify-content-center">
+                        <span id="userDisplayRole" class="user-role-pill role-questioner">
+                            <i class="bi bi-person-fill"></i>
+                            <span>Questioner</span>
+                        </span>
+                    </div>
                     <div class="d-none" id="userDisplayEmail">--</div>
 
                     {{-- 3. Profile Image (Large) --}}
@@ -792,7 +841,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUser = data;
                 showChooseMethodStep(data);
             } else {
-                window.location.href = '{{ route("register") }}?login_id=' + encodeURIComponent(loginId);
+                const param = loginId.includes('@') ? ('email=' + encodeURIComponent(loginId)) : ('mobile=' + encodeURIComponent(loginId));
+                window.location.href = '{{ route("register") }}?' + param + '&login_id=' + encodeURIComponent(loginId);
             }
         })
         .catch(err => {
@@ -816,6 +866,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
         userDisplayName.textContent = user.name;
         userDisplayEmail.textContent = user.email;
+
+        // Populate User Role Badge (Admin, Mufti, Questioner)
+        const userDisplayRole = document.getElementById('userDisplayRole');
+        if (userDisplayRole) {
+            const rawRole = (user.role_raw || user.role || 'questioner').toLowerCase();
+            if (rawRole.includes('admin')) {
+                userDisplayRole.className = 'user-role-pill role-admin';
+                userDisplayRole.innerHTML = '<i class="bi bi-shield-lock-fill"></i><span>Admin</span>';
+            } else if (rawRole.includes('mufti')) {
+                userDisplayRole.className = 'user-role-pill role-mufti';
+                userDisplayRole.innerHTML = '<i class="bi bi-mortarboard-fill"></i><span>Mufti</span>';
+            } else {
+                userDisplayRole.className = 'user-role-pill role-questioner';
+                userDisplayRole.innerHTML = '<i class="bi bi-person-fill"></i><span>Questioner</span>';
+            }
+        }
 
         hiddenPasswordLoginId.value = user.email;
         inputPassword.value = '';

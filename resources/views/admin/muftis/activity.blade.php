@@ -497,5 +497,29 @@
     .bg-gradient-primary {
         background: linear-gradient(to right, var(--brand-accent), #3ce48c);
     }
+
+    @media (max-width: 767.98px) {
+        .profile-avatar-wrapper {
+            margin: 0 auto 1.25rem !important;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+        }
+        .profile-info-text {
+            text-align: center;
+        }
+        .profile-info-text .d-flex {
+            justify-content: center;
+        }
+        .profile-hero-card .ms-auto {
+            margin: 1.25rem 0 0 !important;
+            justify-content: center;
+            width: 100%;
+        }
+        .profile-hero-card .ms-auto .btn {
+            flex: 1;
+            text-align: center;
+        }
+    }
 </style>
 @endsection

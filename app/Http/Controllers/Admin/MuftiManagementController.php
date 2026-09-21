@@ -371,7 +371,11 @@ class MuftiManagementController extends Controller
             } elseif ($eventFilter === 'review') {
                 $query->whereIn('event', ['correction_requested', 'rejected', 'under_review']);
             } elseif ($eventFilter === 'logins') {
-                $query->whereIn('event', ['scholar_login', 'scholar_logout']);
+                $query->whereIn('event', ['scholar_login', 'scholar_logout', 'google_login', 'otp_login']);
+            } elseif ($eventFilter === 'settings') {
+                $query->where('event', 'settings_opened');
+            } elseif ($eventFilter === 'security') {
+                $query->whereIn('event', ['password_reset', 'mobile_updated']);
             } else {
                 $query->where('event', $eventFilter);
             }
@@ -404,7 +408,9 @@ class MuftiManagementController extends Controller
             'answered'  => $user->assignedQuestions()->whereIn('status', ['answered', 'approved', 'published'])->count(),
             'published' => $user->assignedQuestions()->where('status', 'published')->count(),
             'reviews'   => \App\Models\FatwaActivityLog::where('user_id', $user->id)->whereIn('event', ['correction_requested', 'rejected'])->count(),
-            'logins'    => $user->login_count ?? 0,
+            'logins'    => \App\Models\FatwaActivityLog::where('user_id', $user->id)->whereIn('event', ['scholar_login', 'scholar_logout', 'google_login', 'otp_login'])->count() ?: ($user->login_count ?? 0),
+            'settings'  => \App\Models\FatwaActivityLog::where('user_id', $user->id)->where('event', 'settings_opened')->count(),
+            'security'  => \App\Models\FatwaActivityLog::where('user_id', $user->id)->whereIn('event', ['password_reset', 'mobile_updated'])->count(),
         ];
 
         return view('admin.muftis.history', compact(

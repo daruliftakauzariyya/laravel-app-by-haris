@@ -809,8 +809,7 @@
                 </ul>
                 <div class="d-flex align-items-center gap-3">
                     @guest
-                        <a href="{{ route('login') }}" class="btn btn-outline-brand btn-sm fw-bold">Login</a>
-                        <a href="{{ route('register') }}" class="btn btn-gold btn-sm">Register Free</a>
+                        <a href="{{ route('login') }}" class="btn btn-gold btn-sm fw-bold px-3">Join / Sign In</a>
                     @else
                         <div class="dropdown">
                             <button class="btn btn-outline-brand btn-sm dropdown-toggle fw-bold d-inline-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false">
@@ -911,8 +910,7 @@
             <div class="mobile-auth-section mt-auto">
                 @guest
                     <div class="d-grid gap-2">
-                        <a href="{{ route('login') }}" class="btn btn-outline-brand fw-bold">Login to Account</a>
-                        <a href="{{ route('register') }}" class="btn btn-gold py-2">Create Free Profile</a>
+                        <a href="{{ route('login') }}" class="btn btn-gold fw-bold py-2">Join / Sign In</a>
                     </div>
                 @else
                     <div class="d-flex align-items-center gap-3 mb-3 p-2 bg-light rounded-3 border">

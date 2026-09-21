@@ -27,17 +27,39 @@ class FatwaActivityLog extends Model
 
     public static function log($questionId, $event, $label, $icon = 'bi-circle', $color = 'secondary', $notes = null, $userId = null, $fatwaId = null, $eventAt = null)
     {
+        $targetUserId = $userId ?? auth()->id();
+        $targetEventAt = $eventAt ?? now();
+
+        // Prevent duplicate log entry within short window for identical event on same question
+        if ($questionId) {
+            $existing = self::where('question_id', $questionId)
+                ->where('event', $event)
+                ->where('user_id', $targetUserId)
+                ->where('event_at', '>=', now()->subSeconds(6))
+                ->latest('id')
+                ->first();
+
+            if ($existing) {
+                return $existing;
+            }
+        }
+
         return self::create([
             'question_id' => $questionId,
             'fatwa_id'    => $fatwaId,
-            'user_id'     => $userId ?? auth()->id(),
+            'user_id'     => $targetUserId,
             'event'       => $event,
             'event_label' => $label,
             'icon'        => $icon,
             'color'       => $color,
             'notes'       => $notes,
-            'event_at'    => $eventAt ?? now(),
+            'event_at'    => $targetEventAt,
         ]);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function actor()
@@ -85,16 +107,47 @@ class FatwaActivityLog extends Model
             }
         }
 
+        if ($this->event === 'settings_opened') {
+            $actorName = $this->actor?->name ?? 'Mufti';
+            return $value ?: "Mufti {$actorName} Opened Settings Page";
+        }
+
+        if ($this->event === 'password_reset') {
+            $actorName = $this->actor?->name ?? 'User';
+            return $value ?: "Password Reset by {$actorName}";
+        }
+
+        if ($this->event === 'google_login') {
+            $actorName = $this->actor?->name ?? 'Mufti';
+            return $value ?: "Mufti {$actorName} Logged in using Google Login";
+        }
+
+        if ($this->event === 'otp_login') {
+            $actorName = $this->actor?->name ?? 'Mufti';
+            return $value ?: "Mufti {$actorName} Logged in using OTP";
+        }
+
+        if ($this->event === 'mobile_updated') {
+            $actorName = $this->actor?->name ?? 'Mufti';
+            return $value ?: "Mufti {$actorName} Updated Mobile Number";
+        }
+
         if ($this->event === 'draft_saved') {
+            if ($value && str_contains($value, 'wrote') && str_contains($value, 'alphabets')) {
+                return $value;
+            }
             $qid = optional($this->questionAndAnswer)->question_id ?? ('#' . $this->question_id);
             $actorName = $this->actor?->name ?? optional($this->questionAndAnswer?->assignedMufti)->name ?? 'Scholar';
-            return "Fatwa Number {$qid} Draft Saved by Scholar {$actorName}";
+            return $value ?: "Fatwa Number {$qid} Draft Saved by Scholar {$actorName}";
         }
 
         if ($this->event === 'answer_submitted') {
+            if ($value && str_contains($value, 'wrote') && str_contains($value, 'alphabets')) {
+                return $value;
+            }
             $qid = optional($this->questionAndAnswer)->question_id ?? ('#' . $this->question_id);
             $actorName = $this->actor?->name ?? optional($this->questionAndAnswer?->assignedMufti)->name ?? 'Scholar';
-            return "Answer for Fatwa {$qid} Submitted by Scholar {$actorName}";
+            return $value ?: "Answer for Fatwa {$qid} Submitted by Scholar {$actorName}";
         }
 
         if ($this->event === 'assigned' || $value === 'Assigned to Mufti') {
@@ -236,6 +289,30 @@ class FatwaActivityLog extends Model
                 'created_at'  => $question->published_at,
             ]));
         }
+
+        // Deduplicate identical events that occurred within seconds of each other
+        $deduped = collect();
+        foreach ($timeline as $log) {
+            $isDuplicate = $deduped->contains(function ($item) use ($log) {
+                if ($item->event === $log->event) {
+                    $t1 = $item->event_at ?? $item->created_at;
+                    $t2 = $log->event_at ?? $log->created_at;
+                    if ($t1 && $t2 && abs($t1->diffInSeconds($t2)) < 15) {
+                        return true;
+                    }
+                    // If both are status milestones of same event without time difference
+                    if (!$t1 && !$t2) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+
+            if (!$isDuplicate) {
+                $deduped->push($log);
+            }
+        }
+        $timeline = $deduped;
 
         // Sort chronologically
         $sorted = $timeline->sortBy(fn($item) => $item->event_at ?? $item->created_at)->values();

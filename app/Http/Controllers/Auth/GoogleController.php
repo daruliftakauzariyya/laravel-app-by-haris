@@ -120,6 +120,18 @@ class GoogleController extends Controller
 
         Auth::login($user, true);
 
+        if ($user->hasRole('mufti') || $user->hasRole('admin')) {
+            \App\Models\FatwaActivityLog::log(
+                null,
+                'google_login',
+                'Mufti ' . $user->name . ' Logged in using Google Login',
+                'bi-google',
+                'danger',
+                'Mufti ' . $user->name . ' logged in using Google login @ ' . now()->format('h:i A : d-m-Y'),
+                $user->id
+            );
+        }
+
         $redirectUrl = route('user.dashboard');
         if ($user->hasRole('admin')) {
             $redirectUrl = route('admin.dashboard');
@@ -237,6 +249,18 @@ class GoogleController extends Controller
         }
 
         Auth::login($user, true);
+
+        if ($user->hasRole('mufti') || $user->hasRole('admin')) {
+            \App\Models\FatwaActivityLog::log(
+                null,
+                'google_login',
+                'Mufti ' . $user->name . ' Logged in using Google Login',
+                'bi-google',
+                'danger',
+                'Mufti ' . $user->name . ' logged in using Google login @ ' . now()->format('h:i A : d-m-Y'),
+                $user->id
+            );
+        }
 
         // Role-based redirection
         if ($user->hasRole('admin')) {

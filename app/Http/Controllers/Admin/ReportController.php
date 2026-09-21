@@ -59,15 +59,26 @@ class ReportController extends Controller
             $baseQuery->where('assigned_mufti_id', $selectedMufti);
         }
 
-        // 2. Executive Key Metrics
-        $totalQuestions = (clone $baseQuery)->count();
-        $publishedFatwas = (clone $baseQuery)->where('status', 'published')->count();
-        $pendingQuestions = (clone $baseQuery)->where('status', 'pending')->count();
-        $inProgressQuestions = (clone $baseQuery)->whereIn('status', ['accepted', 'assigned', 'answered'])->count();
-        $rejectedQuestions = (clone $baseQuery)->where('status', 'rejected')->count();
+        // 2. Executive Key Metrics (Single fast aggregate query)
+        $metrics = (clone $baseQuery)
+            ->selectRaw("
+                count(*) as total_questions,
+                sum(case when status = 'published' then 1 else 0 end) as published_fatwas,
+                sum(case when status = 'pending' then 1 else 0 end) as pending_questions,
+                sum(case when status in ('accepted', 'assigned', 'answered') then 1 else 0 end) as in_progress_questions,
+                sum(case when status = 'rejected' then 1 else 0 end) as rejected_questions,
+                sum(case when status = 'published' then coalesce(views, 0) else 0 end) as total_views,
+                sum(case when status = 'published' then coalesce(likes, 0) else 0 end) as total_likes
+            ")
+            ->first();
 
-        $totalViews = (clone $baseQuery)->where('status', 'published')->sum('views');
-        $totalLikes = (clone $baseQuery)->where('status', 'published')->sum('likes');
+        $totalQuestions = (int) ($metrics->total_questions ?? 0);
+        $publishedFatwas = (int) ($metrics->published_fatwas ?? 0);
+        $pendingQuestions = (int) ($metrics->pending_questions ?? 0);
+        $inProgressQuestions = (int) ($metrics->in_progress_questions ?? 0);
+        $rejectedQuestions = (int) ($metrics->rejected_questions ?? 0);
+        $totalViews = (int) ($metrics->total_views ?? 0);
+        $totalLikes = (int) ($metrics->total_likes ?? 0);
 
         $activeMuftisCount = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->where('is_active', true)->count();
         $registeredQuestionersCount = User::whereHas('role', fn($q) => $q->where('name', 'questioner'))->count();
@@ -90,58 +101,88 @@ class ReportController extends Controller
             ['label' => 'Rejected', 'count' => $rejectedQuestions, 'color' => '#dc2626', 'bg' => '#fef2f2', 'icon' => 'bi-x-circle'],
         ];
 
-        // 4. Variant 2: Mufti Performance & Workload Matrix
-        $muftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->with('madhab')->get()->map(function ($m) use ($dateRange, $startDate, $endDate) {
-            $qQuery = QuestionAndAnswer::where('assigned_mufti_id', $m->id);
-            if ($dateRange === 'today') {
-                $qQuery->whereDate('created_at', Carbon::today());
-            } elseif ($dateRange === 'this_month') {
-                $qQuery->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
-            } elseif ($dateRange === 'custom' && $startDate && $endDate) {
-                $qQuery->whereBetween('created_at', [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()]);
-            }
+        // 4. Variant 2: Mufti Performance & Workload Matrix (Optimized GROUP BY - no N+1 queries)
+        $muftiStatsQuery = QuestionAndAnswer::query();
+        if ($dateRange === 'today') {
+            $muftiStatsQuery->whereDate('created_at', Carbon::today());
+        } elseif ($dateRange === 'this_month') {
+            $muftiStatsQuery->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
+        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
+            $muftiStatsQuery->whereBetween('created_at', [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()]);
+        }
 
-            $assigned = (clone $qQuery)->count();
-            $answered = (clone $qQuery)->whereNotNull('answer')->count();
-            $published = (clone $qQuery)->where('status', 'published')->count();
-            $views = (clone $qQuery)->where('status', 'published')->sum('views');
-            $likes = (clone $qQuery)->where('status', 'published')->sum('likes');
+        $muftiAggregates = $muftiStatsQuery
+            ->whereNotNull('assigned_mufti_id')
+            ->selectRaw("
+                assigned_mufti_id,
+                count(*) as stat_assigned,
+                sum(case when answer is not null and answer != '' then 1 else 0 end) as stat_answered,
+                sum(case when status = 'published' then 1 else 0 end) as stat_published,
+                sum(case when status = 'published' then coalesce(views, 0) else 0 end) as stat_views,
+                sum(case when status = 'published' then coalesce(likes, 0) else 0 end) as stat_likes
+            ")
+            ->groupBy('assigned_mufti_id')
+            ->get()
+            ->keyBy('assigned_mufti_id');
 
-            $m->stat_assigned = $assigned;
-            $m->stat_answered = $answered;
-            $m->stat_published = $published;
-            $m->stat_views = $views;
-            $m->stat_likes = $likes;
-            $m->completion_rate = $assigned > 0 ? round(($published / $assigned) * 100, 1) : ($published > 0 ? 100 : 0);
+        $muftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
+            ->with('madhab')
+            ->get()
+            ->map(function ($m) use ($muftiAggregates) {
+                $agg = $muftiAggregates->get($m->id);
+                $assigned = (int) ($agg->stat_assigned ?? 0);
+                $answered = (int) ($agg->stat_answered ?? 0);
+                $published = (int) ($agg->stat_published ?? 0);
+                $views = (int) ($agg->stat_views ?? 0);
+                $likes = (int) ($agg->stat_likes ?? 0);
 
-            return $m;
-        })->sortByDesc('stat_published');
+                $m->stat_assigned = $assigned;
+                $m->stat_answered = $answered;
+                $m->stat_published = $published;
+                $m->stat_views = $views;
+                $m->stat_likes = $likes;
+                $m->completion_rate = $assigned > 0 ? round(($published / $assigned) * 100, 1) : ($published > 0 ? 100 : 0);
 
-        // 5. Variant 3: Madhab & Islamic Jurisprudence Distribution
-        $madhabStats = Madhab::all()->map(function ($md) use ($baseQuery) {
-            $count = (clone $baseQuery)->where('madhab_id', $md->id)->count();
-            $published = (clone $baseQuery)->where('madhab_id', $md->id)->where('status', 'published')->count();
-            $views = (clone $baseQuery)->where('madhab_id', $md->id)->where('status', 'published')->sum('views');
+                return $m;
+            })->sortByDesc('stat_published');
+
+        // 5. Variant 3: Madhab & Islamic Jurisprudence Distribution (Single aggregate query)
+        $madhabAggregates = (clone $baseQuery)
+            ->whereNotNull('madhab_id')
+            ->selectRaw("
+                madhab_id,
+                count(*) as total,
+                sum(case when status = 'published' then 1 else 0 end) as published,
+                sum(case when status = 'published' then coalesce(views, 0) else 0 end) as views
+            ")
+            ->groupBy('madhab_id')
+            ->get()
+            ->keyBy('madhab_id');
+
+        $madhabStats = Madhab::all()->map(function ($md) use ($madhabAggregates) {
+            $agg = $madhabAggregates->get($md->id);
             return (object)[
                 'id' => $md->id,
                 'name' => $md->name,
-                'total' => $count,
-                'published' => $published,
-                'views' => $views,
+                'total' => (int) ($agg->total ?? 0),
+                'published' => (int) ($agg->published ?? 0),
+                'views' => (int) ($agg->views ?? 0),
             ];
         });
 
-        // 6. Variant 4: Category & Topic Popularity
-        $categoryStats = Category::withCount(['questions' => function ($q) use ($dateRange, $startDate, $endDate) {
-            if ($dateRange === 'today') {
-                $q->whereDate('created_at', Carbon::today());
-            } elseif ($dateRange === 'this_month') {
-                $q->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
-            }
-        }])
-        ->orderByDesc('questions_count')
-        ->limit(10)
-        ->get();
+        // 6. Variant 4: Category & Topic Popularity (Direct fast aggregate)
+        $topCatCounts = (clone $baseQuery)
+            ->whereNotNull('category_id')
+            ->selectRaw('category_id, count(*) as questions_count')
+            ->groupBy('category_id')
+            ->orderByDesc('questions_count')
+            ->limit(10)
+            ->pluck('questions_count', 'category_id');
+
+        $categoryStats = Category::whereIn('id', $topCatCounts->keys())->get()->map(function ($cat) use ($topCatCounts) {
+            $cat->questions_count = (int) ($topCatCounts[$cat->id] ?? 0);
+            return $cat;
+        })->sortByDesc('questions_count')->values();
 
         // Top 10 Most Read Published Fatwas
         $topFatwas = QuestionAndAnswer::where('status', 'published')

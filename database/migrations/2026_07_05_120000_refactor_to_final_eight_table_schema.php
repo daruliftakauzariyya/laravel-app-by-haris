@@ -251,7 +251,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('question_and_answer_id');
             $table->longText('arabic_text');
-            $table->string('book_name');
+            $table->text('book_name')->nullable();
             $table->string('language')->default('Arabic');
             $table->integer('sort_order')->default(0);
             $table->boolean('is_draft')->default(false);

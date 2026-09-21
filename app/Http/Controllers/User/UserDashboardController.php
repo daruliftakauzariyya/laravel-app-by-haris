@@ -31,6 +31,17 @@ class UserDashboardController extends Controller
     public function settings()
     {
         $user = Auth::user();
+        if ($user && ($user->hasRole('mufti') || $user->hasRole('admin'))) {
+            \App\Models\FatwaActivityLog::log(
+                null,
+                'settings_opened',
+                'Mufti ' . $user->name . ' Opened Settings Page',
+                'bi-gear-fill',
+                'info',
+                'Mufti ' . $user->name . ' opened settings page @ ' . now()->format('h:i A : d-m-Y'),
+                $user->id
+            );
+        }
         $madhabs = Madhab::all();
         return view('user.settings', compact('user', 'madhabs'));
     }
@@ -38,6 +49,8 @@ class UserDashboardController extends Controller
     public function updateProfile(Request $request)
     {
         $user = Auth::user();
+        $oldMobile = $user->mobile;
+
         $validated = $request->validate([
             'name'            => 'required|string|max:255',
             'despl_name'      => 'nullable|string|max:255',
@@ -77,6 +90,18 @@ class UserDashboardController extends Controller
 
         $user->update($validated);
 
+        if (($user->hasRole('mufti') || $user->hasRole('admin')) && $request->filled('mobile') && $request->mobile !== $oldMobile) {
+            \App\Models\FatwaActivityLog::log(
+                null,
+                'mobile_updated',
+                'Mufti ' . $user->name . ' Added New Mobile Number (' . $request->mobile . ')',
+                'bi-telephone-plus-fill',
+                'primary',
+                'Mufti ' . $user->name . ' added new mobile number (' . $request->mobile . ') from dashboard settings page @ ' . now()->format('h:i A : d-m-Y'),
+                $user->id
+            );
+        }
+
         return back()->with('success', 'Profile updated successfully.');
     }
 
@@ -100,6 +125,18 @@ class UserDashboardController extends Controller
         $user->update([
             'password' => Hash::make($request->password),
         ]);
+
+        if ($user->hasRole('mufti') || $user->hasRole('admin')) {
+            \App\Models\FatwaActivityLog::log(
+                null,
+                'password_reset',
+                'Mufti ' . $user->name . ' Changed Password',
+                'bi-shield-lock-fill',
+                'warning',
+                'Mufti ' . $user->name . ' updated password from dashboard settings page @ ' . now()->format('h:i A : d-m-Y'),
+                $user->id
+            );
+        }
 
         return back()->with('success', 'Password updated successfully. You can now use your password to sign in.');
     }

@@ -247,7 +247,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 | Mufti Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:mufti'])->prefix('mufti')->name('mufti.')->group(function () {
+Route::middleware(['auth', 'role:mufti|admin'])->prefix('mufti')->name('mufti.')->group(function () {
     Route::get('/dashboard', [MuftiController::class, 'dashboard'])->name('dashboard');
     Route::get('/search', [MuftiController::class, 'search'])->name('search');
     Route::get('/api/search', [MuftiController::class, 'liveSearch'])->name('api.search');

@@ -226,13 +226,24 @@
 
     @media (max-width: 576px) {
         .auth-fullscreen-wrap {
-            padding: 2rem 1rem 3rem;
+            padding: 2.25rem 1.25rem 3rem;
+        }
+        .auth-logo-center {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+        .auth-logo-link {
+            width: 100%;
+            justify-content: center;
         }
         .auth-logo-img {
-            max-height: 56px;
+            width: 65vw !important;
+            max-width: 65vw !important;
+            height: auto !important;
+            max-height: none !important;
         }
         .auth-card-title {
-            font-size: 1.6rem;
+            font-size: 1.65rem;
         }
     }
 </style>

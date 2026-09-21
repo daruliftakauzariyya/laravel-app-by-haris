@@ -13,14 +13,26 @@ class RegisterController extends Controller
 {
     public function showRegistrationForm(Request $request)
     {
+        $loginId = trim((string) $request->query('login_id', ''));
+        $email = trim((string) $request->query('email', ''));
+        $mobile = trim((string) $request->query('mobile', ''));
+
+        // Only accessible via redirection with email/mobile/login_id
+        if (empty($loginId) && empty($email) && empty($mobile)) {
+            return redirect()->route('login')->with('warning', 'Please enter your email or mobile on the Join screen to get started.');
+        }
+
+        if (empty($loginId)) {
+            $loginId = $email ?: $mobile;
+        }
+
         // Force the destination to ask-question if not already set, to fulfill the "auto redirect" requirement
         if (!session()->has('url.intended')) {
             session(['url.intended' => route('question.create')]);
         }
 
-        $loginId = $request->query('login_id', '');
         $madhabs = \App\Models\Madhab::all();
-        return view('auth.register', compact('loginId', 'madhabs'));
+        return view('auth.register', compact('loginId', 'email', 'mobile', 'madhabs'));
     }
 
     public function register(Request $request)

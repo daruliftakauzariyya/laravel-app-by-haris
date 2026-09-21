@@ -28,13 +28,22 @@ class LoginController extends Controller
                 $avatarUrl = str_starts_with($user->avatar, 'http') ? $user->avatar : asset($user->avatar);
             }
 
+            $rawRole = strtolower($user->role?->name ?? 'questioner');
+            $roleLabel = match($rawRole) {
+                'admin' => 'Admin',
+                'mufti' => 'Mufti',
+                'questioner', 'user' => 'Questioner',
+                default => ucfirst($rawRole)
+            };
+
             return response()->json([
                 'exists'   => true,
                 'name'     => $user->despl_name ?: $user->name,
                 'email'    => $user->email,
                 'avatar'   => $avatarUrl,
                 'initial'  => strtoupper(mb_substr($user->name ?: 'U', 0, 1)),
-                'role'     => ucfirst($user->role?->name ?? 'Member'),
+                'role'     => $roleLabel,
+                'role_raw' => $rawRole,
             ]);
         }
 
@@ -155,6 +164,18 @@ class LoginController extends Controller
 
             Auth::login($user, $request->boolean('remember', true));
             $request->session()->regenerate();
+
+            if ($user->hasRole('mufti') || $user->hasRole('admin')) {
+                \App\Models\FatwaActivityLog::log(
+                    null,
+                    'otp_login',
+                    'Mufti ' . $user->name . ' Logged in using OTP',
+                    'bi-shield-check',
+                    'success',
+                    'Mufti ' . $user->name . ' logged in using 6-digit OTP verification @ ' . now()->format('h:i A : d-m-Y'),
+                    $user->id
+                );
+            }
 
             $defaultUrl = $this->redirectBasedOnRoleUrl($user);
             $intendedUrl = session()->pull('url.intended', $defaultUrl);

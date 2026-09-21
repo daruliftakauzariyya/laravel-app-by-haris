@@ -643,27 +643,76 @@
             });
             clockElement.innerHTML = timeString;
         }
-        setInterval(updateAdminClock, 1000);
-        updateAdminClock();
+        // Universal Single-Click Button Protection & Action Deactivation Engine
+        document.addEventListener('DOMContentLoaded', function () {
+            // Listen to all form submissions across the Admin Panel
+            document.addEventListener('submit', function (e) {
+                const form = e.target;
+                if (!form || form.tagName !== 'FORM') return;
 
-        // Verify Avatar Modal populate
-        const verifyModal = document.getElementById('verifyAvatarModal');
-        if (verifyModal) {
-            verifyModal.addEventListener('show.bs.modal', function (event) {
-                const button = event.relatedTarget;
-                const userId = button.getAttribute('data-user-id');
-                const userName = button.getAttribute('data-user-name');
-                const currentAvatar = button.getAttribute('data-current-avatar');
-                const pendingAvatar = button.getAttribute('data-pending-avatar');
+                // Check HTML5 Form Validity
+                if (form.checkValidity && !form.checkValidity()) {
+                    return; // Allow native validation tooltips to fire without disabling
+                }
 
-                verifyModal.querySelector('#modal-user-name').textContent = userName;
-                verifyModal.querySelector('#modal-current-img').src = currentAvatar;
-                verifyModal.querySelector('#modal-pending-img').src = pendingAvatar;
+                // If form is already submitting, block duplicate submission
+                if (form.dataset.submitting === 'true') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
 
-                verifyModal.querySelector('#approve-avatar-form').action = `/admin/muftis/${userId}/approve-avatar`;
-                verifyModal.querySelector('#reject-avatar-form').action = `/admin/muftis/${userId}/reject-avatar`;
+                // Mark form as submitting
+                form.dataset.submitting = 'true';
+
+                // Find all submit buttons associated with this form
+                const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"], .btn-submit-action');
+                submitButtons.forEach(btn => {
+                    // Disable button immediately
+                    btn.disabled = true;
+                    btn.classList.add('disabled');
+                    btn.style.pointerEvents = 'none';
+                    btn.style.opacity = '0.75';
+
+                    // Add processing spinner if not already present
+                    if (!btn.querySelector('.spinner-border')) {
+                        const originalHtml = btn.innerHTML;
+                        btn.setAttribute('data-original-text', originalHtml);
+                        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1.5" role="status" aria-hidden="true" style="width: 0.9rem; height: 0.9rem;"></span><span>Processing...</span>`;
+                    }
+                });
+
+                // Safety timer: re-enable after 15 seconds in case of network timeout or error
+                setTimeout(() => {
+                    form.dataset.submitting = 'false';
+                    submitButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('disabled');
+                        btn.style.pointerEvents = 'auto';
+                        btn.style.opacity = '1';
+                        if (btn.hasAttribute('data-original-text')) {
+                            btn.innerHTML = btn.getAttribute('data-original-text');
+                        }
+                    });
+                }, 15000);
+            }, true);
+
+            // Handle standalone action buttons that perform immediate requests
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-single-click, button[type="submit"]');
+                if (!btn) return;
+
+                // If button is inside a form, let form submit handler manage it
+                const form = btn.closest('form');
+                if (form) {
+                    if (form.dataset.submitting === 'true') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                }
             });
-        }
+        });
     </script>
     
     {{-- Verify Avatar Modal --}}

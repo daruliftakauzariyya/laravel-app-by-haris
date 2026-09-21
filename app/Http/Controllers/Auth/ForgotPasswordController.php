@@ -71,6 +71,17 @@ class ForgotPasswordController extends Controller
             'otp_expires_at' => null,
         ]);
 
+        $rolePrefix = ($user->hasRole('mufti') || $user->hasRole('admin')) ? 'Mufti ' . $user->name : ($user->name ?? 'User');
+        \App\Models\FatwaActivityLog::log(
+            null,
+            'password_reset',
+            $rolePrefix . ' Reset Password',
+            'bi-shield-lock-fill',
+            'warning',
+            $rolePrefix . ' reset password successfully via OTP @ ' . now()->format('h:i A : d-m-Y'),
+            $user->id
+        );
+
         return redirect()->route('login')->with('success', 'Your password has been reset successfully. You can now login.');
     }
 }

@@ -166,25 +166,44 @@
         font-size: 0.88rem;
     }
 
-    /* intl-tel-input Integration with Minimal Styling */
-    .iti-wrapper { width: 100%; }
-    .iti { width: 100%; }
-    .iti__tel-input {
+    /* intl-tel-input Integration with Clean Non-Overlapping Styling */
+    .iti-wrapper { width: 100%; position: relative; }
+    .iti { width: 100%; position: relative; display: block; }
+    .iti input#phone, .iti__tel-input {
         width: 100% !important;
         background: rgba(255, 255, 255, 0.05) !important;
         border: 1px solid var(--auth-border) !important;
         border-radius: 12px !important;
-        padding: 0.85rem 1.15rem 0.85rem 52px !important;
+        padding-top: 0.85rem !important;
+        padding-bottom: 0.85rem !important;
+        padding-right: 1.15rem !important;
+        padding-left: 98px !important;
         font-size: 0.92rem !important;
         color: #ffffff !important;
         font-family: 'Inter', sans-serif !important;
-        transition: all 0.2s ease;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    .iti__tel-input:focus {
+    .iti input#phone:focus, .iti__tel-input:focus {
         outline: none !important;
         background: rgba(255, 255, 255, 0.08) !important;
         border-color: #3b82f6 !important;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+    }
+    .iti--separate-dial-code .iti__selected-country {
+        background-color: transparent !important;
+        padding-left: 14px !important;
+    }
+    .iti__selected-dial-code {
+        color: #94a3b8 !important;
+        font-size: 0.92rem !important;
+        font-weight: 500 !important;
+        margin-left: 6px !important;
+    }
+    .iti__arrow {
+        border-top-color: #94a3b8 !important;
+    }
+    .iti__arrow--up {
+        border-bottom-color: #94a3b8 !important;
     }
     .iti__dropdown-content { 
         z-index: 9999; 
@@ -356,13 +375,24 @@
 
     @media (max-width: 576px) {
         .auth-fullscreen-wrap {
-            padding: 2rem 1rem 3rem;
+            padding: 2.25rem 1.25rem 3rem;
+        }
+        .auth-logo-center {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+        .auth-logo-link {
+            width: 100%;
+            justify-content: center;
         }
         .auth-logo-img {
-            max-height: 56px;
+            width: 65vw !important;
+            max-width: 65vw !important;
+            height: auto !important;
+            max-height: none !important;
         }
         .auth-card-title {
-            font-size: 1.6rem;
+            font-size: 1.65rem;
         }
     }
 </style>
@@ -429,7 +459,7 @@
                 <div class="mb-3">
                     <label class="glass-form-label">Email Address</label>
                     <input type="email" name="email" class="glass-form-control @error('email') is-invalid @enderror"
-                           value="{{ old('email', str_contains($loginId, '@') ? $loginId : '') }}" placeholder="name@example.com" required>
+                           value="{{ old('email', $email ?? (str_contains($loginId, '@') ? $loginId : '')) }}" placeholder="name@example.com" required>
                     @error('email')<div class="text-warning small mt-1">{{ $message }}</div>@enderror
                 </div>
 
@@ -437,9 +467,9 @@
                     <label class="glass-form-label">Mobile Number</label>
                     <div class="iti-wrapper">
                         <input type="tel" id="phone" name="mobile"
-                               class="glass-form-control @error('mobile') is-invalid @enderror"
-                               value="{{ old('mobile', !str_contains($loginId, '@') ? $loginId : '') }}"
-                               placeholder="Mobile Number" required>
+                                class="glass-form-control @error('mobile') is-invalid @enderror"
+                                value="{{ old('mobile', $mobile ?? (!str_contains($loginId, '@') ? $loginId : '')) }}"
+                                placeholder="Mobile Number" required>
                     </div>
                     <input type="hidden" name="country_code" id="selected_country_code" value="{{ old('country_code', '+91') }}">
                     @error('mobile')<div class="text-warning small mt-1">{{ $message }}</div>@enderror
@@ -480,7 +510,7 @@
             </a>
 
             <p class="glass-footer-text">
-                Already have an account? <a href="{{ route('login') }}">Sign In</a>
+                Already have an account? <a href="{{ route('login') }}">Back to Join</a>
             </p>
 
         </div>
@@ -526,10 +556,24 @@
             formatOnDisplay: false,
         });
 
+        function updatePhonePadding() {
+            const selectedCountry = document.querySelector('.iti__selected-country');
+            if (selectedCountry && phoneInput) {
+                const width = selectedCountry.offsetWidth;
+                if (width > 0) {
+                    phoneInput.style.setProperty('padding-left', (width + 12) + 'px', 'important');
+                }
+            }
+        }
+
         phoneInput.addEventListener('countrychange', function () {
             const dialCode = '+' + itiInstance.getSelectedCountryData().dialCode;
             hiddenCode.value = dialCode;
+            updatePhonePadding();
         });
+
+        setTimeout(updatePhonePadding, 100);
+        setTimeout(updatePhonePadding, 400);
 
         document.getElementById('registrationForm').addEventListener('submit', function (e) {
             const dialCode = '+' + itiInstance.getSelectedCountryData().dialCode;

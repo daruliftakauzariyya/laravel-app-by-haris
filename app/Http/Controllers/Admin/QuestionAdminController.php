@@ -271,13 +271,18 @@ class QuestionAdminController extends Controller
         }
 
         // Save supporting references
-        if ($request->filled('arabic_text')) {
-            foreach ($request->arabic_text as $i => $text) {
-                if ($text) {
+        if ($request->filled('arabic_text') || $request->filled('book_name')) {
+            $arabicTexts = (array) ($request->arabic_text ?? []);
+            $bookNames = (array) ($request->book_name ?? []);
+            $maxCount = max(count($arabicTexts), count($bookNames));
+            for ($i = 0; $i < $maxCount; $i++) {
+                $text = trim($arabicTexts[$i] ?? '');
+                $book = trim($bookNames[$i] ?? '');
+                if (!empty($text) || !empty($book)) {
                     Reference::create([
                         'question_and_answer_id' => $question->id,
-                        'arabic_text'            => $text,
-                        'book_name'              => $request->book_name[$i] ?? '',
+                        'arabic_text'            => $text ?: '—',
+                        'book_name'              => $book ?: '',
                         'language'               => $request->ref_language[$i] ?? 'Arabic',
                         'sort_order'             => $i,
                         'is_draft'               => !$isPublished,

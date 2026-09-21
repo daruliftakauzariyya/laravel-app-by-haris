@@ -172,7 +172,7 @@ class MuftiController extends Controller
 
     public function showQuestion(QuestionAndAnswer $question)
     {
-        abort_unless($question->assigned_mufti_id === Auth::id(), 403);
+        abort_unless($question->assigned_mufti_id === Auth::id() || Auth::user()->hasRole('admin'), 403);
 
         FatwaActivityLog::log(
             $question->id,
@@ -193,7 +193,7 @@ class MuftiController extends Controller
 
     public function submitAnswer(Request $request, QuestionAndAnswer $question)
     {
-        abort_unless($question->assigned_mufti_id === Auth::id(), 403);
+        abort_unless($question->assigned_mufti_id === Auth::id() || Auth::user()->hasRole('admin'), 403);
 
         $request->validate([
             'full_answer'    => ['required', 'string', 'min:30'],
@@ -238,13 +238,18 @@ class MuftiController extends Controller
         }
 
         // Save references
-        if ($request->filled('arabic_text')) {
-            foreach ($request->arabic_text as $i => $text) {
-                if ($text) {
+        if ($request->filled('arabic_text') || $request->filled('book_name')) {
+            $arabicTexts = (array) ($request->arabic_text ?? []);
+            $bookNames = (array) ($request->book_name ?? []);
+            $maxCount = max(count($arabicTexts), count($bookNames));
+            for ($i = 0; $i < $maxCount; $i++) {
+                $text = trim($arabicTexts[$i] ?? '');
+                $book = trim($bookNames[$i] ?? '');
+                if (!empty($text) || !empty($book)) {
                     Reference::create([
                         'question_and_answer_id' => $question->id,
-                        'arabic_text'            => $text,
-                        'book_name'              => $request->book_name[$i] ?? '',
+                        'arabic_text'            => $text ?: '—',
+                        'book_name'              => $book ?: '',
                         'language'               => $request->ref_language[$i] ?? 'Arabic',
                         'sort_order'             => $i,
                         'is_draft'               => !$isPublished,
@@ -258,12 +263,17 @@ class MuftiController extends Controller
         $wordCount = str_word_count($plainAnswerText);
         $sentenceCount = count(array_filter(preg_split('/[.!?\n]+/u', $plainAnswerText), fn($s) => trim($s) !== ''));
         $refCount = count(array_filter($request->arabic_text ?? []));
+        $qid = $question->question_id;
+        $nowFormatted = now()->format('h:i A : d-m-Y');
 
         // Log the activity
         FatwaActivityLog::log(
-            $question->id, 'answer_submitted', 'Answer for Fatwa ' . $question->question_id . ' Submitted by Scholar ' . Auth::user()->name,
-            'bi-pencil-square', 'info',
-            'Answer for fatwa ' . $question->question_id . ' submitted for verification by ' . Auth::user()->name . ' @ ' . now()->format('Y-m-d H:i:s') . ' (Letters: ' . number_format($charCount) . ', Words: ' . number_format($wordCount) . ', Sentences: ' . number_format($sentenceCount) . ($refCount > 0 ? ', ' . $refCount . ' references' : '') . ')',
+            $question->id,
+            'answer_submitted',
+            'Mufti ' . Auth::user()->name . ' wrote ' . $charCount . ' alphabets in fatwa number ' . $qid . ' @ ' . $nowFormatted,
+            'bi-pencil-square',
+            'info',
+            'Answer for fatwa number ' . $qid . ' submitted for verification by Mufti ' . Auth::user()->name . ' (wrote ' . number_format($charCount) . ' alphabets, ' . number_format($wordCount) . ' words, ' . number_format($sentenceCount) . ' sentences' . ($refCount > 0 ? ', ' . $refCount . ' references' : '') . ') @ ' . $nowFormatted,
             Auth::id()
         );
 
@@ -316,13 +326,18 @@ class MuftiController extends Controller
 
         // Save references
         $question->draftReferences()->delete();
-        if ($request->filled('arabic_text')) {
-            foreach ($request->arabic_text as $i => $text) {
-                if ($text) {
+        if ($request->filled('arabic_text') || $request->filled('book_name')) {
+            $arabicTexts = (array) ($request->arabic_text ?? []);
+            $bookNames = (array) ($request->book_name ?? []);
+            $maxCount = max(count($arabicTexts), count($bookNames));
+            for ($i = 0; $i < $maxCount; $i++) {
+                $text = trim($arabicTexts[$i] ?? '');
+                $book = trim($bookNames[$i] ?? '');
+                if (!empty($text) || !empty($book)) {
                     Reference::create([
                         'question_and_answer_id' => $question->id,
-                        'arabic_text'            => $text,
-                        'book_name'              => $request->book_name[$i] ?? '',
+                        'arabic_text'            => $text ?: '—',
+                        'book_name'              => $book ?: '',
                         'language'               => $request->ref_language[$i] ?? 'Arabic',
                         'sort_order'             => $i,
                         'is_draft'               => true,
@@ -336,12 +351,17 @@ class MuftiController extends Controller
         $draftWordCount = str_word_count($plainDraftText);
         $draftSentenceCount = count(array_filter(preg_split('/[.!?\n]+/u', $plainDraftText), fn($s) => trim($s) !== ''));
         $draftRefCount = count(array_filter($request->arabic_text ?? []));
+        $qid = $question->question_id;
+        $nowFormatted = now()->format('h:i A : d-m-Y');
 
         // Log the activity
         FatwaActivityLog::log(
-            $question->id, 'draft_saved', 'Fatwa Number ' . $question->question_id . ' Draft Saved by Scholar ' . Auth::user()->name,
-            'bi-journal-text', 'secondary',
-            'Fatwa Number ' . $question->question_id . ' draft saved by scholar ' . Auth::user()->name . ' @ ' . now()->format('Y-m-d H:i:s') . ' (Letters: ' . number_format($draftCharCount) . ', Words: ' . number_format($draftWordCount) . ', Sentences: ' . number_format($draftSentenceCount) . ($draftRefCount > 0 ? ', ' . $draftRefCount . ' references attached' : '') . ')',
+            $question->id,
+            'draft_saved',
+            'Mufti ' . Auth::user()->name . ' wrote ' . $draftCharCount . ' alphabets in fatwa number ' . $qid . ' @ ' . $nowFormatted,
+            'bi-journal-text',
+            'secondary',
+            'Mufti ' . Auth::user()->name . ' wrote ' . number_format($draftCharCount) . ' alphabets (' . number_format($draftWordCount) . ' words, ' . number_format($draftSentenceCount) . ' sentences' . ($draftRefCount > 0 ? ', ' . $draftRefCount . ' references attached' : '') . ') in fatwa number ' . $qid . ' @ ' . $nowFormatted,
             Auth::id()
         );
 
@@ -358,13 +378,27 @@ class MuftiController extends Controller
 
     public function profile()
     {
-        return view('mufti.profile', ['user' => Auth::user()]);
+        $user = Auth::user();
+
+        // Log settings opened activity
+        FatwaActivityLog::log(
+            null,
+            'settings_opened',
+            'Mufti ' . $user->name . ' Opened Settings Page',
+            'bi-gear-fill',
+            'info',
+            'Mufti ' . $user->name . ' opened settings page @ ' . now()->format('h:i A : d-m-Y'),
+            $user->id
+        );
+
+        return view('mufti.profile', ['user' => $user]);
     }
 
     public function updateProfile(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        $oldMobile = $user->mobile;
 
         $request->validate([
             'email'       => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
@@ -376,8 +410,31 @@ class MuftiController extends Controller
         $user->email = $request->email;
         $user->mobile = $request->mobile;
 
+        // Log mobile number update / addition
+        if ($request->filled('mobile') && $request->mobile !== $oldMobile) {
+            FatwaActivityLog::log(
+                null,
+                'mobile_updated',
+                'Mufti ' . $user->name . ' Added New Mobile Number (' . $request->mobile . ')',
+                'bi-telephone-plus-fill',
+                'primary',
+                'Mufti ' . $user->name . ' added new mobile number (' . $request->mobile . ') from dashboard settings page @ ' . now()->format('h:i A : d-m-Y'),
+                $user->id
+            );
+        }
+
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
+
+            FatwaActivityLog::log(
+                null,
+                'password_reset',
+                'Mufti ' . $user->name . ' Changed Password',
+                'bi-shield-lock-fill',
+                'warning',
+                'Mufti ' . $user->name . ' updated password from dashboard settings page @ ' . now()->format('h:i A : d-m-Y'),
+                $user->id
+            );
         }
 
         $msg = 'Profile updated successfully.';
@@ -418,12 +475,23 @@ class MuftiController extends Controller
             $baseQuery->whereBetween('created_at', [\Carbon\Carbon::parse($startDate)->startOfDay(), \Carbon\Carbon::parse($endDate)->endOfDay()]);
         }
 
-        $totalAssigned = (clone $baseQuery)->count();
-        $totalAnswered = (clone $baseQuery)->whereNotNull('answer')->count();
-        $totalPublished = (clone $baseQuery)->where('status', 'published')->count();
-        $totalPending = (clone $baseQuery)->where('status', 'assigned')->count();
-        $totalViews = (clone $baseQuery)->where('status', 'published')->sum('views');
-        $totalLikes = (clone $baseQuery)->where('status', 'published')->sum('likes');
+        $metrics = (clone $baseQuery)
+            ->selectRaw("
+                count(*) as total_assigned,
+                sum(case when answer is not null and answer != '' then 1 else 0 end) as total_answered,
+                sum(case when status = 'published' then 1 else 0 end) as total_published,
+                sum(case when status = 'assigned' then 1 else 0 end) as total_pending,
+                sum(case when status = 'published' then coalesce(views, 0) else 0 end) as total_views,
+                sum(case when status = 'published' then coalesce(likes, 0) else 0 end) as total_likes
+            ")
+            ->first();
+
+        $totalAssigned = (int) ($metrics->total_assigned ?? 0);
+        $totalAnswered = (int) ($metrics->total_answered ?? 0);
+        $totalPublished = (int) ($metrics->total_published ?? 0);
+        $totalPending = (int) ($metrics->total_pending ?? 0);
+        $totalViews = (int) ($metrics->total_views ?? 0);
+        $totalLikes = (int) ($metrics->total_likes ?? 0);
 
         $completionRate = $totalAssigned > 0 ? round(($totalAnswered / $totalAssigned) * 100, 1) : ($totalAnswered > 0 ? 100 : 0);
         
