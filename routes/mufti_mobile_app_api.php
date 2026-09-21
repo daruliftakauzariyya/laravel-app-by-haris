@@ -15,11 +15,19 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('mufti')->group(function () {
-    // Authentication
+    // Single-Method OTP Authentication
+    Route::post('/send-otp', [MuftiAuthApiController::class, 'sendOtp']);
+    Route::post('/verify-otp', [MuftiAuthApiController::class, 'verifyOtp']);
+
+    // Legacy Password Login
     Route::post('/login', [MuftiAuthApiController::class, 'login']);
 
     // Protected Scholar Routes
     Route::middleware('auth:sanctum')->group(function () {
+        // Real-Time Incoming Assignment Call Check
+        Route::get('/check-incoming-calls', [MuftiQuestionApiController::class, 'checkIncomingCalls']);
+        Route::post('/questions/{id}/mark-opened', [MuftiQuestionApiController::class, 'markOpened']);
+
         // Auth & Identity
         Route::get('/me', [MuftiAuthApiController::class, 'me']);
         Route::post('/logout', [MuftiAuthApiController::class, 'logout']);

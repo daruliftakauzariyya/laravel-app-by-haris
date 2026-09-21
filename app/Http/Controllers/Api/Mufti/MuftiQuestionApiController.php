@@ -4,11 +4,129 @@ namespace App\Http\Controllers\Api\Mufti;
 
 use App\Http\Controllers\Controller;
 use App\Models\QuestionAndAnswer;
+use App\Models\FatwaActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class MuftiQuestionApiController extends Controller
 {
+    /**
+     * Check for live incoming assignments (for mobile app call alerts)
+     * Rule 1: Once a Mufti opens/views a fatwa, call notifications for it must STOP.
+     * Rule 2: If 1 fatwa is newly assigned -> Forward to that specific fatwa.
+     * Rule 3: If >1 fatwas are newly assigned -> Forward to the Mufti Dashboard.
+     */
+    public function checkIncomingCalls(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated'], 401);
+        }
+
+        // 1. Get IDs of all fatwas already opened/viewed by this Mufti
+        $openedQuestionIds = FatwaActivityLog::where('user_id', $user->id)
+            ->where('action', 'mufti_opened')
+            ->pluck('question_and_answer_id')
+            ->toArray();
+
+        // 2. Fetch pending assigned questions that have NOT been opened yet
+        $unopenedAssignedQuery = QuestionAndAnswer::with(['category', 'madhab', 'user'])
+            ->where('assigned_mufti_id', $user->id)
+            ->where('status', 'assigned');
+
+        if (!empty($openedQuestionIds)) {
+            $unopenedAssignedQuery->whereNotIn('id', $openedQuestionIds);
+        }
+
+        $unopenedAssigned = $unopenedAssignedQuery->latest('updated_at')->get();
+        $count = $unopenedAssigned->count();
+
+        if ($count === 0) {
+            return response()->json([
+                'status'            => 'success',
+                'has_incoming_call' => false,
+                'assigned_count'    => 0,
+                'data'              => null,
+            ]);
+        }
+
+        // Rule: Exactly 1 newly assigned fatwa -> Forward directly to that fatwa details screen
+        if ($count === 1) {
+            $single = $unopenedAssigned->first();
+            return response()->json([
+                'status'            => 'success',
+                'has_incoming_call' => true,
+                'assigned_count'    => 1,
+                'forward_target'    => 'task_details',
+                'target_url'        => '/tasks/' . $single->id,
+                'data'              => [
+                    'id'             => $single->id,
+                    'ticket_no'      => $single->question_id ?? ("#" . $single->id),
+                    'title'          => $single->title ?: 'New Question for Ruling',
+                    'question'       => $single->body ?: 'Question assigned for scholarly review and fatwa.',
+                    'category'       => $single->category?->name ?? 'General Fiqh',
+                    'madhab'         => $single->madhab?->name ?? 'Hanafi',
+                    'asker_name'     => $single->user?->name ?? 'Darul Ifta Questioner',
+                    'urgency'        => 'HIGH PRIORITY',
+                    'assigned_count' => 1,
+                    'forward_target' => 'task_details',
+                    'target_url'     => '/tasks/' . $single->id,
+                    'assigned_at'    => $single->updated_at ? $single->updated_at->toIso8601String() : now()->toIso8601String(),
+                ]
+            ]);
+        }
+
+        // Rule: More than 1 newly assigned fatwas -> Forward to Mufti Dashboard
+        $firstItem = $unopenedAssigned->first();
+        return response()->json([
+            'status'            => 'success',
+            'has_incoming_call' => true,
+            'assigned_count'    => $count,
+            'forward_target'    => 'dashboard',
+            'target_url'        => '/',
+            'data'              => [
+                'id'             => $firstItem->id,
+                'ticket_no'      => "{$count} NEW FATWAS",
+                'title'          => "{$count} New Questions Assigned for Your Ruling",
+                'question'       => "You have {$count} unreviewed scholarly inquiries waiting in your workspace.",
+                'category'       => 'Multiple Inquiries',
+                'madhab'         => 'Darul Ifta Council',
+                'asker_name'     => 'Darul Ifta Academic Desk',
+                'urgency'        => 'URGENT DISPATCH',
+                'assigned_count' => $count,
+                'forward_target' => 'dashboard',
+                'target_url'     => '/',
+                'assigned_at'    => $firstItem->updated_at ? $firstItem->updated_at->toIso8601String() : now()->toIso8601String(),
+            ]
+        ]);
+    }
+
+    /**
+     * Mark Question as Opened by Mufti (silences future call notifications)
+     */
+    public function markOpened(Request $request, $id)
+    {
+        $user = Auth::user();
+        $question = QuestionAndAnswer::findOrFail($id);
+
+        if ($user) {
+            FatwaActivityLog::log(
+                $question->id,
+                'mufti_opened',
+                'Mufti ' . $user->name . ' Opened the Fatwa',
+                'bi-eye-fill',
+                'info',
+                'Mufti ' . $user->name . ' opened the fatwa @ ' . now()->format('Y-m-d H:i:s'),
+                $user->id
+            );
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Fatwa marked as opened.',
+        ]);
+    }
+
     /**
      * Tabbed Scholarly Inquiry Repository
      */
@@ -93,7 +211,7 @@ class MuftiQuestionApiController extends Controller
             ->findOrFail($id);
 
         if ($user && $question->assigned_mufti_id === $user->id) {
-            \App\Models\FatwaActivityLog::log(
+            FatwaActivityLog::log(
                 $question->id,
                 'mufti_opened',
                 'Mufti ' . $user->name . ' Opened the Fatwa',
