@@ -54,7 +54,7 @@
             <div class="p-3.5 px-4 border-bottom d-flex flex-wrap justify-content-between align-items-center bg-white gap-2">
                 <div>
                     <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                        <i class="bi bi-graph-up text-primary"></i> Knowledge Growth & Fatwa Progression
+                        <i class="bi bi-graph-up text-primary"></i> Knowledge Growth &amp; Fatwa Progression
                     </h6>
                     <div class="text-muted small mt-0.5">Lifelong institutional trajectory across all inquiries</div>
                 </div>
@@ -109,13 +109,13 @@
             </div>
             @endif
 
-            <div class="p-4 flex-grow-1 d-flex flex-column bg-white">
-                <div class="flex-grow-1 position-relative mb-3" style="min-height: 320px; width: 100%;">
-                    <canvas id="lifelongChart"></canvas>
+            <div class="p-4 bg-white d-flex flex-column justify-content-between flex-grow-1">
+                <div class="position-relative w-100 mb-3" style="height: 330px; min-height: 330px; max-height: 330px; overflow: hidden;">
+                    <canvas id="lifelongChart" style="display: block; width: 100%; height: 100%;"></canvas>
                 </div>
 
                 {{-- Chart Metric Ribbon --}}
-                <div class="row g-2 pt-3 border-top">
+                <div class="row g-2 pt-3 border-top mt-auto">
                     <div class="col-sm-3 col-6">
                         <div class="p-2.5 rounded-3 bg-light border text-center">
                             <div class="text-muted text-uppercase fw-bold" style="font-size: 0.68rem;">Total Inquiries</div>
@@ -146,79 +146,115 @@
     </div>
 
     {{-- Right Column: Live Visitors & System Quick Actions --}}
-    <div class="col-lg-4">
+    <div class="col-lg-4 d-flex flex-column gap-3">
         {{-- Live Visitors Telemetry Card --}}
-        <div class="modern-card p-4 mb-3 position-relative overflow-hidden" style="background: linear-gradient(135deg, #102B43, #1E3A8A); color: #fff;">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="small fw-bold text-uppercase d-flex align-items-center gap-2" style="letter-spacing: 0.8px;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 8px #4ADE80;"></span>
-                    Live Visitors Telemetry
+        <div class="modern-card p-4 position-relative overflow-hidden">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge" style="background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; font-size: 0.74rem; font-weight: 700; border-radius: 20px; padding: 4px 10px;">
+                        <span class="live-pulse-dot me-1.5" style="width: 7px; height: 7px;"></span> Live Visitors Telemetry
+                    </span>
+                    <span class="text-muted small fw-semibold">Global Traffic</span>
                 </div>
-                <i class="bi bi-broadcast opacity-50 fs-5"></i>
+                <div class="d-inline-flex p-2 rounded-3" style="background: #EFF6FF; color: #2563EB;">
+                    <i class="bi bi-broadcast fs-6"></i>
+                </div>
             </div>
-            <h1 class="fw-bold mb-0 text-white" id="live-users-count" style="font-size: 2.4rem;">
-                {{ number_format($stats['live_by_ip']) }}
-            </h1>
-            <p class="small text-white-50 mb-0 mt-1">Real-time unique client IP signals</p>
+            
+            <div class="d-flex align-items-baseline gap-2 mb-1">
+                <h2 class="fw-bold mb-0 text-dark" id="live-users-count" style="font-size: 2.3rem; letter-spacing: -0.5px;">
+                    {{ number_format($stats['live_by_ip']) }}
+                </h2>
+                <span class="text-muted small fw-medium">Active visitor {{ $stats['live_by_ip'] == 1 ? 'connection' : 'connections' }}</span>
+            </div>
+            <p class="text-muted small mb-0" style="font-size: 0.78rem;">
+                <i class="bi bi-shield-check text-success me-1"></i> Real-time unique client IP signals &amp; session telemetry
+            </p>
         </div>
 
         {{-- Fatwa Dossier PDF Export Card --}}
-        <div class="modern-card p-3.5 mb-3" style="border-left: 4px solid #10B981 !important;">
-            <div class="d-flex justify-content-between align-items-center mb-1.5">
-                <h6 class="fw-bold mb-0 text-dark small text-uppercase" style="letter-spacing: 0.5px;">
-                    <i class="bi bi-file-earmark-pdf text-success me-1"></i> Fatwa Dossier PDF Export
-                </h6>
-                <span class="badge" style="background: #ECFDF5; color: #059669; font-size: 10px;">Google Noto</span>
+        <div class="modern-card p-4">
+            <div class="d-flex justify-content-between align-items-start mb-2.5">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="d-inline-flex p-2 rounded-3" style="background: #FEF2F2; color: #DC2626;">
+                        <i class="bi bi-file-earmark-pdf-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">Fatwa Dossier Export</h6>
+                        <span class="text-muted" style="font-size: 0.72rem;">Printable A4 format with Google Noto</span>
+                    </div>
+                </div>
+                <span class="badge" style="background: #EFF6FF; color: #2563EB; font-size: 10px; font-weight: 700; border-radius: 20px; padding: 4px 9px;">
+                    Multi-lingual
+                </span>
             </div>
-            <p class="text-muted small mb-3" style="font-size: 0.78rem;">Export inquiries to A4 printable PDF with auto multilingual rendering.</p>
+            
+            <p class="text-muted small mb-3" style="font-size: 0.78rem; line-height: 1.45;">
+                Compile inquiries into high-resolution printable dossiers with automatic Arabic, Malayalam, and Urdu typography.
+            </p>
             
             <div class="d-grid gap-2">
                 <a href="{{ route('admin.fatwas.export.pdf', ['status' => 'pending,accepted']) }}" target="_blank" class="btn btn-modern-primary justify-content-between py-2">
                     <span class="d-flex align-items-center gap-2">
                         <i class="bi bi-cloud-arrow-down"></i>
-                        <span>Download Pending & Accepted</span>
+                        <span>Download Pending &amp; Accepted</span>
                     </span>
                     <i class="bi bi-box-arrow-up-right small"></i>
                 </a>
 
                 <button type="button" class="btn btn-modern-secondary justify-content-center py-2" data-bs-toggle="modal" data-bs-target="#exportPdfModal">
-                    <i class="bi bi-sliders"></i> Custom PDF Export Filters
+                    <i class="bi bi-sliders me-1.5"></i> Custom PDF Export Filters
                 </button>
             </div>
         </div>
 
         {{-- Quick Maintenance Actions --}}
-        <div class="modern-card p-3.5">
-            <h6 class="fw-bold mb-3 small text-uppercase text-muted" style="letter-spacing: 0.5px;">System Shortcuts</h6>
+        <div class="modern-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="d-inline-flex p-1.5 rounded-2" style="background: #FFFBEB; color: #D97706;">
+                        <i class="bi bi-lightning-charge-fill" style="font-size: 0.85rem;"></i>
+                    </div>
+                    <h6 class="fw-bold mb-0 text-dark small text-uppercase" style="letter-spacing: 0.6px;">System Shortcuts</h6>
+                </div>
+                <span class="badge" style="background: #F1F5F9; color: #64748B; font-size: 10px; font-weight: 700;">Utilities</span>
+            </div>
+            
             <div class="d-grid gap-2">
-                <a href="{{ route('admin.maintenance.clear-cache') }}" class="btn btn-light border text-start d-flex align-items-center justify-content-between p-2.5 rounded-3">
+                <a href="{{ route('admin.maintenance.clear-cache') }}" class="modern-shortcut-tile d-flex align-items-center justify-content-between p-2.5 rounded-3 border text-decoration-none bg-white">
                     <div class="d-flex align-items-center gap-2.5">
-                        <i class="bi bi-stars text-warning fs-5"></i>
+                        <div class="d-inline-flex p-2 rounded-2" style="background: #FFFBEB; color: #D97706;">
+                            <i class="bi bi-stars"></i>
+                        </div>
                         <div>
                             <div class="fw-bold text-dark small">Flush Cache</div>
-                            <div class="text-muted" style="font-size: 0.72rem;">Purge application view & route cache</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">Purge application view &amp; route cache</div>
                         </div>
                     </div>
                     <i class="bi bi-chevron-right text-muted small"></i>
                 </a>
 
-                <a href="{{ route('admin.settings.system') }}" class="btn btn-light border text-start d-flex align-items-center justify-content-between p-2.5 rounded-3">
+                <a href="{{ route('admin.settings.system') }}" class="modern-shortcut-tile d-flex align-items-center justify-content-between p-2.5 rounded-3 border text-decoration-none bg-white">
                     <div class="d-flex align-items-center gap-2.5">
-                        <i class="bi bi-gear text-primary fs-5"></i>
+                        <div class="d-inline-flex p-2 rounded-2" style="background: #EFF6FF; color: #2563EB;">
+                            <i class="bi bi-gear-wide-connected"></i>
+                        </div>
                         <div>
                             <div class="fw-bold text-dark small">System Configuration</div>
-                            <div class="text-muted" style="font-size: 0.72rem;">Manage portal & calendar parameters</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">Manage portal &amp; calendar parameters</div>
                         </div>
                     </div>
                     <i class="bi bi-chevron-right text-muted small"></i>
                 </a>
 
-                <a href="/system-health" target="_blank" class="btn btn-light border text-start d-flex align-items-center justify-content-between p-2.5 rounded-3">
+                <a href="/system-health" target="_blank" class="modern-shortcut-tile d-flex align-items-center justify-content-between p-2.5 rounded-3 border text-decoration-none bg-white">
                     <div class="d-flex align-items-center gap-2.5">
-                        <i class="bi bi-shield-check text-info fs-5"></i>
+                        <div class="d-inline-flex p-2 rounded-2" style="background: #ECFDF5; color: #059669;">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
                         <div>
                             <div class="fw-bold text-dark small">Diagnostics Portal</div>
-                            <div class="text-muted" style="font-size: 0.72rem;">Server, DB & API health telemetry</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">Server, DB &amp; API health telemetry</div>
                         </div>
                     </div>
                     <i class="bi bi-box-arrow-up-right text-muted small"></i>
@@ -375,17 +411,23 @@
         <div class="modern-card p-4 h-100">
             <h6 class="fw-bold mb-3 small text-uppercase text-muted" style="letter-spacing: 0.5px;">Geographic Signals</h6>
             @forelse($geoReach as $reach)
+            @php
+                $rCountry = data_get($reach, 'country', 'Unknown');
+                $rTotal = (int) data_get($reach, 'total_count', 0);
+                $rTopRegion = data_get($reach, 'top_region', 'General');
+                $rRegionCount = (int) data_get($reach, 'region_count', 0);
+            @endphp
             <div class="mb-3.5 pb-2.5 border-bottom">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="small fw-bold text-dark">{{ $reach['country'] }}</span>
-                    <span class="small text-primary fw-bold">{{ number_format($reach['total_count']) }}</span>
+                    <span class="small fw-bold text-dark">{{ $rCountry }}</span>
+                    <span class="small text-primary fw-bold">{{ number_format($rTotal) }}</span>
                 </div>
                 <div class="progress" style="height: 6px; border-radius: 10px; background: #E2E8F0;">
                     <div class="progress-bar" style="background: var(--primary-blue); width: {{ $loop->first ? '100%' : rand(30, 85).'%' }}; border-radius: 10px;"></div>
                 </div>
                 <div class="mt-1.5 d-flex justify-content-between text-muted" style="font-size: 0.72rem;">
-                    <span><i class="bi bi-geo-alt me-1"></i>{{ $reach['top_region'] }}</span>
-                    <span>{{ number_format($reach['region_count']) }} hits</span>
+                    <span><i class="bi bi-geo-alt me-1"></i>{{ $rTopRegion }}</span>
+                    <span>{{ number_format($rRegionCount) }} hits</span>
                 </div>
             </div>
             @empty
@@ -404,40 +446,49 @@
 {{-- Custom PDF Export Configuration Modal --}}
 <div class="modal fade" id="exportPdfModal" tabindex="-1" aria-labelledby="exportPdfModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 18px; overflow: hidden; border: 1px solid #E2E8F0;">
             <form action="{{ route('admin.fatwas.export.pdf') }}" method="GET" target="_blank">
-                <div class="modal-header text-white" style="background: var(--brand-navy-dark); padding: 1.25rem 1.5rem;">
-                    <div>
-                        <h5 class="modal-title fw-bold mb-0 d-flex align-items-center gap-2" id="exportPdfModalLabel">
-                            <i class="bi bi-file-earmark-pdf-fill text-warning"></i> Bulk PDF Dossier Export
-                        </h5>
-                        <p class="mb-0 text-white-50 small mt-1" style="font-size: 0.78rem;">Export high-resolution printable PDF with 1 Question Per Page & Google Noto Fonts.</p>
+                <div class="modal-header bg-white border-bottom p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-inline-flex p-2.5 rounded-3" style="background: #EFF6FF; color: #2563EB;">
+                            <i class="bi bi-file-earmark-pdf-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark mb-0" id="exportPdfModalLabel">
+                                Bulk PDF Dossier Export
+                            </h5>
+                            <p class="mb-0 text-muted small mt-0.5">Configure criteria, font engines, and print layouts (1 Question Per Page).</p>
+                        </div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 
-                <div class="modal-body p-4 bg-light">
+                <div class="modal-body p-4 bg-light bg-opacity-50">
                     {{-- Status Selection --}}
-                    <div class="card border-0 shadow-xs mb-3">
-                        <div class="card-body p-3">
-                            <label class="form-label fw-bold text-dark small mb-2 d-flex justify-content-between align-items-center">
-                                <span><i class="bi bi-check2-square text-success me-1"></i> Select Inquiry Statuses:</span>
+                    <div class="card border-0 shadow-xs mb-3 bg-white rounded-3 border">
+                        <div class="card-body p-3.5">
+                            <label class="form-label fw-bold text-dark small mb-2.5 d-flex justify-content-between align-items-center">
+                                <span class="d-flex align-items-center gap-1.5">
+                                    <i class="bi bi-check2-square text-primary"></i> Target Fatwa Statuses
+                                </span>
                                 <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small fw-bold" onclick="toggleAllStatuses(this)">Select All</button>
                             </label>
                             <div class="row g-2">
                                 @foreach([
-                                    ['pending', 'Pending', 'text-warning', true],
-                                    ['accepted', 'Accepted', 'text-primary', true],
-                                    ['assigned', 'Assigned', 'text-info', false],
-                                    ['answered', 'Answered', 'text-secondary', false],
-                                    ['published', 'Published', 'text-success', false],
-                                    ['rejected', 'Rejected', 'text-danger', false],
-                                ] as [$sVal, $sLbl, $sColor, $checked])
+                                    ['pending', 'Pending', '#FFFBEB', '#D97706', true],
+                                    ['accepted', 'Accepted', '#EFF6FF', '#2563EB', true],
+                                    ['assigned', 'Assigned', '#F0F9FF', '#0284C7', false],
+                                    ['answered', 'Answered', '#FAF5FF', '#9333EA', false],
+                                    ['published', 'Published', '#ECFDF5', '#059669', false],
+                                    ['rejected', 'Rejected', '#FEF2F2', '#DC2626', false],
+                                ] as [$sVal, $sLbl, $sBg, $sColor, $checked])
                                 <div class="col-sm-4 col-6">
-                                    <div class="form-check p-2 bg-white rounded border">
-                                        <input class="form-check-input status-checkbox ms-1" type="checkbox" name="status[]" value="{{ $sVal }}" id="st_{{ $sVal }}" {{ $checked ? 'checked' : '' }}>
-                                        <label class="form-check-label ms-2 small fw-semibold {{ $sColor }}" for="st_{{ $sVal }}">{{ $sLbl }}</label>
-                                    </div>
+                                    <label class="d-flex align-items-center gap-2 p-2 rounded-3 border cursor-pointer w-100 mb-0" style="background: #FAFBFD; border-color: #E2E8F0 !important;">
+                                        <input class="form-check-input status-checkbox m-0" type="checkbox" name="status[]" value="{{ $sVal }}" id="st_{{ $sVal }}" {{ $checked ? 'checked' : '' }}>
+                                        <span class="small fw-semibold" style="color: {{ $sColor }};">
+                                            ● {{ $sLbl }}
+                                        </span>
+                                    </label>
                                 </div>
                                 @endforeach
                             </div>
@@ -447,32 +498,32 @@
                     <div class="row g-3">
                         {{-- Language Selection --}}
                         <div class="col-md-6">
-                            <div class="card border-0 shadow-xs h-100">
-                                <div class="card-body p-3">
-                                    <label class="form-label fw-bold text-dark small mb-1">
-                                        <i class="bi bi-translate text-primary me-1"></i> Language & Font Engine:
+                            <div class="card border-0 shadow-xs h-100 bg-white rounded-3 border">
+                                <div class="card-body p-3.5">
+                                    <label class="form-label fw-bold text-dark small mb-1.5 d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-translate text-primary"></i> Language &amp; Font Engine
                                     </label>
-                                    <select class="form-select modern-select" name="language">
+                                    <select class="modern-select" name="language">
                                         <option value="all" selected>All Languages (Auto Noto Font)</option>
                                         <option value="Malayalam">Malayalam (Noto Serif Malayalam)</option>
-                                        <option value="Arabic">Arabic (Noto Naskh Arabic & Amiri)</option>
+                                        <option value="Arabic">Arabic (Noto Naskh Arabic &amp; Amiri)</option>
                                         <option value="Urdu">Urdu (Noto Nastaliq Urdu)</option>
                                         <option value="English">English / Latin (Noto Sans)</option>
                                     </select>
-                                    <div class="text-muted mt-1" style="font-size: 0.72rem;">Font family will render cleanly according to language selection.</div>
+                                    <div class="text-muted mt-1.5" style="font-size: 0.72rem;">Font family applies dynamically to Malayalam, Urdu, and Arabic.</div>
                                 </div>
                             </div>
                         </div>
 
                         {{-- Madhab & Category Filter --}}
                         <div class="col-md-6">
-                            <div class="card border-0 shadow-xs h-100">
-                                <div class="card-body p-3">
-                                    <div class="mb-2">
-                                        <label class="form-label fw-bold text-dark small mb-1">
-                                            <i class="bi bi-compass text-secondary me-1"></i> Madhab Filter:
+                            <div class="card border-0 shadow-xs h-100 bg-white rounded-3 border">
+                                <div class="card-body p-3.5">
+                                    <div class="mb-2.5">
+                                        <label class="form-label fw-bold text-dark small mb-1.5 d-flex align-items-center gap-1.5">
+                                            <i class="bi bi-book text-primary"></i> Jurisprudence School (Madhab)
                                         </label>
-                                        <select class="form-select modern-select" name="madhab_id">
+                                        <select class="modern-select" name="madhab_id">
                                             <option value="">All Madhabs</option>
                                             @foreach($madhabs ?? [] as $m)
                                                 <option value="{{ $m->id }}">{{ $m->name }}</option>
@@ -480,10 +531,10 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="form-label fw-bold text-dark small mb-1">
-                                            <i class="bi bi-folder2-open text-warning me-1"></i> Category Filter:
+                                        <label class="form-label fw-bold text-dark small mb-1.5 d-flex align-items-center gap-1.5">
+                                            <i class="bi bi-folder2 text-primary"></i> Category Catalog
                                         </label>
-                                        <select class="form-select modern-select" name="category_id">
+                                        <select class="modern-select" name="category_id">
                                             <option value="">All Categories</option>
                                             @foreach($categories ?? [] as $c)
                                                 <option value="{{ $c->id }}">{{ $c->name }}</option>
@@ -496,21 +547,21 @@
                     </div>
 
                     {{-- Export Output Preferences --}}
-                    <div class="card border-0 shadow-xs mt-3">
-                        <div class="card-body p-3">
+                    <div class="card border-0 shadow-xs mt-3 bg-white rounded-3 border">
+                        <div class="card-body p-3.5">
                             <div class="row align-items-center">
-                                <div class="col-md-6">
+                                <div class="col-md-7">
                                     <div class="form-check form-switch mb-0">
                                         <input class="form-check-input" type="checkbox" name="auto_print" value="1" id="autoPrintSwitch" checked>
-                                        <label class="form-check-label small fw-semibold" for="autoPrintSwitch">
-                                            Auto-open Print / Save as PDF dialog
+                                        <label class="form-check-label small fw-semibold text-dark" for="autoPrintSwitch">
+                                            Auto-open System Print / PDF Dialog
                                         </label>
                                     </div>
                                     <div class="text-muted ps-4" style="font-size: 0.72rem;">Opens printer dialog directly on page load</div>
                                 </div>
-                                <div class="col-md-6 text-md-end mt-2 mt-md-0">
-                                    <span class="badge" style="background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; padding: 4px 10px;">
-                                        <i class="bi bi-file-break me-1"></i> 1 Question Per Page (Strict CSS Break)
+                                <div class="col-md-5 text-md-end mt-2 mt-md-0">
+                                    <span class="badge" style="background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; padding: 5px 10px; border-radius: 20px; font-size: 0.74rem;">
+                                        <i class="bi bi-file-break me-1"></i> 1 Question Per Page
                                     </span>
                                 </div>
                             </div>
@@ -518,16 +569,29 @@
                     </div>
                 </div>
 
-                <div class="modal-footer bg-white border-top p-3 d-flex justify-content-between">
-                    <button type="button" class="btn btn-modern-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-modern-primary">
-                        <i class="bi bi-file-earmark-pdf-fill"></i> Generate & Download PDF
+                <div class="modal-footer bg-white border-top p-3.5 px-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-modern-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-modern-primary px-4">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> Generate &amp; Download PDF
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<style>
+.modern-shortcut-tile {
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    border-color: #E2E8F0 !important;
+}
+.modern-shortcut-tile:hover {
+    border-color: #2563EB !important;
+    background-color: #F8FAFC !important;
+    transform: translateX(3px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+}
+</style>
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -550,8 +614,10 @@ const lifelongData = {
                 backgroundColor: 'rgba(37, 99, 235, 0.85)',
                 borderColor: '#2563EB',
                 borderWidth: 1.5,
-                borderRadius: 8,
-                barPercentage: 0.55
+                borderRadius: 6,
+                maxBarThickness: 38,
+                barPercentage: 0.6,
+                categoryPercentage: 0.7
             },
             {
                 label: 'Published Fatwas',
@@ -559,8 +625,10 @@ const lifelongData = {
                 backgroundColor: 'rgba(16, 185, 129, 0.85)',
                 borderColor: '#10B981',
                 borderWidth: 1.5,
-                borderRadius: 8,
-                barPercentage: 0.55
+                borderRadius: 6,
+                maxBarThickness: 38,
+                barPercentage: 0.6,
+                categoryPercentage: 0.7
             }
         ],
         type: 'bar'
@@ -601,6 +669,54 @@ const lifelongData = {
     }
 };
 
+const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 350 },
+    interaction: {
+        mode: 'index',
+        intersect: false
+    },
+    plugins: {
+        legend: {
+            display: true,
+            position: 'top',
+            labels: {
+                boxWidth: 12,
+                boxHeight: 12,
+                usePointStyle: true,
+                font: { size: 11, weight: '600' }
+            }
+        },
+        tooltip: {
+            backgroundColor: '#0F172A',
+            padding: 10,
+            cornerRadius: 8
+        }
+    },
+    scales: {
+        y: {
+            grid: { color: '#F1F5F9' },
+            beginAtZero: true,
+            ticks: {
+                color: '#64748B',
+                font: { size: 11 },
+                precision: 0
+            }
+        },
+        x: {
+            grid: { display: false },
+            ticks: {
+                color: '#64748B',
+                font: { size: 11, weight: '600' },
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 12
+            }
+        }
+    }
+};
+
 const ctx = document.getElementById('lifelongChart').getContext('2d');
 let currentChart = new Chart(ctx, {
     type: lifelongData.yearly.type,
@@ -608,40 +724,7 @@ let currentChart = new Chart(ctx, {
         labels: lifelongData.yearly.labels,
         datasets: lifelongData.yearly.datasets
     },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-            mode: 'index',
-            intersect: false
-        },
-        plugins: {
-            legend: {
-                display: true,
-                position: 'top',
-                labels: {
-                    boxWidth: 12,
-                    boxHeight: 12,
-                    usePointStyle: true,
-                    font: { size: 11, weight: 'bold' }
-                }
-            },
-            tooltip: {
-                backgroundColor: '#0F172A',
-                padding: 10,
-                cornerRadius: 8
-            }
-        },
-        scales: {
-            y: {
-                grid: { color: '#F1F5F9' },
-                beginAtZero: true
-            },
-            x: {
-                grid: { display: false }
-            }
-        }
-    }
+    options: chartOptions
 });
 
 function switchChartView(mode) {
@@ -657,10 +740,17 @@ function switchChartView(mode) {
     }
 
     const cfg = lifelongData[mode];
-    currentChart.config.type = cfg.type;
-    currentChart.data.labels = cfg.labels;
-    currentChart.data.datasets = cfg.datasets;
-    currentChart.update();
+    if (currentChart) {
+        currentChart.destroy();
+    }
+    currentChart = new Chart(ctx, {
+        type: cfg.type,
+        data: {
+            labels: cfg.labels,
+            datasets: cfg.datasets
+        },
+        options: chartOptions
+    });
 }
 
 async function fetchLiveUsers() {

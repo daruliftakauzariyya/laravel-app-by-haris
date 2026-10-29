@@ -2,6 +2,15 @@
 
 @section('title', 'Scholar Work History — ' . $user->name)
 @section('topbar-title', 'Scholar Work History & Activity Timeline')
+@section('topbar-icon', 'bi-hourglass-split')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <a href="{{ route('admin.muftis.index') }}">Muftis</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">Work History</span>
+@endsection
 
 @section('content')
 <div class="mufti-history-hub pb-5">

@@ -2,6 +2,15 @@
 
 @section('title', 'Pending Details — ' . $mufti->name)
 @section('topbar-title', 'Mufti Pending Work')
+@section('topbar-icon', 'bi-envelope-paper-fill')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <a href="{{ route('admin.mail-management.index') }}">Mailing</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">{{ $mufti->name }}</span>
+@endsection
 
 @section('content')
 <div class="container-fluid p-0">

@@ -91,8 +91,13 @@ class DashboardController extends Controller
             ];
 
             // Lifelong Yearly Progression (2019 to Present)
+            $isMysql = \Illuminate\Support\Facades\DB::getDriverName() === 'mysql';
+            $yearExpr = $isMysql ? "DATE_FORMAT(created_at, '%Y')" : "strftime('%Y', created_at)";
+            $monthExpr = $isMysql ? "DATE_FORMAT(created_at, '%Y-%m')" : "strftime('%Y-%m', created_at)";
+            $monthLabelExpr = $isMysql ? "DATE_FORMAT(created_at, '%b %Y')" : "strftime('%m-%Y', created_at)";
+
             $yearlyData = QuestionAndAnswer::selectRaw("
-                    DATE_FORMAT(created_at, '%Y') as yr,
+                    {$yearExpr} as yr,
                     COUNT(*) as total_count,
                     SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published_count
                 ")
@@ -107,8 +112,8 @@ class DashboardController extends Controller
 
             // Lifelong Monthly Progression
             $monthlyLifelongData = QuestionAndAnswer::selectRaw("
-                    DATE_FORMAT(created_at, '%Y-%m') as ym,
-                    DATE_FORMAT(created_at, '%b %Y') as label,
+                    {$monthExpr} as ym,
+                    {$monthLabelExpr} as label,
                     COUNT(*) as total_count
                 ")
                 ->whereNotNull('created_at')

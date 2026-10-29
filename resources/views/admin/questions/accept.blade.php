@@ -1,6 +1,15 @@
 @extends('layouts.admin')
 @section('title', 'Accept Question ' . $question->question_id)
-@section('topbar-title', 'Accept Question')
+@section('topbar-title', 'Accept & Triage Question')
+@section('topbar-icon', 'bi-check2-circle')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <a href="{{ route('admin.questions.index') }}">Questions</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">Accept</span>
+@endsection
 @section('content')
 <div class="row g-4">
     {{-- Left: Original Question Review --}}

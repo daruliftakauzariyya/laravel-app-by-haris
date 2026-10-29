@@ -1,6 +1,15 @@
 @extends('layouts.admin')
 @section('title', $user->name . ' — Questioner Detail')
 @section('topbar-title', 'Questioner: ' . $user->name)
+@section('topbar-icon', 'bi-person-lines-fill')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <a href="{{ route('admin.questioners.index') }}">Questioners</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">{{ $user->name }}</span>
+@endsection
 @section('content')
 
 {{-- Profile Card --}}

@@ -1,12 +1,22 @@
 @extends('layouts.admin')
 @section('title', 'Question ' . $question->question_id)
-@section('topbar-title', 'Question Details')
+@section('topbar-title', 'Question ' . $question->question_id)
+@section('topbar-icon', 'bi-file-earmark-check-fill')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <a href="{{ route('admin.questions.index') }}">Questions</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">{{ $question->question_id }}</span>
+@endsection
+
 @section('content')
 <div class="row g-4">
     {{-- Left: Question detail --}}
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="modern-card mb-4 overflow-hidden">
+            <div class="p-3.5 px-4 bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
                     <span class="badge bg-secondary me-2">{{ $question->question_id }}</span>
                     <span class="badge badge-status-{{ $question->status }} me-2">{{ ucfirst(str_replace('_',' ',$question->status)) }}</span>

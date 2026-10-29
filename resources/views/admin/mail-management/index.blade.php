@@ -2,28 +2,35 @@
 
 @section('title', 'Mailing Management')
 @section('topbar-title', 'Mailing Management')
+@section('topbar-icon', 'bi-envelope-paper-fill')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">Mailing Management</span>
+@endsection
 
 @section('content')
 <div class="container-fluid p-0">
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 15px;">
-                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+            <div class="modern-card overflow-hidden">
+                <div class="p-3.5 px-4 bg-white border-bottom d-flex align-items-center justify-content-between">
                     <div>
-                        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-envelope-paper me-2 text-brand"></i>Mufti Notification Control</h5>
+                        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-envelope-paper me-2 text-primary"></i>Mufti Notification Control</h5>
                         <p class="text-muted small mb-0">Monitor pending tasks and manually trigger reminder emails to scholars.</p>
                     </div>
                 </div>
-                <div class="card-body p-0">
+                <div class="p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light">
+                        <table class="modern-table align-middle mb-0">
+                            <thead>
                                 <tr>
-                                    <th class="ps-4 py-3 text-uppercase small fw-bold text-muted" style="letter-spacing: 1px;">Scholar Name</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted" style="letter-spacing: 1px;">Email Address</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted text-center" style="letter-spacing: 1px;">Awaiting Answer</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted text-center" style="letter-spacing: 1px;">Status</th>
-                                    <th class="pe-4 py-3 text-uppercase small fw-bold text-muted text-end" style="letter-spacing: 1px;">Actions</th>
+                                    <th class="ps-4">Scholar Faculty</th>
+                                    <th>Email Address</th>
+                                    <th class="text-center">Awaiting Answer</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="pe-4 text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -31,7 +38,7 @@
                                 <tr>
                                     <td class="ps-4">
                                         <div class="d-flex align-items-center gap-3">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-brand-light text-brand fw-bold" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                            <div class="avatar-monogram" style="background: #EFF6FF; color: #2563EB; width: 40px; height: 40px;">
                                                 {{ substr($mufti->name, 0, 1) }}
                                             </div>
                                             <div>
@@ -45,36 +52,36 @@
                                     </td>
                                     <td class="text-center">
                                         @if($mufti->pending_count > 0)
-                                            <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2 fw-bold" style="font-size: 0.85rem;">
+                                            <span class="badge rounded-pill" style="background: #FEE2E2; color: #DC2626; padding: 5px 12px; font-weight: 700; font-size: 0.82rem;">
                                                 {{ $mufti->pending_count }} Awaiting
                                             </span>
                                         @else
-                                            <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2 fw-bold" style="font-size: 0.85rem;">
+                                            <span class="badge rounded-pill" style="background: #ECFDF5; color: #059669; padding: 5px 12px; font-weight: 700; font-size: 0.82rem;">
                                                 0 Awaiting
                                             </span>
                                         @endif
                                     </td>
                                     <td class="text-center">
                                         @if($mufti->is_active)
-                                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1 small">Active</span>
+                                            <span class="status-badge status-published">● Active</span>
                                         @else
-                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle px-2 py-1 small">Inactive</span>
+                                            <span class="status-badge status-rejected">● Inactive</span>
                                         @endif
                                     </td>
                                     <td class="pe-4 text-end">
                                         <div class="d-flex justify-content-end gap-2">
-                                            <a href="{{ route('admin.mail-management.show', $mufti->id) }}" class="btn btn-sm btn-outline-brand px-3">
+                                            <a href="{{ route('admin.mail-management.show', $mufti->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold" style="font-size: 0.8rem;">
                                                 <i class="bi bi-eye me-1"></i> View Details
                                             </a>
                                             @if($mufti->pending_count > 0)
                                                 <form action="{{ route('admin.mail-management.send', $mufti->id) }}" method="POST" class="d-inline">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-sm btn-brand px-3 shadow-sm" onclick="return confirm('Trigger a reminder email to {{ $mufti->name }} immediately?')">
+                                                    <button type="submit" class="btn btn-sm btn-modern-primary py-1 px-3" onclick="return confirm('Trigger a reminder email to {{ $mufti->name }} immediately?')">
                                                         <i class="bi bi-send-fill me-1 small"></i> Send Mail
                                                     </button>
                                                 </form>
                                             @else
-                                                <button class="btn btn-sm btn-light px-3 text-muted border" disabled>
+                                                <button class="btn btn-sm btn-light px-3 text-muted border rounded-pill" disabled style="font-size: 0.8rem;">
                                                     <i class="bi bi-send me-1 small"></i> Send Mail
                                                 </button>
                                             @endif

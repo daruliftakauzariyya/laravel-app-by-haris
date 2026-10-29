@@ -1,6 +1,15 @@
 @extends('layouts.admin')
 @section('title', 'Edit Mufti Profile')
 @section('topbar-title', 'Updating Scholar Profile')
+@section('topbar-icon', 'bi-person-gear')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <a href="{{ route('admin.muftis.index') }}">Muftis</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">Edit Profile</span>
+@endsection
 @section('content')
 
 <div class="row justify-content-center g-4">

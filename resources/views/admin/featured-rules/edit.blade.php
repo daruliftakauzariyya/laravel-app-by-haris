@@ -1,6 +1,15 @@
 @extends('layouts.admin')
 @section('title', 'Edit Featured Rule')
 @section('topbar-title', 'Edit Featured Fatwa Rule')
+@section('topbar-icon', 'bi-stars')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <a href="{{ route('admin.featured-rules.index') }}">Featured Rules</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">Edit Rule</span>
+@endsection
 @section('content')
 
 @php

@@ -2,6 +2,15 @@
 
 @section('title', 'Academic Impact — ' . $user->name)
 @section('topbar-title', 'Scholar Performance Insights')
+@section('topbar-icon', 'bi-mortarboard-fill')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <a href="{{ route('admin.muftis.index') }}">Muftis</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">{{ $user->name }}</span>
+@endsection
 
 @section('content')
 <div class="activity-wrapper pb-5">

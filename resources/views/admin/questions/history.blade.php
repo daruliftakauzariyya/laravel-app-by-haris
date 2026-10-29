@@ -1,6 +1,15 @@
 @extends('layouts.admin')
 @section('title', 'Fatwa History — ' . $question->question_id)
-@section('topbar-title', 'Fatwa History & Complete Lifecycle Timeline')
+@section('topbar-title', 'Fatwa History & Audit Trail')
+@section('topbar-icon', 'bi-clock-history')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <a href="{{ route('admin.questions.index') }}">Questions</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">Audit History</span>
+@endsection
 @section('content')
 
 @push('styles')

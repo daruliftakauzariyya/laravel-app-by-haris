@@ -1,6 +1,15 @@
 @extends('layouts.admin')
 @section('title', 'Import Old / Published Fatwas')
 @section('topbar-title', 'Add & Import Old Published Fatwa')
+@section('topbar-icon', 'bi-file-earmark-plus-fill')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <a href="{{ route('admin.questions.index') }}">Questions</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">Import Old Fatwa</span>
+@endsection
 
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">

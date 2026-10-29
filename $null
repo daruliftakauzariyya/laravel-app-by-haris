@@ -1,0 +1,8 @@
+Get-CimInstance : Access to a CIM resource was not available to the client.
+At line:1 char:2
++ (Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToString("yyyy ...
++  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Get-CimInstance], CimException
+    + FullyQualifiedErrorId : Microsoft.Management.Infrastructure.CimException,Microsoft.Management.Infrastructure.Cim 
+   Cmdlets.GetCimInstanceCommand
+ 

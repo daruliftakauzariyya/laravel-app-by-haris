@@ -1,6 +1,13 @@
 @extends('layouts.admin')
 @section('title', 'Madhab Management')
 @section('topbar-title', 'Madhab & Jurisprudence Schools')
+@section('topbar-icon', 'bi-book-fill')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">Madhabs</span>
+@endsection
 
 @section('content')
 <style>

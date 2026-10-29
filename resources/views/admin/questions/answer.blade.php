@@ -1,6 +1,15 @@
 @extends('layouts.admin')
 @section('title', 'Write Answer')
 @section('topbar-title', 'Write Answer on Behalf of Mufti')
+@section('topbar-icon', 'bi-pencil-square')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <a href="{{ route('admin.questions.index') }}">Questions</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">Draft Answer</span>
+@endsection
 @section('content')
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">

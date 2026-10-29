@@ -1,15 +1,28 @@
 @extends('layouts.admin')
 @section('title', 'System Settings')
-@section('topbar-title', 'System Control Panel')
+@section('topbar-title', 'System Settings & Control')
+@section('topbar-icon', 'bi-gear-fill')
+
+@section('breadcrumbs')
+    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+    <span class="text-dark fw-semibold">Settings</span>
+@endsection
+
 @section('content')
 
 <div class="container-fluid p-0">
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 15px;">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-gear-wide-connected me-2 text-brand"></i>Institutional Configuration</h5>
-                    <p class="text-muted small mb-0">Manage global system behavior, lunar calendar alignments, and public display preferences.</p>
+            <div class="modern-card p-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-inline-flex p-3 rounded-3" style="background: #EFF6FF; color: #2563EB;">
+                        <i class="bi bi-gear-wide-connected fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold text-dark">Institutional Configuration</h5>
+                        <p class="text-muted small mb-0">Manage global system behavior, lunar calendar alignments, and public display preferences.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -18,11 +31,13 @@
     <div class="row g-4">
         {{-- Moon Sighting & Hijri Manager --}}
         <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-moon-stars me-2 text-success"></i>Moon Sighting & Hijri Manager</h6>
+            <div class="modern-card h-100 overflow-hidden">
+                <div class="p-3.5 px-4 bg-white border-bottom">
+                    <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-moon-stars text-success"></i> Moon Sighting &amp; Hijri Manager
+                    </h6>
                 </div>
-                <div class="card-body">
+                <div class="p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <div>
                             <p class="text-muted small mb-1">Current Calculated Date (Adjusted):</p>
