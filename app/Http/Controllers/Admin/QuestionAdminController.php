@@ -39,15 +39,38 @@ class QuestionAdminController extends Controller
             $query->where('madhab_id', $request->madhab_id);
         }
         if ($request->filled('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('question_id', 'like', '%' . $request->search . '%')
-                  ->orWhere('body', 'like', '%' . $request->search . '%');
+            $term = trim($request->search);
+            $query->where(function ($q) use ($term) {
+                $q->where('question_id', 'like', '%' . $term . '%')
+                  ->orWhere('title', 'like', '%' . $term . '%')
+                  ->orWhere('body', 'like', '%' . $term . '%')
+                  ->orWhereHas('user', function ($u) use ($term) {
+                      $u->where('name', 'like', '%' . $term . '%')
+                        ->orWhere('email', 'like', '%' . $term . '%');
+                  });
             });
+        }
+
+        if ($request->filled('assigned_to')) {
+            $query->where('assigned_to', $request->assigned_to);
         }
 
         $questions = $query->paginate(20)->withQueryString();
         $muftis    = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->get();
-        return view('admin.questions.index', compact('questions', 'muftis'));
+
+        $statusCounts = QuestionAndAnswer::selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $summaryStats = [
+            'total'        => QuestionAndAnswer::count(),
+            'published'    => (int) $statusCounts->get('published', 0),
+            'pending'      => (int) $statusCounts->get('pending', 0),
+            'under_review' => (int) $statusCounts->get('under_review', 0),
+            'rejected'     => (int) $statusCounts->get('rejected', 0),
+        ];
+
+        return view('admin.questions.index', compact('questions', 'muftis', 'summaryStats'));
     }
 
     public function show(QuestionAndAnswer $question)

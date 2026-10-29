@@ -187,3 +187,29 @@ Route::post('/auth/login', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $request) => $request->user());
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| System Health API Endpoints
+|--------------------------------------------------------------------------
+*/
+Route::prefix('system-health')->name('api.system_health.')->group(function () {
+    Route::post('/auth/request-otp', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'requestOtp'])->name('request_otp');
+    Route::post('/auth/verify-otp', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'verifyOtp'])->name('verify_otp');
+    Route::post('/auth/logout', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'logout'])->name('logout');
+
+    Route::middleware('system_health.auth')->group(function () {
+        Route::get('/overview', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'overview'])->name('overview');
+        Route::get('/server', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'server'])->name('server');
+        Route::get('/php', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'phpRuntime'])->name('php');
+        Route::get('/laravel', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'laravel'])->name('laravel');
+        Route::get('/database', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'database'])->name('database');
+        Route::get('/resources', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'resources'])->name('resources');
+        Route::get('/api-metrics', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'apiMetrics'])->name('api_metrics');
+        Route::get('/recent-requests', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'recentRequests'])->name('recent_requests');
+        Route::get('/errors', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'errors'])->name('errors');
+        Route::get('/security', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'security'])->name('security');
+        Route::post('/synthetic-ping', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'runSyntheticPing'])->name('synthetic_ping');
+    });
+});

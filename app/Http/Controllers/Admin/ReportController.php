@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\QuestionAndAnswer;
-use App\Models\User;
 use App\Models\Category;
 use App\Models\Madhab;
+use App\Models\QuestionAndAnswer;
+use App\Models\User;
+use App\Services\ReportingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,140 +15,61 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
+    protected ReportingService $reportingService;
+
+    public function __construct(ReportingService $reportingService)
+    {
+        $this->reportingService = $reportingService;
+    }
+
     /**
      * Display the comprehensive reporting and analytics center.
      */
     public function index(Request $request)
     {
         $activeTab = $request->input('tab', 'overview');
-        $dateRange = $request->input('date_range', 'all');
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
         $selectedMadhab = $request->input('madhab_id');
         $selectedCategory = $request->input('category_id');
         $selectedMufti = $request->input('mufti_id');
 
-        // 1. Build Base Date Filter Query
-        $baseQuery = QuestionAndAnswer::query();
+        $filters = array_filter([
+            'madhab_id'   => $selectedMadhab,
+            'category_id' => $selectedCategory,
+            'mufti_id'    => $selectedMufti,
+        ]);
 
-        // Apply Date Range
-        if ($dateRange === 'today') {
-            $baseQuery->whereDate('created_at', Carbon::today());
-        } elseif ($dateRange === 'this_week') {
-            $baseQuery->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-        } elseif ($dateRange === 'this_month') {
-            $baseQuery->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
-        } elseif ($dateRange === 'last_30_days') {
-            $baseQuery->where('created_at', '>=', Carbon::now()->subDays(30));
-        } elseif ($dateRange === 'this_year') {
-            $baseQuery->whereYear('created_at', Carbon::now()->year);
-        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
-            $baseQuery->whereBetween('created_at', [
-                Carbon::parse($startDate)->startOfDay(),
-                Carbon::parse($endDate)->endOfDay()
-            ]);
+        // 1. Resolve Active Date Boundaries & Comparison Periods
+        $rangeData = $this->reportingService->resolveDateRange($request);
+        $dateRange = $rangeData['date_range'];
+        $startDate = $rangeData['start_date'];
+        $endDate = $rangeData['end_date'];
+        $periodLabel = $rangeData['label'];
+
+        // 2. Executive Key Metrics
+        $metrics = $this->reportingService->getSummaryMetrics($rangeData, $filters);
+
+        // 3. Status Distribution Breakdown (Cohort of submitted inquiries)
+        $statusDistribution = $this->reportingService->getStatusDistribution($rangeData, $filters);
+        $statusBreakdown = $statusDistribution['categories'];
+
+        // 4. Mufti / Scholar Performance Matrix
+        $muftis = $this->reportingService->getMuftiPerformanceMatrix($rangeData, $filters);
+
+        // 5. Public Visitor Analytics & Trends
+        $visitorAnalytics = $this->reportingService->getVisitorAnalytics($rangeData);
+
+        // 6. Lifecycle Trends (Daily or Monthly depending on horizon)
+        $lifecycleTrends = $this->reportingService->getLifecycleTrends($rangeData);
+
+        // 7. Jurisprudence & Madhab Distribution
+        $start = $rangeData['start'];
+        $end = $rangeData['end'];
+
+        $madhabAggQuery = QuestionAndAnswer::query();
+        if ($start && $end) {
+            $madhabAggQuery->whereBetween('created_at', [$start, $end]);
         }
-
-        // Apply Optional Dimensional Filters
-        if ($selectedMadhab) {
-            $baseQuery->where('madhab_id', $selectedMadhab);
-        }
-        if ($selectedCategory) {
-            $baseQuery->where('category_id', $selectedCategory);
-        }
-        if ($selectedMufti) {
-            $baseQuery->where('assigned_mufti_id', $selectedMufti);
-        }
-
-        // 2. Executive Key Metrics (Single fast aggregate query)
-        $metrics = (clone $baseQuery)
-            ->selectRaw("
-                count(*) as total_questions,
-                sum(case when status = 'published' then 1 else 0 end) as published_fatwas,
-                sum(case when status = 'pending' then 1 else 0 end) as pending_questions,
-                sum(case when status in ('accepted', 'assigned', 'answered') then 1 else 0 end) as in_progress_questions,
-                sum(case when status = 'rejected' then 1 else 0 end) as rejected_questions,
-                sum(case when status = 'published' then coalesce(views, 0) else 0 end) as total_views,
-                sum(case when status = 'published' then coalesce(likes, 0) else 0 end) as total_likes
-            ")
-            ->first();
-
-        $totalQuestions = (int) ($metrics->total_questions ?? 0);
-        $publishedFatwas = (int) ($metrics->published_fatwas ?? 0);
-        $pendingQuestions = (int) ($metrics->pending_questions ?? 0);
-        $inProgressQuestions = (int) ($metrics->in_progress_questions ?? 0);
-        $rejectedQuestions = (int) ($metrics->rejected_questions ?? 0);
-        $totalViews = (int) ($metrics->total_views ?? 0);
-        $totalLikes = (int) ($metrics->total_likes ?? 0);
-
-        $activeMuftisCount = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->where('is_active', true)->count();
-        $registeredQuestionersCount = User::whereHas('role', fn($q) => $q->where('name', 'questioner'))->count();
-
-        // Publication Success Rate (%)
-        $publishRate = $totalQuestions > 0 ? round(($publishedFatwas / $totalQuestions) * 100, 1) : 0;
-
-        // 3. Variant 1: Lifecycle & Monthly Timeline Trend
-        $monthlyTrend = QuestionAndAnswer::selectRaw("DATE_FORMAT(created_at, '%b %Y') as month_year, DATE_FORMAT(created_at, '%Y-%m') as sort_key, count(*) as total, sum(case when status = 'published' then 1 else 0 end) as published")
-            ->where('created_at', '>=', Carbon::now()->subMonths(11)->startOfMonth())
-            ->groupBy('month_year', 'sort_key')
-            ->orderBy('sort_key', 'asc')
-            ->get();
-
-        // Status Breakdown for Chart/Cards
-        $statusBreakdown = [
-            ['label' => 'Published', 'count' => $publishedFatwas, 'color' => '#16a34a', 'bg' => '#ecfdf5', 'icon' => 'bi-journal-check'],
-            ['label' => 'Pending Review', 'count' => $pendingQuestions, 'color' => '#d97706', 'bg' => '#fffbeb', 'icon' => 'bi-clock-history'],
-            ['label' => 'In Progress / Answered', 'count' => $inProgressQuestions, 'color' => '#2563eb', 'bg' => '#eff6ff', 'icon' => 'bi-chat-dots'],
-            ['label' => 'Rejected', 'count' => $rejectedQuestions, 'color' => '#dc2626', 'bg' => '#fef2f2', 'icon' => 'bi-x-circle'],
-        ];
-
-        // 4. Variant 2: Mufti Performance & Workload Matrix (Optimized GROUP BY - no N+1 queries)
-        $muftiStatsQuery = QuestionAndAnswer::query();
-        if ($dateRange === 'today') {
-            $muftiStatsQuery->whereDate('created_at', Carbon::today());
-        } elseif ($dateRange === 'this_month') {
-            $muftiStatsQuery->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
-        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
-            $muftiStatsQuery->whereBetween('created_at', [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()]);
-        }
-
-        $muftiAggregates = $muftiStatsQuery
-            ->whereNotNull('assigned_mufti_id')
-            ->selectRaw("
-                assigned_mufti_id,
-                count(*) as stat_assigned,
-                sum(case when answer is not null and answer != '' then 1 else 0 end) as stat_answered,
-                sum(case when status = 'published' then 1 else 0 end) as stat_published,
-                sum(case when status = 'published' then coalesce(views, 0) else 0 end) as stat_views,
-                sum(case when status = 'published' then coalesce(likes, 0) else 0 end) as stat_likes
-            ")
-            ->groupBy('assigned_mufti_id')
-            ->get()
-            ->keyBy('assigned_mufti_id');
-
-        $muftis = User::whereHas('role', fn($q) => $q->where('name', 'mufti'))
-            ->with('madhab')
-            ->get()
-            ->map(function ($m) use ($muftiAggregates) {
-                $agg = $muftiAggregates->get($m->id);
-                $assigned = (int) ($agg->stat_assigned ?? 0);
-                $answered = (int) ($agg->stat_answered ?? 0);
-                $published = (int) ($agg->stat_published ?? 0);
-                $views = (int) ($agg->stat_views ?? 0);
-                $likes = (int) ($agg->stat_likes ?? 0);
-
-                $m->stat_assigned = $assigned;
-                $m->stat_answered = $answered;
-                $m->stat_published = $published;
-                $m->stat_views = $views;
-                $m->stat_likes = $likes;
-                $m->completion_rate = $assigned > 0 ? round(($published / $assigned) * 100, 1) : ($published > 0 ? 100 : 0);
-
-                return $m;
-            })->sortByDesc('stat_published');
-
-        // 5. Variant 3: Madhab & Islamic Jurisprudence Distribution (Single aggregate query)
-        $madhabAggregates = (clone $baseQuery)
+        $madhabAggregates = $madhabAggQuery
             ->whereNotNull('madhab_id')
             ->selectRaw("
                 madhab_id,
@@ -161,17 +83,21 @@ class ReportController extends Controller
 
         $madhabStats = Madhab::all()->map(function ($md) use ($madhabAggregates) {
             $agg = $madhabAggregates->get($md->id);
-            return (object)[
-                'id' => $md->id,
-                'name' => $md->name,
-                'total' => (int) ($agg->total ?? 0),
+            return (object) [
+                'id'        => $md->id,
+                'name'      => $md->name,
+                'total'     => (int) ($agg->total ?? 0),
                 'published' => (int) ($agg->published ?? 0),
-                'views' => (int) ($agg->views ?? 0),
+                'views'     => (int) ($agg->views ?? 0),
             ];
         });
 
-        // 6. Variant 4: Category & Topic Popularity (Direct fast aggregate)
-        $topCatCounts = (clone $baseQuery)
+        // 8. Top Categories & Inquiry Topics
+        $catAggQuery = QuestionAndAnswer::query();
+        if ($start && $end) {
+            $catAggQuery->whereBetween('created_at', [$start, $end]);
+        }
+        $topCatCounts = $catAggQuery
             ->whereNotNull('category_id')
             ->selectRaw('category_id, count(*) as questions_count')
             ->groupBy('category_id')
@@ -184,15 +110,22 @@ class ReportController extends Controller
             return $cat;
         })->sortByDesc('questions_count')->values();
 
-        // Top 10 Most Read Published Fatwas
-        $topFatwas = QuestionAndAnswer::where('status', 'published')
-            ->with(['category', 'madhab', 'assignedMufti'])
-            ->orderByDesc('views')
-            ->limit(10)
-            ->get();
+        // Top 10 Most-Read Published Fatwas
+        $topFatwas = $visitorAnalytics['top_fatwas'];
+        if (empty($topFatwas)) {
+            $topFatwas = QuestionAndAnswer::where('status', 'published')
+                ->with(['category', 'madhab', 'assignedMufti'])
+                ->orderByDesc('views')
+                ->limit(10)
+                ->get();
+        }
 
-        // 7. Variant 5: Demographics, Language & Geography
-        $languageStats = (clone $baseQuery)
+        // 9. Demographics, Geography & Language
+        $langQuery = QuestionAndAnswer::query();
+        if ($start && $end) {
+            $langQuery->whereBetween('created_at', [$start, $end]);
+        }
+        $languageStats = $langQuery
             ->select('language', DB::raw('count(*) as count'))
             ->groupBy('language')
             ->orderByDesc('count')
@@ -221,22 +154,17 @@ class ReportController extends Controller
             'dateRange',
             'startDate',
             'endDate',
+            'periodLabel',
+            'rangeData',
             'selectedMadhab',
             'selectedCategory',
             'selectedMufti',
-            'totalQuestions',
-            'publishedFatwas',
-            'pendingQuestions',
-            'inProgressQuestions',
-            'rejectedQuestions',
-            'totalViews',
-            'totalLikes',
-            'activeMuftisCount',
-            'registeredQuestionersCount',
-            'publishRate',
-            'monthlyTrend',
+            'metrics',
             'statusBreakdown',
+            'statusDistribution',
             'muftis',
+            'visitorAnalytics',
+            'lifecycleTrends',
             'madhabStats',
             'categoryStats',
             'topFatwas',
@@ -250,34 +178,87 @@ class ReportController extends Controller
     }
 
     /**
-     * Export report data as a structured CSV spreadsheet.
+     * Download comprehensive, printer-ready PDF report for selected reporting period.
      */
-    public function export(Request $request)
+    public function downloadPdf(Request $request)
     {
-        $dateRange = $request->input('date_range', 'all');
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
         $selectedMadhab = $request->input('madhab_id');
         $selectedCategory = $request->input('category_id');
         $selectedMufti = $request->input('mufti_id');
 
+        $filters = array_filter([
+            'madhab_id'   => $selectedMadhab,
+            'category_id' => $selectedCategory,
+            'mufti_id'    => $selectedMufti,
+        ]);
+
+        $rangeData = $this->reportingService->resolveDateRange($request);
+        $periodLabel = $rangeData['label'];
+        $startDate = $rangeData['start_date'] ?? 'all';
+        $endDate = $rangeData['end_date'] ?? 'time';
+
+        // Filename reflecting selected reporting period
+        $fileName = 'darul-ifta-report-' . ($startDate ?: 'all') . '-to-' . ($endDate ?: 'present') . '.pdf';
+
+        $metrics = $this->reportingService->getSummaryMetrics($rangeData, $filters);
+        $statusDistribution = $this->reportingService->getStatusDistribution($rangeData, $filters);
+        $muftis = $this->reportingService->getMuftiPerformanceMatrix($rangeData, $filters);
+        $visitorAnalytics = $this->reportingService->getVisitorAnalytics($rangeData);
+        $lifecycleTrends = $this->reportingService->getLifecycleTrends($rangeData);
+
+        $allMadhabs = Madhab::all();
+        $allCategories = Category::whereNull('parent_id')->get();
+
+        return view('admin.reports.pdf', compact(
+            'rangeData',
+            'periodLabel',
+            'fileName',
+            'metrics',
+            'statusDistribution',
+            'muftis',
+            'visitorAnalytics',
+            'lifecycleTrends',
+            'allMadhabs',
+            'allCategories',
+            'filters'
+        ));
+    }
+
+    /**
+     * Export report data as a structured CSV spreadsheet with formula injection defense.
+     */
+    public function export(Request $request)
+    {
+        $selectedMadhab = $request->input('madhab_id');
+        $selectedCategory = $request->input('category_id');
+        $selectedMufti = $request->input('mufti_id');
+
+        $filters = array_filter([
+            'madhab_id'   => $selectedMadhab,
+            'category_id' => $selectedCategory,
+            'mufti_id'    => $selectedMufti,
+        ]);
+
+        $rangeData = $this->reportingService->resolveDateRange($request);
+        $start = $rangeData['start'];
+        $end = $rangeData['end'];
+
         $query = QuestionAndAnswer::with(['user', 'assignedMufti', 'category', 'madhab']);
 
-        if ($dateRange === 'today') {
-            $query->whereDate('created_at', Carbon::today());
-        } elseif ($dateRange === 'this_week') {
-            $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-        } elseif ($dateRange === 'this_month') {
-            $query->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
-        } elseif ($dateRange === 'last_30_days') {
-            $query->where('created_at', '>=', Carbon::now()->subDays(30));
-        } elseif ($dateRange === 'this_year') {
-            $query->whereYear('created_at', Carbon::now()->year);
-        } elseif ($dateRange === 'custom' && $startDate && $endDate) {
-            $query->whereBetween('created_at', [
-                Carbon::parse($startDate)->startOfDay(),
-                Carbon::parse($endDate)->endOfDay()
-            ]);
+        if ($start && $end) {
+            $query->where(function ($q) use ($start, $end) {
+                // Questions submitted in period OR published in period
+                $q->whereBetween('created_at', [$start, $end])
+                  ->orWhere(function ($pubQ) use ($start, $end) {
+                      $pubQ->where('status', 'published')
+                           ->where(function ($sq) use ($start, $end) {
+                               $sq->whereBetween('published_at', [$start, $end])
+                                  ->orWhere(function ($nsq) use ($start, $end) {
+                                      $nsq->whereNull('published_at')->whereBetween('updated_at', [$start, $end]);
+                                  });
+                           });
+                  });
+            });
         }
 
         if ($selectedMadhab) $query->where('madhab_id', $selectedMadhab);
@@ -285,11 +266,11 @@ class ReportController extends Controller
         if ($selectedMufti) $query->where('assigned_mufti_id', $selectedMufti);
 
         $records = $query->orderByDesc('id')->get();
-        $fileName = 'darul_ifta_report_' . Carbon::now()->format('Y-m-d_H-i') . '.csv';
+        $fileName = 'darul_ifta_report_' . ($rangeData['start_date'] ?? 'all') . '_to_' . ($rangeData['end_date'] ?? 'present') . '.csv';
 
         $response = new StreamedResponse(function () use ($records) {
             $handle = fopen('php://output', 'w');
-            // Add UTF-8 BOM for Excel compatibility
+            // Add UTF-8 BOM for Excel / multilingual compatibility
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
 
             // CSV Headers
@@ -303,6 +284,7 @@ class ReportController extends Controller
                 'Assigned Mufti',
                 'Language',
                 'Status',
+                'Is Public',
                 'Views',
                 'Likes',
                 'Submission Date',
@@ -311,19 +293,20 @@ class ReportController extends Controller
 
             foreach ($records as $row) {
                 fputcsv($handle, [
-                    $row->question_id,
-                    $row->title ?: strip_tags(substr($row->body, 0, 100)),
-                    $row->user?->name ?? 'Guest/Anonymous',
-                    $row->user?->email ?? '—',
-                    $row->category?->name ?? 'Uncategorized',
-                    $row->madhab?->name ?? 'General',
-                    $row->assignedMufti?->name ?? 'Unassigned',
-                    $row->language ?? 'English',
-                    ucfirst($row->status),
+                    $this->sanitizeCsvField($row->question_id),
+                    $this->sanitizeCsvField($row->title ?: strip_tags(substr($row->body, 0, 100))),
+                    $this->sanitizeCsvField($row->user?->name ?? 'Guest/Anonymous'),
+                    $this->sanitizeCsvField($row->user?->email ?? '—'),
+                    $this->sanitizeCsvField($row->category?->name ?? 'Uncategorized'),
+                    $this->sanitizeCsvField($row->madhab?->name ?? 'General'),
+                    $this->sanitizeCsvField($row->assignedMufti?->name ?? 'Unassigned'),
+                    $this->sanitizeCsvField($row->language ?? 'English'),
+                    $this->sanitizeCsvField(ucfirst($row->status)),
+                    $row->is_public ? 'Yes' : 'No',
                     $row->views ?? 0,
                     $row->likes ?? 0,
                     $row->created_at ? $row->created_at->format('Y-m-d H:i') : '—',
-                    $row->published_at ? Carbon::parse($row->published_at)->format('Y-m-d H:i') : '—',
+                    $row->published_at ? Carbon::parse($row->published_at)->format('Y-m-d H:i') : ($row->status === 'published' && $row->updated_at ? $row->updated_at->format('Y-m-d H:i') : '—'),
                 ]);
             }
             fclose($handle);
@@ -333,5 +316,20 @@ class ReportController extends Controller
         $response->headers->set('Content-Disposition', 'attachment; filename="' . $fileName . '"');
 
         return $response;
+    }
+
+    /**
+     * Prevent CSV formula injection by prepending single quote if field starts with formula character.
+     */
+    protected function sanitizeCsvField(?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+        $first = substr($value, 0, 1);
+        if (in_array($first, ['=', '+', '-', '@', "\t", "\r"])) {
+            return "'" . $value;
+        }
+        return $value;
     }
 }

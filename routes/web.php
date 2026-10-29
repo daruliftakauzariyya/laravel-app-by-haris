@@ -74,6 +74,12 @@ Route::match(['get', 'post'], '/user-heartbeat', function (\Illuminate\Http\Requ
         \App\Models\User::where('id', auth()->id())->update([
             'last_seen_at' => now(),
         ]);
+        try {
+            $activeSession = \App\Models\UserLoginLog::where('user_id', auth()->id())->where('is_active', true)->latest('id')->first();
+            if ($activeSession) {
+                $activeSession->recordHeartbeat();
+            }
+        } catch (\Throwable $e) {}
         return response()->json(['status' => 'ok', 'online' => true, 'time' => now()->toIso8601String()]);
     }
     return response()->json(['status' => 'guest', 'online' => true]);
@@ -212,6 +218,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Reports & Analytics Center
     Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
+    Route::get('/reports/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'downloadPdf'])->name('reports.pdf');
 
     // Questioner Management
     Route::get('/questioners', [\App\Http\Controllers\Admin\QuestionerController::class, 'index'])->name('questioners.index');
@@ -266,4 +273,33 @@ Route::middleware(['auth', 'role:mufti|admin'])->prefix('mufti')->name('mufti.')
     // New History & Communication Gateway for Muftis
     Route::get('/questions/{question}/history', [QuestionAdminController::class, 'history'])->name('questions.history');
     Route::post('/questions/{question}/history/comment', [QuestionAdminController::class, 'addHistoryComment'])->name('questions.history.comment');
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| System Health & Diagnostics Portal (Developer Only, OTP Protected)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('system-health')->name('system_health.')->group(function () {
+    // Public Access & OTP Verification Gate
+    Route::get('/', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'index'])->name('index');
+    Route::post('/auth/request-otp', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'requestOtp'])->name('request_otp');
+    Route::post('/auth/verify-otp', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'verifyOtp'])->name('verify_otp');
+    Route::match(['GET', 'POST'], '/auth/logout', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'logout'])->name('logout');
+
+    // Authenticated Diagnostic Data Endpoints
+    Route::middleware('system_health.auth')->prefix('api')->name('api.')->group(function () {
+        Route::get('/overview', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'overview'])->name('overview');
+        Route::get('/server', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'server'])->name('server');
+        Route::get('/php', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'phpRuntime'])->name('php');
+        Route::get('/laravel', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'laravel'])->name('laravel');
+        Route::get('/database', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'database'])->name('database');
+        Route::get('/resources', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'resources'])->name('resources');
+        Route::get('/api-metrics', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'apiMetrics'])->name('api_metrics');
+        Route::get('/recent-requests', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'recentRequests'])->name('recent_requests');
+        Route::get('/errors', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'errors'])->name('errors');
+        Route::get('/security', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'security'])->name('security');
+        Route::post('/synthetic-ping', [\App\Http\Controllers\SystemHealth\SystemHealthPortalController::class, 'runSyntheticPing'])->name('synthetic_ping');
+    });
 });

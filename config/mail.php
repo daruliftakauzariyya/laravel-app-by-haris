@@ -79,10 +79,21 @@ return [
             'transport' => 'array',
         ],
 
+        'gmail' => [
+            'transport' => 'smtp',
+            'host' => env('GMAIL_MAIL_HOST', 'smtp.gmail.com'),
+            'port' => (int) env('GMAIL_MAIL_PORT', 587),
+            'encryption' => env('GMAIL_MAIL_ENCRYPTION', 'tls'),
+            'username' => env('GMAIL_MAIL_USERNAME', 'darulifta.kauzariyya@gmail.com'),
+            'password' => env('GMAIL_MAIL_PASSWORD', 'gmic zjdd rwhv bqqg'),
+            'timeout' => 15,
+        ],
+
         'failover' => [
             'transport' => 'failover',
             'mailers' => [
                 'smtp',
+                'gmail',
                 'log',
             ],
             'retry_after' => 60,

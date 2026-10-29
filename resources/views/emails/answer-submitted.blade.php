@@ -3,40 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mufti Answer Submitted</title>
+    <title>Mufti Answer Submitted – {{ $answer->question_id ?? ($answer->question->question_id ?? '') }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;600;700&family=Noto+Serif+Malayalam:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,.08); border: 1px solid #e2e8f0; }
+        .container { max-width: 620px; margin: 0 auto; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,.08); border: 1px solid #e2e8f0; }
         .header { background: linear-gradient(135deg, #fd7e14, #e8610a); color: #fff; padding: 25px 30px; }
         .header h2 { margin: 0; font-size: 1.3rem; font-family: 'Plus Jakarta Sans', 'Noto Sans', sans-serif; }
         .body { padding: 25px 30px; line-height: 1.7; color: #333; }
+        .badge { display: inline-block; background: #c9a84c; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: .85rem; font-weight: 600; }
         .btn { display: inline-block; background: #1a7a4a; color: #fff !important; padding: 12px 26px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 15px; font-family: 'Plus Jakarta Sans', 'Noto Sans', sans-serif; box-shadow: 0 3px 8px rgba(26,122,74,0.25); }
         .footer { background: #f8fafc; padding: 18px 30px; font-size: .8rem; color: #888; text-align: center; border-top: 1px solid #eee; }
-        .font-malayalam { font-family: 'Noto Serif Malayalam', 'Gayathri', 'Manjari', 'Noto Sans', serif !important; line-height: 1.65; }
-        .font-arabic { font-family: 'Noto Naskh Arabic', 'Amiri', serif !important; direction: rtl; text-align: right; line-height: 1.9; }
-        .font-urdu { font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif !important; direction: rtl; text-align: right; line-height: 2.1; }
+        .content-box { background: #f8fafc; padding: 18px 20px; border-radius: 8px; border-left: 4px solid #fd7e14; font-size: 0.96rem; color: #1f2937; line-height: 1.75; font-family: 'Noto Serif Malayalam', 'Noto Naskh Arabic', 'Amiri', 'Noto Sans', 'Segoe UI', sans-serif; word-break: break-word; margin: 10px 0 20px 0; }
+        .content-box p { margin: 0 0 12px 0; line-height: 1.75; }
+        .content-box p:last-child { margin-bottom: 0; }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="header"><h2>📝 Mufti Answer Submitted</h2></div>
+    <div class="header">
+        <h2>📝 Mufti Answer Submitted</h2>
+        <p style="margin:.3rem 0 0;opacity:.85;font-size:.9rem;">Darul Ifta Kauzariyya Portal</p>
+    </div>
     <div class="body">
         <p>A Mufti has submitted an answer for review.</p>
-        <p><strong>Question ID:</strong> {{ $answer->question_id ?? ($answer->question->question_id ?? '') }}</p>
-        <p><strong>Mufti:</strong> {{ $answer->assignedMufti?->name ?? ($answer->mufti?->name ?? 'Mufti') }}</p>
+        <p><strong>Question ID:</strong> <span class="badge">{{ $answer->question_id ?? ($answer->question->question_id ?? '') }}</span></p>
+        <p><strong>Mufti:</strong> {{ $answer->assignedMufti?->name ?? ($answer->mufti?->name ?? 'Scholar') }}</p>
+        @if(!empty($answer->title))
+            <p><strong>Title:</strong> <span dir="auto">{{ $answer->title }}</span></p>
+        @endif
         @php
-            $summaryText = $answer->title ?? ($answer->summary ?? '');
-            $sumClass = '';
-            if (preg_match('/[\x{0D00}-\x{0D7F}]/u', $summaryText)) {
-                $sumClass = 'font-malayalam';
-            } elseif (preg_match('/[\x{0600}-\x{06FF}]/u', $summaryText)) {
-                $sumClass = 'font-arabic';
-            }
+            $answerContent = $answer->answer ?? ($answer->summary ?? '');
         @endphp
-        <p><strong>Summary:</strong> <span class="{{ $sumClass }}">{{ $summaryText }}</span></p>
+        @if(!empty($answerContent))
+            <p style="margin-top: 18px; margin-bottom: 6px;"><strong>Answer Summary:</strong></p>
+            <div class="content-box">
+                @safeEmailHtml($answerContent)
+            </div>
+        @endif
         @php
             $livePortalUrl = 'https://daruliftakauzariyya.com';
             $appUrl = config('app.url');

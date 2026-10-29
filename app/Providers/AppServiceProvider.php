@@ -39,6 +39,15 @@ class AppServiceProvider extends ServiceProvider
             return "<?php echo \App\Models\Status::getLabel($expression); ?>";
         });
 
+        // Global Blade Directives for Safe Email Content
+        \Illuminate\Support\Facades\Blade::directive('safeEmailHtml', function ($expression) {
+            return "<?php echo \App\Services\Mail\EmailContentSanitizer::sanitize($expression); ?>";
+        });
+
+        \Illuminate\Support\Facades\Blade::directive('emailPlainText', function ($expression) {
+            return "<?php echo \App\Services\Mail\EmailContentSanitizer::toPlainText($expression); ?>";
+        });
+
         // Automatically record user logins across web, OTP, and OAuth
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
             if (isset($event->user) && $event->user instanceof \App\Models\User) {

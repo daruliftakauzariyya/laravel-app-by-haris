@@ -1,5 +1,9 @@
 <?php
 
+if (file_exists(__DIR__ . '/../vendor/predis/predis/autoload.php')) {
+    require_once __DIR__ . '/../vendor/predis/predis/autoload.php';
+}
+
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,14 +22,20 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\JsonLdMiddleware::class,
         ]);
 
+        // Register API telemetry middleware
+        $middleware->api(append: [
+            \App\Http\Middleware\RecordApiTelemetry::class,
+        ]);
+
         $middleware->validateCsrfTokens(except: [
             'user-heartbeat',
         ]);
 
         // Register alias middleware
         $middleware->alias([
-            'profile.completed' => \App\Http\Middleware\ProfileCompleted::class,
-            'role'              => \App\Http\Middleware\RoleMiddleware::class,
+            'profile.completed'  => \App\Http\Middleware\ProfileCompleted::class,
+            'role'               => \App\Http\Middleware\RoleMiddleware::class,
+            'system_health.auth' => \App\Http\Middleware\EnsureDiagnosticAuthenticated::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

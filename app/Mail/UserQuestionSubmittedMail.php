@@ -22,6 +22,9 @@ class UserQuestionSubmittedMail extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.user-question-submitted');
+        return new Content(
+            view: 'emails.user-question-submitted',
+            text: 'emails.user-question-submitted-text'
+        );
     }
 }

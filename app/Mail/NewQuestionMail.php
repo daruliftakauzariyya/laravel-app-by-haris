@@ -22,6 +22,9 @@ class NewQuestionMail extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.new-question');
+        return new Content(
+            view: 'emails.new-question',
+            text: 'emails.new-question-text'
+        );
     }
 }

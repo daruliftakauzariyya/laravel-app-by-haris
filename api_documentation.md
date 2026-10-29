@@ -8,7 +8,7 @@ This documentation outlines the RESTful API endpoints for the Darul Ifta mobile 
 
 | Aspect | Value |
 | :--- | :--- |
-| **Base URL** | `https://your-domain.com/api` |
+| **Base URL** | `https://daruliftakauzariyya.com//api` |
 | **Response Format** | `application/json` |
 | **Authentication** | Bearer Token (Laravel Sanctum) |
 

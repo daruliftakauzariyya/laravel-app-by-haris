@@ -22,6 +22,9 @@ class QuestionAssignedMail extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.question-assigned');
+        return new Content(
+            view: 'emails.question-assigned',
+            text: 'emails.question-assigned-text'
+        );
     }
 }

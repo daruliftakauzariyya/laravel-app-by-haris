@@ -22,6 +22,9 @@ class AnswerSubmittedMail extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.answer-submitted');
+        return new Content(
+            view: 'emails.answer-submitted',
+            text: 'emails.answer-submitted-text'
+        );
     }
 }

@@ -8,7 +8,6 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-SZG3N3VKYE');
     </script>
     <!-- Google Tag Manager -->
@@ -31,11 +30,13 @@
             y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
         })(window, document, "clarity", "script", "ycju085szi");
     </script>
-    <title>@yield('title', 'Admin') — Darul Ifta Admin</title>
+    <title>@yield('title', 'Admin') — Darul Ifta Admin Console</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;600;700&family=Noto+Serif+Malayalam:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;600;700&family=Noto+Serif+Malayalam:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/app-fonts.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/variables.css') }}">
@@ -45,106 +46,456 @@
 
     {{-- PWA Meta --}}
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#052961ff">
+    <meta name="theme-color" content="#102B43">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="{{ asset('assets/logo/fevi.png') }}">
 
     <style>
         :root {
-            --sidebar-w: 240px;
+            --sidebar-w: 260px;
+            --brand-navy-dark: #102B43;
+            --brand-navy-active: #0D2338;
+            --workspace-bg: #F4F7FB;
+            --card-border: #E2E8F0;
+            --primary-blue: #2563EB;
+            --primary-blue-hover: #1D4ED8;
+            --text-heading: #172033;
+            --text-sub: #64748B;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: #f4f6f9;
-            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--workspace-bg);
+            color: var(--text-heading);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
 
+        /* ── Modern Sidebar ── */
         .sidebar {
             width: var(--sidebar-w);
             min-height: 100vh;
-            background: var(--brand-blue-dark);
+            background: var(--brand-navy-dark);
             position: fixed;
             top: 0;
             left: 0;
             z-index: 1060;
             overflow-y: auto;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.3s ease;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
         }
 
-        .sidebar-brand {
-            padding: 1.25rem 1rem;
-            background: rgba(0, 0, 0, .15);
-            border-bottom: 5px solid var(--brand-gold);
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
         }
 
-        .sidebar-brand h6 {
-            color: #fff;
+        .sidebar-brand-box {
+            padding: 1.4rem 1.25rem 1.2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+        }
+
+        .sidebar-brand-box::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 1.25rem;
+            width: 50px;
+            height: 2px;
+            background: #EAB308;
+            border-radius: 2px;
+        }
+
+        .sidebar-section-title {
+            padding: 1.25rem 1.25rem 0.4rem;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            color: #829ab1;
+            letter-spacing: 1.2px;
             font-weight: 700;
-            font-size: 1rem;
-            margin: 0;
         }
 
-        .sidebar-brand span {
-            color: var(--brand-gold);
+        .sidebar-nav {
+            padding: 0.5rem 0.65rem 2rem;
         }
 
         .sidebar-nav .nav-link {
-            color: rgba(255, 255, 255, .7);
-            padding: .7rem 1.25rem;
+            color: rgba(255, 255, 255, 0.72);
+            padding: 0.62rem 0.9rem;
             display: flex;
             align-items: center;
-            gap: .6rem;
-            font-size: .88rem;
-            border-left: 4px solid transparent;
-            transition: var(--transition-base);
+            gap: 0.75rem;
+            font-size: 0.88rem;
+            font-weight: 500;
+            border-radius: 10px;
+            margin-bottom: 2px;
+            transition: all 0.15s ease-in-out;
+            text-decoration: none;
+            position: relative;
         }
 
-        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
         .sidebar-nav .nav-link.active {
-            color: #fff;
-            background: rgba(255, 255, 255, .05);
-            border-left-color: var(--brand-gold);
+            color: #ffffff;
+            background: rgba(37, 99, 235, 0.18);
+            font-weight: 600;
         }
 
         .sidebar-nav .nav-link i {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             width: 22px;
-            opacity: 0.8;
+            text-align: center;
+            opacity: 0.85;
+            color: #94A3B8;
         }
 
-        .sidebar-section {
-            padding: 1.2rem 1.25rem .3rem;
-            font-size: .65rem;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, .45);
-            letter-spacing: 1.5px;
-            font-weight: 700;
+        .sidebar-nav .nav-link:hover i,
+        .sidebar-nav .nav-link.active i {
+            color: #ffffff;
+            opacity: 1;
         }
 
+        /* Submenu Styling */
+        .sidebar-submenu {
+            padding-left: 0.5rem;
+            margin: 2px 0 6px;
+        }
+
+        .sidebar-submenu .nav-link {
+            padding: 0.5rem 0.85rem 0.5rem 2.4rem;
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .sidebar-submenu .nav-link i {
+            font-size: 0.95rem;
+            width: 18px;
+            opacity: 0.7;
+        }
+
+        .sidebar-submenu .nav-link:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .sidebar-submenu .nav-link.active {
+            color: #10B981 !important;
+            background: rgba(16, 185, 129, 0.1) !important;
+            font-weight: 600;
+        }
+
+        .sidebar-submenu .nav-link.active i {
+            color: #10B981 !important;
+        }
+
+        .sidebar-submenu .nav-link.active::before {
+            content: '●';
+            color: #10B981;
+            font-size: 0.75rem;
+            position: absolute;
+            left: 1.15rem;
+        }
+
+        .collapse-caret {
+            transition: transform 0.2s ease;
+            margin-left: auto;
+            font-size: 0.75rem !important;
+            opacity: 0.6;
+        }
+
+        .nav-link[aria-expanded="true"] .collapse-caret {
+            transform: rotate(180deg);
+        }
+
+        /* ── Main Content Container ── */
         .main-content {
             margin-left: var(--sidebar-w);
-            padding: 0;
-            transition: margin-left 0.3s ease;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .topbar {
-            background: #fff;
-            border-bottom: 1px solid #e5e7eb;
-            padding: .75rem 1.5rem;
+        /* ── Modern Topbar Header ── */
+        .modern-topbar {
+            background: #ffffff;
+            border-bottom: 1px solid var(--card-border);
+            padding: 0.85rem 1.85rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
         }
 
-        /* Sidebar Responsive Logic */
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+        }
+
+        .header-page-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: #ECFDF5;
+            color: #059669;
+            border: 1px solid #D1FAE5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .header-title-text h4 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0;
+            color: #0F172A;
+            line-height: 1.2;
+        }
+
+        .header-breadcrumbs {
+            font-size: 0.78rem;
+            color: var(--text-sub);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-breadcrumbs a {
+            color: var(--text-sub);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .header-breadcrumbs a:hover {
+            color: var(--primary-blue);
+        }
+
+        /* Information Pills in Header */
+        .header-pill-capsule {
+            background: #ffffff;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: #1E293B;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            white-space: nowrap;
+        }
+
+        .header-pill-capsule i {
+            color: var(--primary-blue);
+            font-size: 0.95rem;
+        }
+
+        /* ── Workspace Page Content ── */
+        .page-content-wrapper {
+            padding: 1.75rem 1.85rem;
+            flex-grow: 1;
+        }
+
+        /* ── Modern Cards & Panels ── */
+        .modern-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            margin-bottom: 1.5rem;
+        }
+
+        /* ── Metric Summary Tiles (Reference Design) ── */
+        .metric-card-tile {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1.15rem 1.25rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            position: relative;
+        }
+
+        .metric-card-tile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .metric-icon-square {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .metric-val-num {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #0F172A;
+            line-height: 1.1;
+            margin: 0;
+        }
+
+        .metric-label-txt {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-sub);
+            margin-top: 3px;
+        }
+
+        .metric-trend-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        /* ── Modern Action Buttons ── */
+        .btn-modern-primary {
+            background-color: var(--primary-blue);
+            color: #ffffff !important;
+            border: 1px solid var(--primary-blue);
+            border-radius: 10px;
+            padding: 0.45rem 1.15rem;
+            font-weight: 600;
+            font-size: 0.88rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(37, 99, 235, 0.18);
+        }
+
+        .btn-modern-primary:hover {
+            background-color: var(--primary-blue-hover);
+            border-color: var(--primary-blue-hover);
+            box-shadow: 0 3px 8px rgba(37, 99, 235, 0.28);
+        }
+
+        .btn-modern-secondary {
+            background-color: #ffffff;
+            color: #475569 !important;
+            border: 1px solid #CBD5E1;
+            border-radius: 10px;
+            padding: 0.45rem 1rem;
+            font-weight: 600;
+            font-size: 0.88rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-modern-secondary:hover {
+            background-color: #F8FAFC;
+            color: #1E293B !important;
+            border-color: #94A3B8;
+        }
+
+        /* ── Modern Controls ── */
+        .modern-input,
+        .modern-select {
+            border: 1px solid #CBD5E1;
+            border-radius: 10px;
+            padding: 0.48rem 0.85rem;
+            font-size: 0.86rem;
+            color: #1E293B;
+            background-color: #ffffff;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .modern-input:focus,
+        .modern-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+            outline: none;
+        }
+
+        /* ── Clean Data Tables ── */
+        .modern-table {
+            width: 100%;
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .modern-table thead th {
+            background: #F8FAFC;
+            color: #64748B;
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #E2E8F0;
+            border-top: none;
+            white-space: nowrap;
+        }
+
+        .modern-table tbody td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #F1F5F9;
+            color: #1E293B;
+            font-size: 0.86rem;
+            vertical-align: middle;
+            background: #ffffff;
+            transition: background 0.12s;
+        }
+
+        .modern-table tbody tr:hover td {
+            background: #F8FAFC;
+        }
+
+        .modern-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Monogram Avatar */
+        .avatar-monogram {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.82rem;
+            flex-shrink: 0;
+        }
+
+        /* Multilingual typography */
+        .font-malayalam { font-family: 'Noto Serif Malayalam', 'Gayathri', serif !important; }
+        .font-arabic { font-family: 'Noto Naskh Arabic', 'Amiri', serif !important; direction: rtl; }
+        .font-urdu { font-family: 'Noto Nastaliq Urdu', serif !important; direction: rtl; }
+
+        /* Mobile responsiveness */
         @media (max-width: 991px) {
             :root {
                 --sidebar-w: 260px;
@@ -172,7 +523,8 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0, 0, 0, 0.5);
+                background: rgba(15, 23, 42, 0.6);
+                backdrop-filter: blur(2px);
                 z-index: 1050;
                 display: none;
             }
@@ -181,161 +533,13 @@
                 display: block;
             }
 
-            .topbar {
+            .modern-topbar {
                 padding: 0.75rem 1rem;
             }
-        }
 
-        .page-content {
-            padding: 1.5rem;
-        }
-
-        .stat-card {
-            border-radius: .75rem;
-            padding: 1.25rem 1.5rem;
-            color: #fff;
-        }
-
-        .arabic-text {
-            font-family: 'Noto Naskh Arabic', 'Amiri', serif;
-            font-size: 1.2rem;
-            direction: rtl;
-            text-align: right;
-        }
-
-        .badge-status-pending {
-            background: #ffc107;
-            color: #000;
-        }
-
-        .badge-status-accepted {
-            background: #6f42c1;
-            color: #fff;
-        }
-
-        .badge-status-assigned {
-            background: #0dcaf0;
-            color: #000;
-        }
-
-        .badge-status-answered {
-            background: #0d6efd;
-            color: #fff;
-        }
-
-        .badge-status-published {
-            background: var(--brand-blue);
-            color: #fff;
-        }
-
-        .badge-status-rejected {
-            background: #dc3545;
-            color: #fff;
-        }
-
-        .badge-status-under_review {
-            background: #fd7e14;
-            color: #fff;
-        }
-
-        .badge-status-drafted {
-            background: #20c997;
-            color: #fff;
-        }
-
-        .admin-header-box {
-            background: #f8fafc;
-            padding: 5px 15px;
-            border-radius: 8px;
-            border: 1px solid #eef2f7;
-            display: flex;
-            align-items: center;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
-        }
-
-        @media print {
-
-            .sidebar,
-            .topbar,
-            .btn,
-            .no-print,
-            .modal,
-            .alert {
-                display: none !important;
+            .page-content-wrapper {
+                padding: 1rem;
             }
-
-            .main-content {
-                margin-left: 0 !important;
-                padding: 0 !important;
-                width: 100% !important;
-            }
-
-            body {
-                background: #fff !important;
-            }
-
-            .page-content {
-                padding: 0 !important;
-            }
-
-            .card {
-                border: none !important;
-                box-shadow: none !important;
-                margin-bottom: 2rem !important;
-            }
-
-            .card-header {
-                background: #f8f9fa !important;
-                color: #000 !important;
-                border-bottom: 2px solid #eee !important;
-            }
-        }
-        .hover-bg-light:hover {
-            background-color: #f1f5f9;
-        }
-        .btn-xs {
-            padding: 2px 8px;
-            font-size: 0.7rem;
-        }
-        
-        /* Submenu styling for premium look */
-        .submenu-nav {
-            background: rgba(0, 0, 0, 0.15);
-            padding-left: 0;
-            list-style: none;
-            border-left: 3px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .submenu-nav .nav-link {
-            padding: 0.55rem 1.25rem 0.55rem 2.5rem !important;
-            font-size: 0.82rem !important;
-            border-left: none !important;
-            color: rgba(255, 255, 255, 0.6) !important;
-        }
-
-        .submenu-nav .nav-link i {
-            font-size: 0.95rem !important;
-            width: 18px !important;
-            opacity: 0.6;
-        }
-
-        .submenu-nav .nav-link:hover,
-        .submenu-nav .nav-link.active {
-            color: var(--brand-gold) !important;
-            background: rgba(255, 255, 255, 0.02) !important;
-        }
-
-        .submenu-nav .nav-link.active i {
-            color: var(--brand-gold) !important;
-            opacity: 0.9;
-        }
-
-        .collapse-icon {
-            transition: transform 0.2s ease;
-        }
-
-        .nav-link[aria-expanded="true"] .collapse-icon {
-            transform: rotate(180deg);
         }
     </style>
     <!-- Cropper.js -->
@@ -349,172 +553,218 @@
             style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
 
-    {{-- Sidebar --}}
-    <div class="sidebar">
-        <div class="sidebar-brand text-center">
-            <a href="{{ route('home') }}">
-                <img src="{{ asset('assets/logo/logoblueNew.svg') }}" class="mb-2"
-                    style="max-height: 45px; filter: brightness(0) invert(1);">
+    {{-- Left Navy Sidebar --}}
+    <aside class="sidebar">
+        {{-- Branding --}}
+        <div class="sidebar-brand-box">
+            <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center gap-2.5 text-decoration-none">
+                <img src="{{ asset('assets/logo/fevi.png') }}" alt="Darul Ifta Logo" width="38" height="38" class="rounded-circle shadow-xs flex-shrink-0">
+                <div class="overflow-hidden">
+                    <div class="d-flex align-items-center gap-1.5">
+                        <span class="text-white fw-bold" style="letter-spacing: 0.5px; font-size: 0.95rem;">DARUL IFTA</span>
+                        <span class="text-white opacity-70" style="font-family: 'Amiri', serif; font-size: 0.95rem;">دار الإفتاء</span>
+                    </div>
+                    <div class="text-white opacity-50" style="font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        The Center for Islamic Research & Guidance
+                    </div>
+                </div>
             </a>
-            <h6 class="mb-0 text-white opacity-75 small">Admin Console</h6>
+            <div class="d-flex align-items-center justify-content-between mt-2 pt-1">
+                <span class="text-white small fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.3px;">Admin Console</span>
+            </div>
         </div>
-        <nav class="sidebar-nav mt-3">
-            <div class="sidebar-section">Main</div>
+
+        {{-- Navigation Menu --}}
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-title">MAIN</div>
             <a href="{{ route('admin.dashboard') }}"
                 class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                <i class="bi bi-speedometer2"></i> Dashboard
+                <i class="bi bi-grid-fill"></i>
+                <span>Dashboard</span>
             </a>
 
-            <div class="sidebar-section">Questions</div>
+            <div class="sidebar-section-title">QUESTIONS</div>
+            @php
+                $isQuestionsActive = request()->routeIs('admin.questions*') || request()->routeIs('admin.fatwas*');
+                $currentStatus = request('status');
+            @endphp
             <a href="#questionsSubmenu" 
                data-bs-toggle="collapse" 
                role="button" 
-               aria-expanded="{{ request()->routeIs('admin.questions.index') ? 'true' : 'false' }}" 
+               aria-expanded="{{ $isQuestionsActive ? 'true' : 'false' }}" 
                aria-controls="questionsSubmenu" 
-               class="nav-link d-flex align-items-center justify-content-between {{ request()->routeIs('admin.questions.index') ? 'active' : '' }}">
-                <span class="d-flex align-items-center gap-2">
-                    <i class="bi bi-question-circle"></i> Questions
-                </span>
-                <i class="bi bi-chevron-down small collapse-icon"></i>
+               class="nav-link {{ $isQuestionsActive ? 'active' : '' }}">
+                <i class="bi bi-question-circle-fill"></i>
+                <span>Questions</span>
+                <i class="bi bi-chevron-down collapse-caret"></i>
             </a>
-            <div class="collapse {{ request()->routeIs('admin.questions.index') ? 'show' : '' }}" id="questionsSubmenu">
-                <div class="submenu-nav d-flex flex-column">
+            <div class="collapse {{ $isQuestionsActive ? 'show' : '' }}" id="questionsSubmenu">
+                <div class="sidebar-submenu d-flex flex-column">
                     <a href="{{ route('admin.questions.index') }}"
-                        class="nav-link {{ request()->routeIs('admin.questions.index') && !request('status') ? 'active' : '' }}">
-                        <i class="bi bi-question-circle"></i> All Questions
+                        class="nav-link {{ request()->routeIs('admin.questions.index') && !$currentStatus ? 'active' : '' }}">
+                        <i class="bi bi-journals"></i> All Questions
                     </a>
                     <a href="{{ route('admin.questions.index', ['status' => 'pending']) }}" 
-                        class="nav-link {{ request('status') == 'pending' ? 'active' : '' }}">
+                        class="nav-link {{ $currentStatus === 'pending' ? 'active' : '' }}">
                         <i class="bi bi-clock-history"></i> Pending (For Review)
                     </a>
                     <a href="{{ route('admin.questions.index', ['status' => 'accepted']) }}" 
-                        class="nav-link {{ request('status') == 'accepted' ? 'active' : '' }}">
+                        class="nav-link {{ $currentStatus === 'accepted' ? 'active' : '' }}">
                         <i class="bi bi-check2-circle"></i> Accepted
                     </a>
                     <a href="{{ route('admin.questions.index', ['status' => 'assigned']) }}" 
-                        class="nav-link {{ request('status') == 'assigned' ? 'active' : '' }}">
+                        class="nav-link {{ $currentStatus === 'assigned' ? 'active' : '' }}">
                         <i class="bi bi-person-check"></i> Assigned to Mufti
                     </a>
                     <a href="{{ route('admin.questions.index', ['status' => 'drafted']) }}" 
-                        class="nav-link {{ request('status') == 'drafted' ? 'active' : '' }}">
+                        class="nav-link {{ $currentStatus === 'drafted' ? 'active' : '' }}">
                         <i class="bi bi-pencil-square"></i> Mufti Drafted
                     </a>
                     <a href="{{ route('admin.questions.index', ['status' => 'answered']) }}" 
-                        class="nav-link {{ request('status') == 'answered' ? 'active' : '' }}">
+                        class="nav-link {{ $currentStatus === 'answered' ? 'active' : '' }}">
                         <i class="bi bi-chat-check"></i> Answered by Mufti
                     </a>
                     <a href="{{ route('admin.questions.index', ['status' => 'under_review']) }}" 
-                        class="nav-link {{ request('status') == 'under_review' ? 'active' : '' }}">
+                        class="nav-link {{ $currentStatus === 'under_review' ? 'active' : '' }}">
                         <i class="bi bi-arrow-repeat"></i> Under Review (Returned)
                     </a>
                     <a href="{{ route('admin.questions.index', ['status' => 'published']) }}" 
-                        class="nav-link {{ request('status') == 'published' ? 'active' : '' }}">
+                        class="nav-link {{ $currentStatus === 'published' ? 'active' : '' }}">
                         <i class="bi bi-journal-check"></i> Published to Public
                     </a>
                     <a href="{{ route('admin.questions.index', ['status' => 'rejected']) }}" 
-                        class="nav-link {{ request('status') == 'rejected' ? 'active' : '' }}">
+                        class="nav-link {{ $currentStatus === 'rejected' ? 'active' : '' }}">
                         <i class="bi bi-x-circle"></i> Rejected
                     </a>
                     <a href="{{ route('admin.fatwas.import-old') }}" 
                         class="nav-link {{ request()->routeIs('admin.fatwas.import-old') ? 'active' : '' }}">
-                        <i class="bi bi-cloud-arrow-up-fill text-warning"></i> <strong>+ Import Old Fatwa</strong>
+                        <i class="bi bi-cloud-arrow-up text-warning"></i> Import Old Fatwa
                     </a>
                 </div>
             </div>
 
-            <div class="sidebar-section">Intelligence & Reports</div>
+            <div class="sidebar-section-title">INTELLIGENCE & REPORTS</div>
             <a href="{{ route('admin.reports.index') }}"
                 class="nav-link {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
-                <i class="bi bi-file-earmark-bar-graph"></i> Reports & Analytics
+                <i class="bi bi-bar-chart-line-fill"></i>
+                <span>Reports & Analytics</span>
             </a>
 
-            <div class="sidebar-section">Settings</div>
+            <div class="sidebar-section-title">SETTINGS</div>
             <a href="{{ route('admin.muftis.index') }}"
                 class="nav-link {{ request()->routeIs('admin.muftis*') ? 'active' : '' }}">
-                <i class="bi bi-person-badge"></i> Mufti Management
+                <i class="bi bi-person-badge-fill"></i>
+                <span>Mufti Management</span>
             </a>
             <a href="{{ route('admin.categories.index') }}"
                 class="nav-link {{ request()->routeIs('admin.categories*') ? 'active' : '' }}">
-                <i class="bi bi-tags"></i> Categories
+                <i class="bi bi-tags-fill"></i>
+                <span>Categories</span>
             </a>
             <a href="{{ route('admin.madhabs.index') }}"
                 class="nav-link {{ request()->routeIs('admin.madhabs*') ? 'active' : '' }}">
-                <i class="bi bi-book"></i> Madhab
+                <i class="bi bi-book-fill"></i>
+                <span>Madhab</span>
             </a>
             <a href="{{ route('admin.questioners.index') }}"
                 class="nav-link {{ request()->routeIs('admin.questioners*') ? 'active' : '' }}">
-                <i class="bi bi-people"></i> Questioners
+                <i class="bi bi-people-fill"></i>
+                <span>Questioners</span>
             </a>
             <a href="{{ route('admin.featured-rules.index') }}"
                 class="nav-link {{ request()->routeIs('admin.featured-rules*') ? 'active' : '' }}">
-                <i class="bi bi-stars"></i> Featured Fatwas
+                <i class="bi bi-stars"></i>
+                <span>Featured Fatwas</span>
             </a>
-            <div class="sidebar-section">System Control</div>
+
+            <div class="sidebar-section-title">SYSTEM CONTROL</div>
             <a href="{{ route('admin.visitor.insights') }}"
                 class="nav-link {{ request()->routeIs('admin.visitor.insights') ? 'active' : '' }}">
-                <i class="bi bi-globe-americas"></i> Visitor Insights
+                <i class="bi bi-globe-americas"></i>
+                <span>Visitor Insights</span>
             </a>
             <a href="{{ route('admin.settings.system') }}"
                 class="nav-link {{ request()->routeIs('admin.settings.system') ? 'active' : '' }}">
-                <i class="bi bi-gear-wide-connected"></i> System Settings
+                <i class="bi bi-gear-fill"></i>
+                <span>System Settings</span>
             </a>
             <a href="{{ route('admin.mail-management.index') }}"
                 class="nav-link {{ request()->routeIs('admin.mail-management*') ? 'active' : '' }}">
-                <i class="bi bi-envelope-check"></i> Mailing Management
+                <i class="bi bi-envelope-paper-fill"></i>
+                <span>Mailing Management</span>
             </a>
-            <div class="mt-4 px-3">
+            <a href="/system-health" target="_blank"
+                class="nav-link">
+                <i class="bi bi-shield-check text-info"></i>
+                <span>System Health & Portal</span>
+            </a>
+
+            <div class="mt-4 px-2">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button class="btn btn-sm btn-outline-light w-100 py-2 border-opacity-25 hover-gold"><i
-                            class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                    <button class="btn btn-sm btn-outline-light w-100 py-2 border-opacity-20 d-flex align-items-center justify-content-center gap-2" style="border-radius: 10px;">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Logout</span>
+                    </button>
                 </form>
             </div>
         </nav>
-    </div>
+    </aside>
 
-    {{-- Sidebar Overlay for Mobile --}}
+    {{-- Mobile Overlay --}}
     <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-    {{-- Main Content --}}
+    {{-- Main Workspace Area --}}
     <div class="main-content">
-        {{-- Topbar --}}
-        <div class="topbar">
-            <div class="d-flex align-items-center gap-2">
-                {{-- Mobile Toggle --}}
-                <button class="btn btn-brand d-lg-none" onclick="toggleSidebar()">
-                    <i class="bi bi-list"></i>
+        {{-- Modern Topbar --}}
+        <header class="modern-topbar">
+            {{-- Left Title & Breadcrumbs --}}
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm btn-light border d-lg-none" onclick="toggleSidebar()" aria-label="Toggle Navigation">
+                    <i class="bi bi-list fs-5"></i>
                 </button>
-                <h6 class="mb-0 fw-bold d-none d-lg-block" style="color: var(--brand-blue);">
-                    @yield('topbar-title', 'Dashboard')</h6>
-
-                {{-- Digital Clock & Enhanced Date Display --}}
-                <div class="d-none d-md-flex align-items-center gap-2 ms-lg-3 border-start ps-lg-3">
-                    {{-- Clock Box --}}
-                    <div class="admin-header-box">
-                        <i class="bi bi-clock text-brand-dark me-2 small"></i>
-                        <span id="admin-live-clock" class="fw-bold text-dark"
-                            style="font-family: 'Inter', monospace; font-size: 0.9rem;">00:00:00</span>
-                        <span class="text-muted small ms-1" style="font-size: 0.7rem;">IST</span>
+                <div class="header-title-box">
+                    <div class="header-page-icon">
+                        <i class="bi @yield('topbar-icon', 'bi-file-earmark-text-fill')"></i>
                     </div>
-
-                    {{-- Date Box (Gregorian + Hijri) --}}
-                    <div class="admin-header-box px-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-calendar3 text-brand-dark me-2 small"></i>
-                                <span class="fw-semibold text-dark small">{{ date('d M, Y') }}</span>
-                            </div>
-                            <div class="vr mx-1" style="height: 15px; opacity: 0.2;"></div>
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-moon-stars text-gold me-2 small"></i>
-                                <span
-                                    class="fw-semibold text-brand small">{{ \App\Helpers\HijriHelper::now('j F Y') }}</span>
-                            </div>
+                    <div class="header-title-text">
+                        <h4>@yield('topbar-title', 'Question Management')</h4>
+                        <div class="header-breadcrumbs">
+                            @sectionMissing('breadcrumbs')
+                                <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+                                <i class="bi bi-chevron-right" style="font-size: 0.65rem;"></i>
+                                <span class="text-dark fw-semibold">@yield('topbar-title', 'Overview')</span>
+                            @else
+                                @yield('breadcrumbs')
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
 
+            {{-- Center Information Pills (Reference Design) --}}
+            <div class="d-none d-xl-flex align-items-center gap-2.5">
+                {{-- Live Clock --}}
+                <div class="header-pill-capsule">
+                    <i class="bi bi-clock"></i>
+                    <span id="admin-live-clock" class="fw-bold" style="font-family: 'Inter', monospace; font-size: 0.88rem;">00:00:00</span>
+                    <span class="text-muted small" style="font-size: 0.72rem;">IST</span>
+                </div>
+
+                {{-- Gregorian Date --}}
+                <div class="header-pill-capsule">
+                    <i class="bi bi-calendar3"></i>
+                    <span class="fw-semibold">{{ date('d M, Y') }}</span>
+                </div>
+
+                {{-- Hijri Date --}}
+                <div class="header-pill-capsule">
+                    <i class="bi bi-moon-stars" style="color: #D97706;"></i>
+                    <span class="fw-semibold" style="color: #92400E;">{{ \App\Helpers\HijriHelper::now('j F Y') }}</span>
+                </div>
+            </div>
+
+            {{-- Right Controls: Notifications & User Badge --}}
             <div class="d-flex align-items-center gap-3">
                 @php
                     $pendingAvatarUsers = \App\Models\User::whereHas('role', fn($q) => $q->where('name', 'mufti'))->get()->filter(function($u) {
@@ -523,93 +773,122 @@
                     $pendingAvatarCount = $pendingAvatarUsers->count();
                 @endphp
 
-                <div class="dropdown me-2 no-print">
-                    <button class="btn btn-link text-dark position-relative p-1 text-decoration-none" type="button" id="avatarNotifications" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bell-fill fs-5"></i>
+                {{-- Notifications Bell --}}
+                <div class="dropdown no-print">
+                    <button class="btn btn-light rounded-circle border p-2 position-relative text-secondary" type="button" id="avatarNotifications" data-bs-toggle="dropdown" aria-expanded="false" style="width: 38px; height: 38px;">
+                        <i class="bi bi-bell"></i>
                         @if($pendingAvatarCount > 0)
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" style="font-size: 0.65rem;">
                                 {{ $pendingAvatarCount }}
                             </span>
                         @endif
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" aria-labelledby="avatarNotifications" style="width: 320px; border-radius: 12px; margin-top: 8px;">
-                        <li class="px-2 py-1 border-bottom">
-                            <span class="small fw-bold text-muted">Avatar Approval Requests</span>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2 mt-2" aria-labelledby="avatarNotifications" style="width: 320px; border-radius: 14px;">
+                        <li class="px-3 py-2 border-bottom d-flex align-items-center justify-content-between">
+                            <span class="small fw-bold text-dark">Notifications</span>
+                            @if($pendingAvatarCount > 0)
+                                <span class="badge bg-danger rounded-pill">{{ $pendingAvatarCount }} Pending</span>
+                            @endif
                         </li>
                         @forelse($pendingAvatarUsers as $u)
-                            <li class="my-2 p-2 rounded hover-bg-light d-flex align-items-center justify-content-between">
+                            <li class="my-2 p-2 rounded d-flex align-items-center justify-content-between hover-bg-light">
                                 <div class="d-flex align-items-center gap-2">
-                                    <img src="{{ asset('storage/avatars/pending_' . $u->id . '.jpg') }}" class="rounded border" width="40" height="40" style="object-fit: cover;">
+                                    <img src="{{ asset('storage/avatars/pending_' . $u->id . '.jpg') }}" class="rounded border" width="36" height="36" style="object-fit: cover;">
                                     <div>
                                         <div class="small fw-bold text-dark">{{ $u->name }}</div>
-                                        <div class="x-small text-muted">{{ $u->email }}</div>
+                                        <div class="text-muted" style="font-size: 0.72rem;">Pending avatar approval</div>
                                     </div>
                                 </div>
-                                <button class="btn btn-xs btn-primary rounded-pill px-2 py-1" 
-                                        style="font-size: 0.7rem;"
+                                <button class="btn btn-xs btn-primary rounded-pill px-2.5 py-1" 
+                                        style="font-size: 0.72rem;"
                                         data-bs-toggle="modal" 
                                         data-bs-target="#verifyAvatarModal" 
                                         data-user-id="{{ $u->id }}"
                                         data-user-name="{{ $u->name }}"
-                                        data-current-avatar="{{ $u->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($u->name) . '&background=1a7a4a&color=fff&size=40' }}"
+                                        data-current-avatar="{{ $u->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($u->name) . '&background=102B43&color=fff&size=40' }}"
                                         data-pending-avatar="{{ asset('storage/avatars/pending_' . $u->id . '.jpg') }}">
-                                    Verify
+                                    Review
                                 </button>
                             </li>
                         @empty
                             <li class="text-center py-4 text-muted small">
-                                <i class="bi bi-shield-check fs-4 d-block mb-1 text-success"></i>
-                                No pending avatar approvals
+                                <i class="bi bi-bell-slash fs-4 d-block mb-1 text-slate-400"></i>
+                                No new notifications
                             </li>
                         @endforelse
                     </ul>
                 </div>
 
-                <div class="d-flex align-items-center gap-2">
-                    <small class="text-muted">{{ Auth::user()->name }}</small>
-                    <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=1a7a4a&color=fff&size=40' }}"
-                        class="rounded-circle" width="34" height="34">
+                {{-- User Avatar Pill (Reference Design) --}}
+                <div class="dropdown">
+                    <button class="btn btn-light border rounded-pill d-flex align-items-center gap-2 py-1 px-2.5 text-decoration-none shadow-xs" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=102B43&color=fff&size=36' }}"
+                            class="rounded-circle" width="30" height="30" style="object-fit: cover;">
+                        <div class="text-start d-none d-sm-block pe-1">
+                            <div class="fw-bold text-dark" style="font-size: 0.8rem; line-height: 1.1;">DARUL IFTA</div>
+                            <div class="text-muted" style="font-size: 0.68rem; line-height: 1;">Admin Console</div>
+                        </div>
+                        <i class="bi bi-chevron-down text-muted" style="font-size: 0.7rem;"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2 mt-2" style="border-radius: 12px; min-width: 200px;">
+                        <li class="px-3 py-2 border-bottom">
+                            <div class="fw-bold text-dark small">{{ Auth::user()->name }}</div>
+                            <div class="text-muted" style="font-size: 0.74rem;">{{ Auth::user()->email }}</div>
+                        </li>
+                        <li><a class="dropdown-menu-item dropdown-item small py-2 rounded mt-1" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                        <li><a class="dropdown-menu-item dropdown-item small py-2 rounded" href="/system-health" target="_blank"><i class="bi bi-shield-check text-info me-2"></i>System Health</a></li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="dropdown-item small py-2 rounded text-danger">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
             </div>
-        </div>
+        </header>
 
-        {{-- Flash --}}
-        <div class="px-3 pt-3">
+        {{-- Flash Alerts --}}
+        <div class="px-4 pt-3">
             @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show py-2" role="alert">
-                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert alert-success alert-dismissible fade show border-0 shadow-xs py-2.5 px-3 rounded-3" role="alert" style="background: #ECFDF5; color: #065F46; border-left: 4px solid #10B981 !important;">
+                    <i class="bi bi-check-circle-fill me-2 text-success"></i>{{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
             @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show py-2">
-                    <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-xs py-2.5 px-3 rounded-3" role="alert" style="background: #FEF2F2; color: #991B1B; border-left: 4px solid #EF4444 !important;">
+                    <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>{{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
         </div>
 
-        <div class="page-content">
-            {{-- Print Only Header --}}
+        {{-- Page Body Content --}}
+        <main class="page-content-wrapper">
+            {{-- Print Header --}}
             <div class="d-none d-print-block text-center mb-5 border-bottom pb-4">
-                <h1 class="fw-bold" style="color:#1a7a4a;">Darul Ifta Kauzariyya</h1>
+                <h1 class="fw-bold" style="color:#102B43;">Darul Ifta Kauzariyya</h1>
                 <p class="mb-1">Authentic Islamic Guidance - Administrative Record</p>
                 <p class="small text-muted mb-0">Confidential Fatwa Documentation</p>
             </div>
 
             @yield('content')
 
-            {{-- Admin Footer --}}
+            {{-- Footer --}}
             <footer class="mt-5 pt-4 pb-2 border-top d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 text-muted small no-print">
                 <div>
                     &copy; {{ date('Y') }} <strong>Darul Ifta Kauzariyya</strong>. All rights reserved.
                 </div>
                 <div>
                     <span>App created & developed by</span>
-                    <a href="https://www.harisim.site" target="_blank" rel="noopener noreferrer" class="fw-bold text-decoration-none ms-1 px-2 py-0.5 rounded" style="color: var(--brand-blue); background: rgba(5, 41, 97, 0.08); border: 1px solid rgba(5, 41, 97, 0.15);">MUFTI Haris I M</a>
+                    <a href="https://www.harisim.site" target="_blank" rel="noopener noreferrer" class="fw-bold text-decoration-none ms-1 px-2.5 py-1 rounded" style="color: var(--primary-blue); background: #EFF6FF; border: 1px solid #DBEAFE;">MUFTI Haris I M</a>
                 </div>
             </footer>
-        </div>
+        </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -643,38 +922,34 @@
             });
             clockElement.innerHTML = timeString;
         }
+        setInterval(updateAdminClock, 1000);
+        updateAdminClock();
+
         // Universal Single-Click Button Protection & Action Deactivation Engine
         document.addEventListener('DOMContentLoaded', function () {
-            // Listen to all form submissions across the Admin Panel
             document.addEventListener('submit', function (e) {
                 const form = e.target;
                 if (!form || form.tagName !== 'FORM') return;
 
-                // Check HTML5 Form Validity
                 if (form.checkValidity && !form.checkValidity()) {
-                    return; // Allow native validation tooltips to fire without disabling
+                    return;
                 }
 
-                // If form is already submitting, block duplicate submission
                 if (form.dataset.submitting === 'true') {
                     e.preventDefault();
                     e.stopPropagation();
                     return false;
                 }
 
-                // Mark form as submitting
                 form.dataset.submitting = 'true';
 
-                // Find all submit buttons associated with this form
                 const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"], .btn-submit-action');
                 submitButtons.forEach(btn => {
-                    // Disable button immediately
                     btn.disabled = true;
                     btn.classList.add('disabled');
                     btn.style.pointerEvents = 'none';
                     btn.style.opacity = '0.75';
 
-                    // Add processing spinner if not already present
                     if (!btn.querySelector('.spinner-border')) {
                         const originalHtml = btn.innerHTML;
                         btn.setAttribute('data-original-text', originalHtml);
@@ -682,7 +957,6 @@
                     }
                 });
 
-                // Safety timer: re-enable after 15 seconds in case of network timeout or error
                 setTimeout(() => {
                     form.dataset.submitting = 'false';
                     submitButtons.forEach(btn => {
@@ -697,19 +971,15 @@
                 }, 15000);
             }, true);
 
-            // Handle standalone action buttons that perform immediate requests
             document.addEventListener('click', function (e) {
                 const btn = e.target.closest('.btn-single-click, button[type="submit"]');
                 if (!btn) return;
 
-                // If button is inside a form, let form submit handler manage it
                 const form = btn.closest('form');
-                if (form) {
-                    if (form.dataset.submitting === 'true') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
-                    }
+                if (form && form.dataset.submitting === 'true') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
                 }
             });
         });
@@ -718,8 +988,8 @@
     {{-- Verify Avatar Modal --}}
     <div class="modal fade" id="verifyAvatarModal" tabindex="-1" aria-labelledby="verifyAvatarModalLabel" aria-hidden="true" style="z-index: 1100;">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
-                <div class="modal-header bg-light border-0 py-3" style="border-top-left-radius: 15px; border-top-right-radius: 15px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header bg-light border-0 py-3" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
                     <h6 class="modal-title fw-bold text-dark" id="verifyAvatarModalLabel">Verify Profile Picture</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

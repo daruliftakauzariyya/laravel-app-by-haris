@@ -22,6 +22,9 @@ class FatwaPublishedMail extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.fatwa-published');
+        return new Content(
+            view: 'emails.fatwa-published',
+            text: 'emails.fatwa-published-text'
+        );
     }
 }
